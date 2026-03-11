@@ -458,9 +458,18 @@ export default function AdminEventPage() {
           >
             ← Back to My Events
           </button>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {event?.name}
-          </h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+              {event?.name}
+            </h1>
+            {event?.deadline &&
+              new Date(event.deadline) <
+                new Date(new Date().toDateString()) && (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                  Expired
+                </span>
+              )}
+          </div>
           {event?.event_date && (
             <p className="text-sm text-zinc-400 mt-0.5">
               {new Date(event.event_date).toLocaleDateString('en-US', {
@@ -468,6 +477,27 @@ export default function AdminEventPage() {
                 month: 'long',
                 day: 'numeric',
               })}
+            </p>
+          )}
+          {event?.deadline && (
+            <p
+              className={`text-sm mt-0.5 font-medium ${
+                new Date(event.deadline) < new Date(new Date().toDateString())
+                  ? 'text-red-500'
+                  : 'text-amber-500 dark:text-amber-400'
+              }`}
+            >
+              Scoring deadline:{' '}
+              {new Date(event.deadline).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </p>
+          )}
+          {event?.description && (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl">
+              {event.description}
             </p>
           )}
         </div>

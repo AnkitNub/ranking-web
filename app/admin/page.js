@@ -6,9 +6,16 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
+function isExpired(deadline) {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date(new Date().toDateString());
+}
+
 function CreateEventModal({ onClose, onCreate }) {
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
+  const [deadline, setDeadline] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,7 +30,12 @@ function CreateEventModal({ onClose, onCreate }) {
     try {
       const res = await authFetch('/api/events', {
         method: 'POST',
-        body: JSON.stringify({ name: name.trim(), event_date: date || null }),
+        body: JSON.stringify({
+          name: name.trim(),
+          event_date: date || null,
+          description: description || null,
+          deadline: deadline || null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -66,6 +78,32 @@ function CreateEventModal({ onClose, onCreate }) {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Scoring Deadline
+            </label>
+            <input
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+            />
+            <p className="text-xs text-zinc-400 mt-1">
+              Judges cannot submit scores after this date.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="Optional details about this event…"
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition resize-none"
             />
           </div>
           {error && (
@@ -186,24 +224,52 @@ export default function AdminDashboard() {
             {events.map((event) => (
               <div
                 key={event.id}
-                className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 flex flex-col gap-3 hover:border-zinc-400 dark:hover:border-zinc-600 transition cursor-pointer group"
+                className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group ${
+                  isExpired(event.deadline)
+                    ? 'border-zinc-200 dark:border-zinc-800 opacity-75 hover:opacity-100'
+                    : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+                }`}
                 onClick={() => router.push(`/admin/events/${event.id}`)}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h2 className="font-semibold text-zinc-900 dark:text-zinc-50 truncate group-hover:text-zinc-700 dark:group-hover:text-zinc-200 transition">
-                      {event.name}
-                    </h2>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="font-semibold text-zinc-900 dark:text-zinc-50 truncate group-hover:text-zinc-700 dark:group-hover:text-zinc-200 transition">
+                        {event.name}
+                      </h2>
+                      {isExpired(event.deadline) && (
+                        <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 shrink-0">
+                          Expired
+                        </span>
+                      )}
+                    </div>
                     {event.event_date && (
                       <p className="text-xs text-zinc-400 mt-0.5">
                         {new Date(event.event_date).toLocaleDateString(
                           'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          },
+                          { year: 'numeric', month: 'short', day: 'numeric' },
                         )}
+                      </p>
+                    )}
+                    {event.deadline && (
+                      <p
+                        className={`text-xs mt-0.5 ${
+                          isExpired(event.deadline)
+                            ? 'text-red-400'
+                            : 'text-amber-500 dark:text-amber-400'
+                        }`}
+                      >
+                        Deadline:{' '}
+                        {new Date(event.deadline).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </p>
+                    )}
+                    {event.description && (
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2">
+                        {event.description}
                       </p>
                     )}
                   </div>

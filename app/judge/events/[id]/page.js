@@ -6,7 +6,12 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
-function ScoreRow({ participant, existingScore, eventId, onScored }) {
+function isExpired(deadline) {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date(new Date().toDateString());
+}
+
+function ScoreRow({ participant, existingScore, eventId, onScored, disabled }) {
   const [value, setValue] = useState(existingScore?.score ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -15,6 +20,7 @@ function ScoreRow({ participant, existingScore, eventId, onScored }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (disabled) return;
     if (value === '' || value === null) {
       setError('Enter a score.');
       return;
@@ -94,27 +100,33 @@ function ScoreRow({ participant, existingScore, eventId, onScored }) {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="1–10"
-              className="w-20 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-center text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+              disabled={disabled}
+              className="w-20 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-center text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           <button
             type="submit"
-            disabled={submitting || value === ''}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition whitespace-nowrap disabled:opacity-50 ${
-              isScored && isDirty
-                ? 'bg-amber-500 hover:bg-amber-600 text-white'
+            disabled={disabled || submitting || value === ''}
+            className={
+              'rounded-lg px-4 py-2 text-sm font-medium transition whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ' +
+              (isScored && isDirty
+                ? 'bg-amber-500 text-white'
                 : isScored
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200'
-            }`}
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900')
+            }
           >
-            {submitting
-              ? '…'
-              : isScored && isDirty
-                ? 'Update Score'
-                : isScored
-                  ? '✓ Scored'
-                  : 'Submit Score'}
+            {disabled
+              ? isScored
+                ? '✓ Scored'
+                : 'Closed'
+              : submitting
+                ? '…'
+                : isScored && isDirty
+                  ? 'Update Score'
+                  : isScored
+                    ? '✓ Scored'
+                    : 'Submit Score'}
           </button>
         </form>
       </div>
@@ -203,9 +215,16 @@ export default function JudgeScoringPage() {
           >
             ← Back to Events
           </button>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {event?.name}
-          </h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+              {event?.name}
+            </h1>
+            {isExpired(event?.deadline) && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                Expired
+              </span>
+            )}
+          </div>
           {event?.event_date && (
             <p className="text-sm text-zinc-400 mt-0.5">
               {new Date(event.event_date).toLocaleDateString('en-US', {
@@ -215,7 +234,36 @@ export default function JudgeScoringPage() {
               })}
             </p>
           )}
+          {event?.deadline && (
+            <p
+              className={`text-sm mt-0.5 font-medium ${
+                isExpired(event.deadline)
+                  ? 'text-red-500'
+                  : 'text-amber-500 dark:text-amber-400'
+              }`}
+            >
+              Scoring deadline:{' '}
+              {new Date(event.deadline).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </p>
+          )}
+          {event?.description && (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+              {event.description}
+            </p>
+          )}
         </div>
+
+        {/* Expired banner */}
+        {isExpired(event?.deadline) && (
+          <div className="mb-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 text-sm text-red-700 dark:text-red-400">
+            <strong>Voting closed.</strong> The scoring deadline for this event
+            has passed. Scores can no longer be submitted or updated.
+          </div>
+        )}
 
         {/* Progress bar */}
         {totalCount > 0 && (
@@ -260,6 +308,7 @@ export default function JudgeScoringPage() {
                 existingScore={myScores[p.id] ?? null}
                 eventId={id}
                 onScored={handleScored}
+                disabled={isExpired(event?.deadline)}
               />
             ))}
           </ul>

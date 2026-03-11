@@ -6,6 +6,11 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
+function isExpired(deadline) {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date(new Date().toDateString());
+}
+
 export default function JudgeDashboard() {
   const { firebaseUser, supabaseUser, loading } = useAuth();
   const router = useRouter();
@@ -67,47 +72,85 @@ export default function JudgeDashboard() {
           </div>
         ) : (
           <ul className="space-y-3">
-            {events.map((event) => (
-              <li key={event.id}>
-                <button
-                  onClick={() => router.push(`/judge/events/${event.id}`)}
-                  className="w-full text-left bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 px-5 py-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition group"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="font-semibold text-zinc-900 dark:text-zinc-50 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 transition">
-                        {event.name}
-                      </p>
-                      {event.event_date && (
-                        <p className="text-xs text-zinc-400 mt-0.5">
-                          {new Date(event.event_date).toLocaleDateString(
-                            'en-US',
-                            {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            },
+            {events.map((event) => {
+              const expired = isExpired(event.deadline);
+              return (
+                <li key={event.id}>
+                  <button
+                    onClick={() => router.push(`/judge/events/${event.id}`)}
+                    className={`w-full text-left bg-white dark:bg-zinc-900 rounded-xl border px-5 py-4 transition group ${
+                      expired
+                        ? 'border-zinc-200 dark:border-zinc-800 opacity-70 hover:opacity-100'
+                        : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-zinc-900 dark:text-zinc-50 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 transition truncate">
+                            {event.name}
+                          </p>
+                          {expired && (
+                            <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 shrink-0">
+                              Expired
+                            </span>
                           )}
-                        </p>
-                      )}
+                        </div>
+                        {event.event_date && (
+                          <p className="text-xs text-zinc-400 mt-0.5">
+                            {new Date(event.event_date).toLocaleDateString(
+                              'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              },
+                            )}
+                          </p>
+                        )}
+                        {event.deadline && (
+                          <p
+                            className={`text-xs mt-0.5 ${
+                              expired
+                                ? 'text-red-400'
+                                : 'text-amber-500 dark:text-amber-400'
+                            }`}
+                          >
+                            Deadline:{' '}
+                            {new Date(event.deadline).toLocaleDateString(
+                              'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              },
+                            )}
+                          </p>
+                        )}
+                        {event.description && (
+                          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-1">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+                      <svg
+                        className="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
                     </div>
-                    <svg
-                      className="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                </button>
-              </li>
-            ))}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>

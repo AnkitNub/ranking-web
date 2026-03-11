@@ -38,7 +38,7 @@ export async function POST(request) {
   if (user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { name, event_date } = await request.json();
+  const { name, event_date, description, deadline } = await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
 
@@ -47,6 +47,8 @@ export async function POST(request) {
     .insert({
       name: name.trim(),
       event_date: event_date || null,
+      description: description?.trim() || null,
+      deadline: deadline || null,
       admin_id: user.id,
     })
     .select()
