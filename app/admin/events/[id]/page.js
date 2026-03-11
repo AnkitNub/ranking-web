@@ -168,9 +168,9 @@ function JudgesTab({ eventId }) {
         setError(data.error || 'Failed to assign judge.');
         return;
       }
-      const judge = allJudges.find((j) => j.id === selectedJudgeId);
-      if (judge) setAssignedJudges((prev) => [...prev, judge]);
       setSelectedJudgeId('');
+      // Re-fetch to get the accurate, up-to-date assigned list from the DB
+      await fetchData();
     } finally {
       setAssigning(false);
     }
