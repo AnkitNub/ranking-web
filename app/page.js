@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -23,7 +23,7 @@ export default function Home() {
   }, [loading, firebaseUser, supabaseUser, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
       <span className="text-sm text-zinc-400">Loading…</span>
     </div>
   );

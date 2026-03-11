@@ -26,7 +26,7 @@ export default function Navbar() {
           active
             ? role === 'judge'
               ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
-              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50'
+              : 'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/60'
         }`}
       >
@@ -52,13 +52,7 @@ export default function Navbar() {
         {/* Logo + Nav */}
         <div className="flex items-center gap-5">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div
-              className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold ${
-                role === 'judge'
-                  ? 'bg-linear-to-br from-teal-500 to-teal-700'
-                  : 'bg-linear-to-br from-zinc-700 to-zinc-900 dark:from-zinc-300 dark:to-zinc-100'
-              }`}
-            >
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold bg-linear-to-br from-teal-500 to-teal-700">
               R
             </div>
             <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">
@@ -80,26 +74,14 @@ export default function Navbar() {
         {/* User info + Logout */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2.5">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${
-                role === 'judge'
-                  ? 'bg-linear-to-br from-teal-500 to-teal-700'
-                  : 'bg-linear-to-br from-zinc-600 to-zinc-800 dark:from-zinc-400 dark:to-zinc-200 dark:text-zinc-900'
-              }`}
-            >
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-linear-to-br from-teal-500 to-teal-700">
               {initials}
             </div>
             <div className="text-right">
               <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                 {displayName}
               </p>
-              <p
-                className={`text-xs capitalize leading-tight font-medium ${
-                  role === 'judge'
-                    ? 'text-teal-700 dark:text-teal-400'
-                    : 'text-zinc-400'
-                }`}
-              >
+              <p className="text-xs capitalize leading-tight font-medium text-teal-700 dark:text-teal-400">
                 {role ?? '…'}
               </p>
             </div>

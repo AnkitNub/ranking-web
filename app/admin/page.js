@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -68,7 +68,7 @@ function CreateEventModal({ onClose, onCreate }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Spring Championship 2026"
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
           <div>
@@ -79,7 +79,7 @@ function CreateEventModal({ onClose, onCreate }) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
           <div className="flex gap-3">
@@ -91,7 +91,7 @@ function CreateEventModal({ onClose, onCreate }) {
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
               <p className="text-xs text-zinc-400 mt-1">
                 Judges cannot submit scores after this date.
@@ -109,7 +109,7 @@ function CreateEventModal({ onClose, onCreate }) {
                 value={maxScore}
                 onChange={(e) => setMaxScore(e.target.value)}
                 placeholder="10"
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-center text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-center text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
               <p className="text-xs text-zinc-400 mt-1">Per judge</p>
             </div>
@@ -123,7 +123,7 @@ function CreateEventModal({ onClose, onCreate }) {
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Optional details about this event…"
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition resize-none"
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition resize-none"
             />
           </div>
           {error && (
@@ -142,7 +142,7 @@ function CreateEventModal({ onClose, onCreate }) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-200 transition disabled:opacity-50"
+              className="flex-1 rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50"
             >
               {loading ? 'Creating…' : 'Create Event'}
             </button>
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
         <Navbar />
         <div className="flex items-center justify-center py-32">
           <span className="text-sm text-zinc-400">Loading…</span>
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
       <Navbar />
       {showModal && (
         <CreateEventModal
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-200 transition"
+            className="rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
           >
             + Create New Event
           </button>
@@ -228,13 +228,13 @@ export default function AdminDashboard() {
 
         {/* Events grid */}
         {events.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-            <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-3">
+          <div className="text-center py-20 border-2 border-dashed border-teal-200 dark:border-zinc-800 rounded-2xl">
+            <p className="text-zinc-700 dark:text-zinc-300 text-sm mb-3">
               No events yet.
             </p>
             <button
               onClick={() => setShowModal(true)}
-              className="rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-200 transition"
+              className="rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
             >
               Create your first event
             </button>
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
                 className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group ${
                   isExpired(event.deadline)
                     ? 'border-zinc-200 dark:border-zinc-800 opacity-75 hover:opacity-100'
-                    : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+                    : 'border-zinc-200 dark:border-zinc-800 hover:border-teal-300 dark:hover:border-teal-700'
                 }`}
                 onClick={() => router.push(`/admin/events/${event.id}`)}
               >
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                   Created {new Date(event.created_at).toLocaleDateString()}
                 </p>
                 <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium group-hover:text-zinc-900 dark:group-hover:text-zinc-50 transition">
+                  <span className="text-xs text-teal-600 dark:text-teal-400 font-medium group-hover:text-teal-800 dark:group-hover:text-teal-300 transition">
                     Manage →
                   </span>
                 </div>

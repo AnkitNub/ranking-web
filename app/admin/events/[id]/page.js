@@ -454,7 +454,7 @@ export default function AdminEventPage() {
         <div className="mb-6">
           <button
             onClick={() => router.push('/admin')}
-            className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition mb-2"
+            className="text-xs text-zinc-500 hover:text-teal-700 dark:hover:text-teal-400 transition mb-2"
           >
             ← Back to My Events
           </button>
@@ -520,7 +520,7 @@ export default function AdminEventPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
                   activeTab === tab
-                    ? 'border-zinc-900 dark:border-zinc-50 text-zinc-900 dark:text-zinc-50'
+                    ? 'border-teal-600 dark:border-teal-400 text-teal-700 dark:text-teal-400'
                     : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
                 }`}
               >

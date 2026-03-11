@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -34,7 +34,7 @@ export default function ManageJudgesPage() {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
         <Navbar />
         <div className="flex items-center justify-center py-32">
           <span className="text-sm text-zinc-400">Loading…</span>
@@ -44,7 +44,7 @@ export default function ManageJudgesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
       <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
         <div className="mb-6">
@@ -58,11 +58,11 @@ export default function ManageJudgesPage() {
         </div>
 
         {judges.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-            <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+          <div className="text-center py-20 border-2 border-dashed border-teal-200 dark:border-zinc-800 rounded-2xl">
+            <p className="text-zinc-700 dark:text-zinc-300 text-sm">
               No judges registered yet.
             </p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               Judges appear here after they sign up and are synced to the
               system.
             </p>
