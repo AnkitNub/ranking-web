@@ -38,9 +38,20 @@ export async function POST(request) {
   if (user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { name, event_date, description, deadline } = await request.json();
+  const { name, event_date, description, deadline, max_score } =
+    await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+  const maxScoreNum = Number(max_score);
+  if (
+    max_score !== undefined &&
+    max_score !== null &&
+    (isNaN(maxScoreNum) || maxScoreNum < 1 || !Number.isInteger(maxScoreNum))
+  )
+    return NextResponse.json(
+      { error: 'Max score must be a positive integer' },
+      { status: 400 },
+    );
 
   const { data, error } = await supabaseAdmin
     .from('events')
@@ -49,6 +60,7 @@ export async function POST(request) {
       event_date: event_date || null,
       description: description?.trim() || null,
       deadline: deadline || null,
+      max_score: max_score ? maxScoreNum : 10,
       admin_id: user.id,
     })
     .select()

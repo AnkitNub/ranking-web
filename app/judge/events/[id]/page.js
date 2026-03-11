@@ -11,12 +11,20 @@ function isExpired(deadline) {
   return new Date(deadline) < new Date(new Date().toDateString());
 }
 
-function ScoreRow({ participant, existingScore, eventId, onScored, disabled }) {
+function ScoreRow({
+  participant,
+  existingScore,
+  eventId,
+  onScored,
+  disabled,
+  maxScore,
+}) {
   const [value, setValue] = useState(existingScore?.score ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const isScored = existingScore != null;
   const isDirty = String(value) !== String(existingScore?.score ?? '');
+  const max = maxScore || 10;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -26,8 +34,8 @@ function ScoreRow({ participant, existingScore, eventId, onScored, disabled }) {
       return;
     }
     const num = Number(value);
-    if (isNaN(num) || num < 1 || num > 10) {
-      setError('Score must be 1–10.');
+    if (isNaN(num) || num < 1 || num > max) {
+      setError(`Score must be 1\u2013${max}.`);
       return;
     }
     setError('');
@@ -95,11 +103,11 @@ function ScoreRow({ participant, existingScore, eventId, onScored, disabled }) {
             <input
               type="number"
               min={1}
-              max={10}
+              max={max}
               step={1}
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="1–10"
+              placeholder={`1\u2013${max}`}
               disabled={disabled}
               className="w-20 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-center text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -309,6 +317,7 @@ export default function JudgeScoringPage() {
                 eventId={id}
                 onScored={handleScored}
                 disabled={isExpired(event?.deadline)}
+                maxScore={event?.max_score ?? 10}
               />
             ))}
           </ul>

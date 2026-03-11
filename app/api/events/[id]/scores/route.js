@@ -55,6 +55,14 @@ export async function POST(request, { params }) {
       { status: 403 },
     );
 
+  // Fetch event's max_score for validation
+  const { data: eventRow } = await supabaseAdmin
+    .from('events')
+    .select('max_score')
+    .eq('id', id)
+    .maybeSingle();
+  const maxScore = eventRow?.max_score ?? 10;
+
   const { participant_id, score } = await request.json();
   if (!participant_id)
     return NextResponse.json(
@@ -62,9 +70,9 @@ export async function POST(request, { params }) {
       { status: 400 },
     );
   const numScore = Number(score);
-  if (isNaN(numScore) || numScore < 1 || numScore > 10) {
+  if (isNaN(numScore) || numScore < 1 || numScore > maxScore) {
     return NextResponse.json(
-      { error: 'Score must be between 1 and 10' },
+      { error: `Score must be between 1 and ${maxScore}` },
       { status: 400 },
     );
   }

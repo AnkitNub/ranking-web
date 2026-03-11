@@ -16,6 +16,7 @@ function CreateEventModal({ onClose, onCreate }) {
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [maxScore, setMaxScore] = useState('10');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,6 +36,7 @@ function CreateEventModal({ onClose, onCreate }) {
           event_date: date || null,
           description: description || null,
           deadline: deadline || null,
+          max_score: maxScore ? Number(maxScore) : 10,
         }),
       });
       const data = await res.json();
@@ -80,19 +82,37 @@ function CreateEventModal({ onClose, onCreate }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Scoring Deadline
-            </label>
-            <input
-              type="date"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
-            />
-            <p className="text-xs text-zinc-400 mt-1">
-              Judges cannot submit scores after this date.
-            </p>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Scoring Deadline
+              </label>
+              <input
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+              />
+              <p className="text-xs text-zinc-400 mt-1">
+                Judges cannot submit scores after this date.
+              </p>
+            </div>
+            <div className="w-28">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Max Score *
+              </label>
+              <input
+                type="number"
+                required
+                min={1}
+                step={1}
+                value={maxScore}
+                onChange={(e) => setMaxScore(e.target.value)}
+                placeholder="10"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-center text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+              />
+              <p className="text-xs text-zinc-400 mt-1">Per judge</p>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -270,6 +290,15 @@ export default function AdminDashboard() {
                     {event.description && (
                       <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2">
                         {event.description}
+                      </p>
+                    )}
+                    {event.max_score && (
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                        Max score:{' '}
+                        <strong className="text-zinc-600 dark:text-zinc-400">
+                          {event.max_score}
+                        </strong>{' '}
+                        pts
                       </p>
                     )}
                   </div>
