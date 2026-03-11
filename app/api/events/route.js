@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server';
+import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
+
+export async function GET(request) {
+  const user = await getAuthenticatedUser(request);
+  if (!user)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (user.role === 'admin') {
+    const { data, error } = await supabaseAdmin
+      .from('events')
+      .select('*')
+      .eq('admin_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ events: data });
+  }
+
+  if (user.role === 'judge') {
+    const { data, error } = await supabaseAdmin
+      .from('event_judges')
+      .select('event_id, events(*)')
+      .eq('judge_id', user.id);
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    const events = data.map((d) => d.events).filter(Boolean);
+    return NextResponse.json({ events });
+  }
+
+  return NextResponse.json({ events: [] });
+}
+
+export async function POST(request) {
+  const user = await getAuthenticatedUser(request);
+  if (!user)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (user.role !== 'admin')
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  const { name, event_date } = await request.json();
+  if (!name?.trim())
+    return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+
+  const { data, error } = await supabaseAdmin
+    .from('events')
+    .insert({
+      name: name.trim(),
+      event_date: event_date || null,
+      admin_id: user.id,
+    })
+    .select()
+    .single();
+  if (error)
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ event: data }, { status: 201 });
+}
