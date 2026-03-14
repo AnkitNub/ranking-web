@@ -69,11 +69,11 @@ function CreateEventModal({ onClose, onCreate }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-900 mb-4">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
           Create New Event
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
               Event Name *
@@ -88,11 +88,8 @@ function CreateEventModal({ onClose, onCreate }) {
             />
           </div>
 
-          {/* Event Timing Section */}
-          <div className="bg-teal-50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-800 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-semibold text-teal-900 dark:text-teal-200">
-              Event Timing
-            </p>
+          {/* Event & Scoring Details */}
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Starting Date
@@ -107,43 +104,9 @@ function CreateEventModal({ onClose, onCreate }) {
                 The day your event takes place
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  Starting Time
-                </label>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  Ending Time
-                </label>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              Event will display as "Expired" once the ending time passes
-            </p>
-          </div>
-
-          {/* Scoring Deadline Section */}
-          <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-              Scoring Setup
-            </p>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                When must judges finish scoring?
+                Scoring Deadline
               </label>
               <input
                 type="date"
@@ -155,24 +118,48 @@ function CreateEventModal({ onClose, onCreate }) {
                 Judges cannot submit scores after this date.
               </p>
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Maximum Score per Judge *
+                Starting Time
               </label>
               <input
-                type="number"
-                required
-                min={1}
-                step={1}
-                value={maxScore}
-                onChange={(e) => setMaxScore(e.target.value)}
-                placeholder="10"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                The highest score each judge can give
-              </p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Ending Time
+              </label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Maximum Score per Judge *
+            </label>
+            <input
+              type="number"
+              required
+              min={1}
+              step={1}
+              value={maxScore}
+              onChange={(e) => setMaxScore(e.target.value)}
+              placeholder="10"
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+            />
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              The highest score each judge can give
+            </p>
           </div>
 
           <div>
@@ -183,6 +170,7 @@ function CreateEventModal({ onClose, onCreate }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
+              maxLength={200}
               placeholder="Add any details judges should know…"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition resize-none"
             />
@@ -192,7 +180,7 @@ function CreateEventModal({ onClose, onCreate }) {
               {error}
             </p>
           )}
-          <div className="flex gap-3 pt-1">
+          <div className="flex gap-3 pt-0">
             <button
               type="button"
               onClick={onClose}
@@ -311,17 +299,17 @@ export default function AdminDashboard() {
               <div>
                 <button
                   onClick={() => setExpandedActive(!expandedActive)}
-                  className="w-full flex items-center justify-between gap-3 mb-4 p-3 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/10 transition"
+                  className="w-full flex items-center justify-between gap-3 mb-4 p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 border border-teal-200 dark:border-teal-800/40 transition"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-teal-500"></div>
-                    <h2 className="text-lg font-semibold text-teal-900 dark:text-teal-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-teal-500 dark:bg-teal-400"></div>
+                    <h2 className="text-lg font-semibold text-teal-900 dark:text-teal-100">
                       Active Events (
                       {events.filter((e) => !isExpired(e)).length})
                     </h2>
                   </div>
                   <svg
-                    className={`w-5 h-5 text-teal-600 dark:text-teal-300 transition-transform ${expandedActive ? 'rotate-0' : '-rotate-90'}`}
+                    className={`w-5 h-5 text-teal-700 dark:text-teal-300 transition-transform ${expandedActive ? 'rotate-0' : '-rotate-90'}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -455,17 +443,17 @@ export default function AdminDashboard() {
               <div>
                 <button
                   onClick={() => setExpandedClosed(!expandedClosed)}
-                  className="w-full flex items-center justify-between gap-3 mb-4 p-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition"
+                  className="w-full flex items-center justify-between gap-3 mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800/40 transition"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                    <h2 className="text-lg font-semibold text-red-900 dark:text-red-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500 dark:bg-red-400"></div>
+                    <h2 className="text-lg font-semibold text-red-900 dark:text-red-100">
                       Closed Events ({events.filter((e) => isExpired(e)).length}
                       )
                     </h2>
                   </div>
                   <svg
-                    className={`w-5 h-5 text-red-600 dark:text-red-300 transition-transform ${expandedClosed ? 'rotate-0' : '-rotate-90'}`}
+                    className={`w-5 h-5 text-red-700 dark:text-red-300 transition-transform ${expandedClosed ? 'rotate-0' : '-rotate-90'}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
