@@ -54,7 +54,7 @@ function CreateEventModal({ onClose, onCreate }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-900 mb-4">
           Create New Event
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -211,10 +211,10 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-900">
               My Events
             </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
               {events.length} event{events.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="font-semibold text-zinc-900 dark:text-zinc-50 truncate group-hover:text-zinc-700 dark:group-hover:text-zinc-200 transition">
+                      <h2 className="font-bold text-zinc-950 dark:text-zinc-100 truncate group-hover:text-zinc-700 dark:group-hover:text-teal-300 transition">
                         {event.name}
                       </h2>
                       {isExpired(event.deadline) && (
@@ -275,8 +275,8 @@ export default function AdminDashboard() {
                       <p
                         className={`text-xs mt-0.5 ${
                           isExpired(event.deadline)
-                            ? 'text-red-400'
-                            : 'text-amber-500 dark:text-amber-400'
+                            ? 'text-red-500 dark:text-red-400'
+                            : 'text-amber-500 dark:text-amber-300'
                         }`}
                       >
                         Deadline:{' '}
@@ -288,12 +288,12 @@ export default function AdminDashboard() {
                       </p>
                     )}
                     {event.description && (
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2">
+                      <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 line-clamp-2">
                         {event.description}
                       </p>
                     )}
                     {event.max_score && (
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                      <p className="text-xs text-zinc-400 dark:text-zinc-300 mt-0.5">
                         Max score:{' '}
                         <strong className="text-zinc-600 dark:text-zinc-400">
                           {event.max_score}
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                       e.stopPropagation();
                       handleDelete(event.id);
                     }}
-                    className="text-zinc-400 hover:text-red-500 transition p-1 rounded"
+                    className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
                     title="Delete event"
                   >
                     <svg
@@ -325,7 +325,7 @@ export default function AdminDashboard() {
                     </svg>
                   </button>
                 </div>
-                <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                <p className="text-xs text-zinc-600 dark:text-zinc-300">
                   Created {new Date(event.created_at).toLocaleDateString()}
                 </p>
                 <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">

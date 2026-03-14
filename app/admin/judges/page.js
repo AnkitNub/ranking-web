@@ -48,10 +48,10 @@ export default function ManageJudgesPage() {
       <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-900">
             Registered Judges
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
             All users who have signed up as a judge. Assign them to events from
             the event management page.
           </p>

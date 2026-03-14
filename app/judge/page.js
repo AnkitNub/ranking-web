@@ -33,7 +33,7 @@ function EventCard({ event, onClick }) {
 
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
-        <p className="font-semibold text-zinc-900 dark:text-zinc-50 text-base leading-snug group-hover:text-teal-700 dark:group-hover:text-teal-400 transition line-clamp-2 flex-1">
+        <p className="font-bold text-zinc-950 dark:text-zinc-100 text-base leading-snug group-hover:text-teal-700 dark:group-hover:text-teal-300 transition line-clamp-2 flex-1">
           {event.name}
         </p>
         {expired ? (
@@ -50,7 +50,7 @@ function EventCard({ event, onClick }) {
       {/* Dates */}
       <div className="mt-3 space-y-1.5">
         {event.event_date && (
-          <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+          <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
             <svg
               className="w-3.5 h-3.5 shrink-0 text-zinc-400"
               fill="none"
@@ -73,7 +73,7 @@ function EventCard({ event, onClick }) {
         )}
         {event.deadline && (
           <div
-            className={`flex items-center gap-1.5 text-xs font-medium ${expired ? 'text-red-400' : 'text-amber-500 dark:text-amber-400'}`}
+            className={`flex items-center gap-1.5 text-xs font-medium ${expired ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-300'}`}
           >
             <svg
               className="w-3.5 h-3.5 shrink-0"
@@ -97,7 +97,7 @@ function EventCard({ event, onClick }) {
           </div>
         )}
         {event.description && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1 leading-relaxed">
+          <p className="text-xs text-zinc-600 dark:text-zinc-300 line-clamp-2 mt-1 leading-relaxed">
             {event.description}
           </p>
         )}
@@ -108,8 +108,8 @@ function EventCard({ event, onClick }) {
         <span
           className={`text-xs font-semibold flex items-center gap-1 transition-all ${
             expired
-              ? 'text-stone-400'
-              : 'text-teal-700 dark:text-teal-400 group-hover:gap-2'
+              ? 'text-stone-600 dark:text-stone-300'
+              : 'text-teal-700 dark:text-teal-300 group-hover:gap-2'
           }`}
         >
           {expired ? 'View scores' : 'Start scoring'}
@@ -216,7 +216,7 @@ export default function JudgeDashboard() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 leading-tight">
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 leading-tight">
               My Assigned Events
             </h1>
             <p className="text-sm text-zinc-700 dark:text-zinc-300">
@@ -245,7 +245,7 @@ export default function JudgeDashboard() {
             <p className="text-zinc-700 dark:text-zinc-200 font-semibold">
               No events assigned yet
             </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 max-w-xs mx-auto">
+            <p className="text-xs text-zinc-600 dark:text-zinc-700 mt-1.5 max-w-xs mx-auto">
               An admin will assign you to events once they&apos;re created.
             </p>
           </div>
@@ -275,7 +275,7 @@ export default function JudgeDashboard() {
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600" />
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-700">
                     Closed — {expiredEvents.length}
                   </h2>
                 </div>

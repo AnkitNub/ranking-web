@@ -70,10 +70,10 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#FDFBD4] dark:bg-[#FDFBD4] px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-900">
             Create an account
           </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-700">
             Get started for free
           </p>
         </div>
@@ -164,7 +164,7 @@ export default function SignUpPage() {
           Continue with Google
         </button>
 
-        <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-700">
           Already have an account?{' '}
           <Link
             href="/signin"
