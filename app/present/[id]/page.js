@@ -292,7 +292,7 @@ export default function PresentationPage() {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-teal-700 border-t-teal-400 animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-emerald-700 border-t-emerald-400 animate-spin" />
           <p className="text-zinc-500 text-sm">Loading results…</p>
         </div>
       </div>
@@ -315,9 +315,9 @@ export default function PresentationPage() {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-2xl bg-teal-900/30 border border-teal-700/40 flex items-center justify-center mx-auto mb-5">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5">
             <svg
-              className="w-8 h-8 text-teal-500"
+              className="w-8 h-8 text-emerald-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -342,7 +342,7 @@ export default function PresentationPage() {
           </p>
           <button
             onClick={fetchData}
-            className="mt-4 text-xs text-teal-500 hover:text-teal-300 transition"
+            className="mt-4 text-xs text-emerald-500 hover:text-emerald-300 transition"
           >
             ↻ Refresh
           </button>
@@ -353,7 +353,7 @@ export default function PresentationPage() {
 
   /* ── Presentation ── */
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="h-screen bg-zinc-950 text-white flex flex-col">
       {showConfetti && <Confetti />}
 
       {/* Top bar */}
@@ -378,7 +378,7 @@ export default function PresentationPage() {
                 onClick={() => handleModeToggle(m)}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition ${
                   mode === m
-                    ? 'bg-teal-600 text-white shadow'
+                    ? 'bg-emerald-600 text-white shadow'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
@@ -397,7 +397,7 @@ export default function PresentationPage() {
                 setStarted(false);
                 setRevealed(0);
               }}
-              className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-teal-500"
+              className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-emerald-500"
             >
               <option value={1000}>Fast (1s)</option>
               <option value={2000}>Normal (2s)</option>
@@ -409,11 +409,11 @@ export default function PresentationPage() {
       </div>
 
       {/* Stage */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 py-8">
         {/* Pre-start screen */}
         {!started ? (
           <div className="text-center">
-            <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-teal-500 to-teal-700 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-teal-900/60">
+            <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-emerald-900/60">
               <svg
                 className="w-10 h-10 text-white"
                 fill="none"
@@ -439,7 +439,7 @@ export default function PresentationPage() {
             </p>
             <button
               onClick={handleStart}
-              className="px-8 py-3 rounded-xl bg-linear-to-br from-teal-500 to-teal-700 text-white font-bold text-lg hover:from-teal-400 hover:to-teal-600 transition shadow-xl shadow-teal-900/40 active:scale-95"
+              className="px-8 py-3 rounded-xl bg-linear-to-br from-emerald-500 to-emerald-700 text-white font-bold text-lg hover:from-emerald-400 hover:to-emerald-600 transition shadow-xl shadow-emerald-900/40 active:scale-95"
             >
               Start Presentation
             </button>
@@ -540,7 +540,7 @@ export default function PresentationPage() {
               <button
                 onClick={handleNext}
                 disabled={allRevealed}
-                className="px-6 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-teal-900/40"
+                className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/40"
               >
                 {allRevealed ? 'All done 🎉' : 'Next →'}
               </button>
@@ -550,7 +550,7 @@ export default function PresentationPage() {
           {mode === 'auto' && (
             <div className="flex items-center gap-2">
               {!allRevealed ? (
-                <span className="text-xs text-teal-400 animate-pulse">
+                <span className="text-xs text-emerald-400 animate-pulse">
                   Auto-revealing…
                 </span>
               ) : (
