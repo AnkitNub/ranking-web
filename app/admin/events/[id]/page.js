@@ -130,7 +130,7 @@ function ParticipantsTab({ eventId }) {
 function JudgesTab({ eventId }) {
   const [assignedJudges, setAssignedJudges] = useState([]);
   const [allJudges, setAllJudges] = useState([]);
-  const [selectedJudgeId, setSelectedJudgeId] = useState('');
+  const [selectedJudgeIds, setSelectedJudgeIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState('');
@@ -154,22 +154,52 @@ function JudgesTab({ eventId }) {
   const assignedIds = new Set(assignedJudges.map((j) => j.id));
   const unassignedJudges = allJudges.filter((j) => !assignedIds.has(j.id));
 
-  async function handleAssign() {
-    if (!selectedJudgeId) return;
+  function toggleJudge(judgeId) {
+    const newSelected = new Set(selectedJudgeIds);
+    if (newSelected.has(judgeId)) {
+      newSelected.delete(judgeId);
+    } else {
+      newSelected.add(judgeId);
+    }
+    setSelectedJudgeIds(newSelected);
+  }
+
+  function toggleAll() {
+    if (selectedJudgeIds.size === unassignedJudges.length) {
+      setSelectedJudgeIds(new Set());
+    } else {
+      setSelectedJudgeIds(new Set(unassignedJudges.map((j) => j.id)));
+    }
+  }
+
+  async function handleAssignSelected() {
+    if (selectedJudgeIds.size === 0) return;
     setAssigning(true);
     setError('');
     try {
-      const res = await authFetch(`/api/events/${eventId}/judges`, {
-        method: 'POST',
-        body: JSON.stringify({ judge_id: selectedJudgeId }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to assign judge.');
-        return;
+      const judgeIds = Array.from(selectedJudgeIds);
+      const results = await Promise.all(
+        judgeIds.map((judge_id) =>
+          authFetch(`/api/events/${eventId}/judges`, {
+            method: 'POST',
+            body: JSON.stringify({ judge_id }),
+          }),
+        ),
+      );
+
+      const failedAssignments = [];
+      for (let i = 0; i < results.length; i++) {
+        if (!results[i].ok) {
+          const data = await results[i].json();
+          failedAssignments.push(data.error || 'Unknown error');
+        }
       }
-      setSelectedJudgeId('');
-      // Re-fetch to get the accurate, up-to-date assigned list from the DB
+
+      if (failedAssignments.length > 0) {
+        setError(`Failed to assign ${failedAssignments.length} judge(s).`);
+      }
+
+      setSelectedJudgeIds(new Set());
       await fetchData();
     } finally {
       setAssigning(false);
@@ -189,38 +219,66 @@ function JudgesTab({ eventId }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <select
-          value={selectedJudgeId}
-          onChange={(e) => setSelectedJudgeId(e.target.value)}
-          className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-        >
-          <option value="" className="text-zinc-700">
-            Select a judge…
-          </option>
-          {unassignedJudges.map((j) => (
-            <option key={j.id} value={j.id}>
-              {j.name} ({j.email})
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={handleAssign}
-          disabled={assigning || !selectedJudgeId}
-          className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50 whitespace-nowrap"
-        >
-          {assigning ? '…' : 'Assign to Event'}
-        </button>
-      </div>
+      {/* Available judges to assign */}
+      {unassignedJudges.length > 0 ? (
+        <>
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-700">
+            <h3 className="text-sm font-medium text-black dark:text-black">
+              Available Judges ({unassignedJudges.length})
+            </h3>
+            {unassignedJudges.length > 1 && (
+              <button
+                onClick={toggleAll}
+                className="text-xs text-teal-600 dark:text-teal-400 hover:underline transition"
+              >
+                {selectedJudgeIds.size === unassignedJudges.length
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </button>
+            )}
+          </div>
 
-      {unassignedJudges.length === 0 && allJudges.length > 0 && (
-        <p className="text-xs text-zinc-700">
-          All registered judges have been assigned.
-        </p>
-      )}
-      {allJudges.length === 0 && (
+          <ul className="divide-y divide-zinc-200 dark:divide-zinc-700 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden bg-white dark:bg-zinc-800">
+            {unassignedJudges.map((j) => (
+              <li
+                key={j.id}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedJudgeIds.has(j.id)}
+                  onChange={() => toggleJudge(j.id)}
+                  className="w-4 h-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {j.name}
+                  </p>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
+                    {j.email}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {selectedJudgeIds.size > 0 && (
+            <button
+              onClick={handleAssignSelected}
+              disabled={assigning}
+              className="w-full rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
+            >
+              {assigning ? '…' : `Assign Selected (${selectedJudgeIds.size})`}
+            </button>
+          )}
+        </>
+      ) : allJudges.length === 0 ? (
         <p className="text-xs text-zinc-700">
           No judges registered yet. Ask judges to sign up first.
+        </p>
+      ) : (
+        <p className="text-xs text-zinc-700">
+          All registered judges have been assigned.
         </p>
       )}
 
@@ -230,7 +288,7 @@ function JudgesTab({ eventId }) {
         </p>
       )}
 
-      <h3 className="text-sm font-medium text-black dark:text-black">
+      <h3 className="text-sm font-medium text-black dark:text-black pt-2">
         Assigned Judges ({assignedJudges.length})
       </h3>
 
