@@ -60,61 +60,89 @@ function EventCard({ event, onClick }) {
       </div>
 
       {/* Dates */}
-      <div className="mt-3 space-y-1.5">
+      <div className="mt-3 space-y-2">
         {event.event_date && (
-          <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
-            <svg
-              className="w-3.5 h-3.5 shrink-0 text-zinc-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <div>
+          <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1">
+            <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wide">
+              Event Time
+            </p>
+            <div className="flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+              <svg
+                className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
               <div>
-                {new Date(event.event_date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </div>
-              {event.start_time && event.end_time && (
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {event.start_time} - {event.end_time}
+                <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {new Date(event.event_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
                 </div>
-              )}
+                {event.start_time && event.end_time && (
+                  <div className="text-zinc-500 dark:text-zinc-400">
+                    {event.start_time} - {event.end_time}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
         {event.deadline && (
           <div
-            className={`flex items-center gap-1.5 text-xs font-medium ${expired ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-300'}`}
+            className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-amber-50 dark:bg-amber-900/20'} rounded-lg p-2.5 space-y-1`}
           >
-            <svg
-              className="w-3.5 h-3.5 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <p
+              className={`text-xs font-semibold uppercase tracking-wide ${expired ? 'text-red-700 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            Deadline:{' '}
-            {new Date(event.deadline).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+              Scoring Deadline
+            </p>
+            <div
+              className={`flex items-start gap-2 text-xs font-medium ${expired ? 'text-red-600 dark:text-red-300' : 'text-amber-600 dark:text-amber-300'}`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 shrink-0 mt-0.5`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <div
+                  className={`${expired ? 'text-red-700 dark:text-red-200' : 'text-amber-700 dark:text-amber-200'}`}
+                >
+                  {new Date(event.deadline).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </div>
+                {!expired && (
+                  <div className="text-xs opacity-75">
+                    {Math.ceil(
+                      (new Date(event.deadline) - new Date()) /
+                        (1000 * 60 * 60 * 24),
+                    )}{' '}
+                    days left
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
         {event.description && (

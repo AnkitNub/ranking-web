@@ -87,45 +87,63 @@ function CreateEventModal({ onClose, onCreate }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Starting Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-            />
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
+
+          {/* Event Timing Section */}
+          <div className="bg-teal-50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-800 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-semibold text-teal-900 dark:text-teal-200">
+              Event Timing
+            </p>
+            <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Starting Time
+                Starting Date
               </label>
               <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                The day your event takes place
+              </p>
             </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Ending Time
-              </label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                  Starting Time
+                </label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                  Ending Time
+                </label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+              </div>
             </div>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              Event will display as "Expired" once the ending time passes
+            </p>
           </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
+
+          {/* Scoring Deadline Section */}
+          <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+              Scoring Setup
+            </p>
+            <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Scoring Deadline
+                When must judges finish scoring?
               </label>
               <input
                 type="date"
@@ -133,13 +151,13 @@ function CreateEventModal({ onClose, onCreate }) {
                 onChange={(e) => setDeadline(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-400 mt-1">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                 Judges cannot submit scores after this date.
               </p>
             </div>
-            <div className="w-28">
+            <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Max Score *
+                Maximum Score per Judge *
               </label>
               <input
                 type="number"
@@ -149,20 +167,23 @@ function CreateEventModal({ onClose, onCreate }) {
                 value={maxScore}
                 onChange={(e) => setMaxScore(e.target.value)}
                 placeholder="10"
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-center text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-400 mt-1">Per judge</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                The highest score each judge can give
+              </p>
             </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Description
+              Description (Optional)
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Optional details about this event…"
+              rows={2}
+              placeholder="Add any details judges should know…"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition resize-none"
             />
           </div>
@@ -304,33 +325,57 @@ export default function AdminDashboard() {
                       )}
                     </div>
                     {event.event_date && (
-                      <p className="text-xs text-zinc-400 dark:text-zinc-300 mt-0.5">
-                        {new Date(event.event_date).toLocaleDateString(
-                          'en-US',
-                          { year: 'numeric', month: 'short', day: 'numeric' },
-                        )}
+                      <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                        <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide">
+                          Event Time
+                        </p>
+                        <div className="text-zinc-700 dark:text-zinc-200 font-medium">
+                          {new Date(event.event_date).toLocaleDateString(
+                            'en-US',
+                            { year: 'numeric', month: 'short', day: 'numeric' },
+                          )}
+                        </div>
                         {event.start_time && event.end_time && (
-                          <span className="block text-zinc-500 dark:text-zinc-400">
+                          <div className="text-zinc-600 dark:text-zinc-400">
                             {event.start_time} - {event.end_time}
-                          </span>
+                          </div>
                         )}
-                      </p>
+                      </div>
                     )}
                     {event.deadline && (
-                      <p
-                        className={`text-xs mt-0.5 ${
+                      <div
+                        className={`rounded-lg p-2.5 space-y-1 text-xs ${
                           isExpired(event)
-                            ? 'text-red-500 dark:text-red-400'
-                            : 'text-amber-500 dark:text-amber-300'
+                            ? 'bg-red-50 dark:bg-red-900/20'
+                            : 'bg-amber-50 dark:bg-amber-900/20'
                         }`}
                       >
-                        Deadline:{' '}
-                        {new Date(event.deadline).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </p>
+                        <p
+                          className={`font-semibold uppercase tracking-wide ${
+                            isExpired(event)
+                              ? 'text-red-700 dark:text-red-300'
+                              : 'text-amber-700 dark:text-amber-300'
+                          }`}
+                        >
+                          Scoring Deadline
+                        </p>
+                        <div
+                          className={
+                            isExpired(event)
+                              ? 'text-red-700 dark:text-red-200 font-medium'
+                              : 'text-amber-700 dark:text-amber-200 font-medium'
+                          }
+                        >
+                          {new Date(event.deadline).toLocaleDateString(
+                            'en-US',
+                            {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            },
+                          )}
+                        </div>
+                      </div>
                     )}
                     {event.description && (
                       <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 line-clamp-2">
