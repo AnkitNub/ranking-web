@@ -177,7 +177,7 @@ export default function JudgeDashboard() {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
+      <div className="min-h-screen bg-[#FDFBD4] dark:bg-[#FDFBD4]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
           <div className="flex flex-col items-center gap-3">
@@ -195,7 +195,7 @@ export default function JudgeDashboard() {
   const expiredEvents = events.filter((e) => isExpired(e.deadline));
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
+    <div className="min-h-screen bg-[#FDFBD4] dark:bg-[#FDFBD4]">
       <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
         {/* Page Header */}

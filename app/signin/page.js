@@ -46,7 +46,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#FDFBD4] dark:bg-[#FDFBD4] px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">

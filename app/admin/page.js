@@ -188,7 +188,7 @@ export default function AdminDashboard() {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
+      <div className="min-h-screen bg-[#FDFBD4] dark:bg-[#FDFBD4]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
           <span className="text-sm text-zinc-400">Loading…</span>
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
+    <div className="min-h-screen bg-[#FDFBD4] dark:bg-[#FDFBD4]">
       <Navbar />
       {showModal && (
         <CreateEventModal
