@@ -37,103 +37,149 @@ function Confetti() {
   );
 }
 
-/* ─── Rank card ────────────────────────────────────────────────────────────── */
-function RankCard({ entry, rank, total, visible }) {
-  const isFirst = rank === 1;
-  const isSecond = rank === 2;
-  const isThird = rank === 3;
-
-  const medal = isFirst ? '🥇' : isSecond ? '🥈' : isThird ? '🥉' : null;
+/* ─── Podium card for top 3 ───────────────────────────────────────────────── */
+function PodiumCard({ entry, rank, visible }) {
+  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+  const heightClass = rank === 1 ? 'h-64' : rank === 2 ? 'h-52' : 'h-48';
+  const borderColor =
+    rank === 1
+      ? 'border-amber-400/60'
+      : rank === 2
+        ? 'border-zinc-400/40'
+        : 'border-amber-700/40';
+  const bgGradient =
+    rank === 1
+      ? 'from-amber-950/80 to-stone-900/90'
+      : rank === 2
+        ? 'from-zinc-800/80 to-stone-900/90'
+        : 'from-amber-950/60 to-stone-900/90';
+  const shadowColor =
+    rank === 1
+      ? 'shadow-amber-500/30'
+      : rank === 2
+        ? 'shadow-zinc-500/20'
+        : 'shadow-amber-800/20';
+  const accentGradient =
+    rank === 1
+      ? 'from-amber-300 to-amber-500'
+      : rank === 2
+        ? 'from-zinc-300 to-zinc-500'
+        : 'from-amber-600 to-amber-800';
+  const badgeBg =
+    rank === 1
+      ? 'bg-amber-400/20'
+      : rank === 2
+        ? 'bg-zinc-400/10'
+        : 'bg-amber-700/20';
+  const badgeText =
+    rank === 1
+      ? 'text-amber-300'
+      : rank === 2
+        ? 'text-zinc-300'
+        : 'text-amber-500';
+  const badgeRing =
+    rank === 1
+      ? 'ring-amber-400/40'
+      : rank === 2
+        ? 'ring-zinc-400/30'
+        : 'ring-amber-700/40';
+  const scoreText =
+    rank === 1
+      ? 'text-amber-300'
+      : rank === 2
+        ? 'text-zinc-200'
+        : 'text-amber-400';
+  const nameText =
+    rank === 1
+      ? 'text-amber-100'
+      : rank === 2
+        ? 'text-zinc-100'
+        : 'text-amber-200';
 
   return (
     <div
       className={`transition-all duration-700 ease-out ${
         visible
           ? 'opacity-100 translate-y-0 scale-100'
-          : 'opacity-0 translate-y-8 scale-95 pointer-events-none'
+          : 'opacity-0 translate-y-12 scale-90 pointer-events-none'
       }`}
     >
       <div
-        className={`relative overflow-hidden rounded-2xl border px-6 py-5 flex items-center gap-5
-          ${
-            isFirst
-              ? 'border-amber-400/60 bg-linear-to-r from-amber-950/80 to-stone-900/90 shadow-2xl shadow-amber-500/20'
-              : isSecond
-                ? 'border-zinc-400/40 bg-linear-to-r from-zinc-800/80 to-stone-900/90 shadow-lg shadow-zinc-500/10'
-                : isThird
-                  ? 'border-amber-700/40 bg-linear-to-r from-amber-950/60 to-stone-900/90 shadow-lg shadow-amber-800/10'
-                  : 'border-zinc-700/40 bg-zinc-900/70 shadow-md'
-          }
-        `}
+        className={`relative overflow-hidden rounded-t-3xl border-t border-l border-r ${borderColor} bg-gradient-to-b ${bgGradient} shadow-2xl ${shadowColor} ${heightClass} flex flex-col items-center justify-end px-4 py-6`}
       >
-        {/* Left accent stripe */}
+        {/* Accent bar at top */}
         <div
-          className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${
-            isFirst
-              ? 'bg-linear-to-b from-amber-300 to-amber-500'
-              : isSecond
-                ? 'bg-linear-to-b from-zinc-300 to-zinc-500'
-                : isThird
-                  ? 'bg-linear-to-b from-amber-600 to-amber-800'
-                  : 'bg-linear-to-b from-teal-600 to-teal-800'
-          }`}
+          className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${accentGradient} rounded-t-3xl`}
         />
 
-        {/* Rank badge */}
-        <div
-          className={`shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-2xl font-black
-            ${
-              isFirst
-                ? 'bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/40'
-                : isSecond
-                  ? 'bg-zinc-400/10 text-zinc-300 ring-1 ring-zinc-400/30'
-                  : isThird
-                    ? 'bg-amber-700/20 text-amber-500 ring-1 ring-amber-700/40'
-                    : 'bg-zinc-800 text-zinc-400 ring-1 ring-zinc-700'
-            }
-          `}
-        >
-          {medal ?? rank}
+        {/* Medal + Score */}
+        <div className="flex flex-col items-center gap-3 mb-4">
+          <div className={`text-5xl font-black`}>{medal}</div>
+          <p className={`font-black tabular-nums text-5xl ${scoreText}`}>
+            {entry.totalScore}
+          </p>
+          <p className="text-xs text-zinc-500 font-semibold">pts</p>
+        </div>
+
+        {/* Name */}
+        <p className={`font-bold text-center truncate max-w-xs ${nameText}`}>
+          {rank === 1 ? (
+            <span className="text-2xl">{entry.name}</span>
+          ) : (
+            <span className="text-lg">{entry.name}</span>
+          )}
+        </p>
+
+        {/* Rank label */}
+        {rank === 1 && (
+          <p className="text-xs text-amber-400/80 font-semibold uppercase tracking-widest mt-2">
+            1st Place
+          </p>
+        )}
+        {rank === 2 && (
+          <p className="text-xs text-zinc-400/80 font-semibold uppercase tracking-widest mt-1">
+            2nd Place
+          </p>
+        )}
+        {rank === 3 && (
+          <p className="text-xs text-amber-600/80 font-semibold uppercase tracking-widest mt-1">
+            3rd Place
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Rest list card ────────────────────────────────────────────────────────── */
+function RestListCard({ entry, rank, visible }) {
+  return (
+    <div
+      className={`transition-all duration-500 ease-out ${
+        visible
+          ? 'opacity-100 translate-x-0'
+          : 'opacity-0 -translate-x-4 pointer-events-none'
+      }`}
+    >
+      <div className="relative overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/50 hover:bg-zinc-900/70 px-4 py-3 flex items-center gap-4 transition">
+        {/* Rank number */}
+        <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-400 font-bold text-sm">
+          {rank}
         </div>
 
         {/* Name + score */}
         <div className="flex-1 min-w-0">
-          <p
-            className={`font-bold truncate leading-tight ${
-              isFirst
-                ? 'text-2xl text-amber-100'
-                : isSecond
-                  ? 'text-xl text-zinc-100'
-                  : isThird
-                    ? 'text-xl text-amber-200'
-                    : 'text-lg text-zinc-200'
-            }`}
-          >
+          <p className="font-semibold text-zinc-200 truncate text-sm">
             {entry.name}
           </p>
-          {isFirst && (
-            <p className="text-xs text-amber-400/80 font-semibold uppercase tracking-widest mt-0.5">
-              Winner
-            </p>
-          )}
         </div>
 
         {/* Score */}
         <div className="text-right shrink-0">
-          <p
-            className={`font-black tabular-nums ${
-              isFirst
-                ? 'text-4xl text-amber-300'
-                : isSecond
-                  ? 'text-3xl text-zinc-200'
-                  : isThird
-                    ? 'text-3xl text-amber-400'
-                    : 'text-2xl text-zinc-300'
-            }`}
-          >
+          <p className="font-bold text-zinc-300 text-lg tabular-nums">
             {entry.totalScore}
           </p>
-          <p className="text-xs text-zinc-500 mt-0.5">pts</p>
+          <p className="text-xs text-zinc-600">pts</p>
         </div>
       </div>
     </div>
@@ -401,29 +447,73 @@ export default function PresentationPage() {
         ) : (
           <>
             {/* Reveal counter */}
-            <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-6">
+            <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-8">
               {allRevealed
                 ? `All ${total} results revealed`
                 : `Revealing rank ${total - revealed + 1} of ${total}`}
             </p>
 
-            {/* Cards — rendered in display order (rank 1 at top) */}
-            {/* We show rank 1…revealed from the reveal order reversed back */}
-            <div className="w-full max-w-xl space-y-3">
-              {revealOrder.map((entry, idx) => {
-                const rank = total - idx; // idx 0 = last place = rank total
-                const cardVisible = idx < revealed;
-                return (
-                  <RankCard
-                    key={entry.id}
-                    entry={entry}
-                    rank={rank}
-                    total={total}
-                    visible={cardVisible}
-                  />
-                );
-              })}
-            </div>
+            {/* Podium section */}
+            {total > 0 && (
+              <div className="w-full max-w-4xl mb-12">
+                {/* Podium display - shows top 3 in podium formation */}
+                <div className="flex items-flex-end justify-center gap-6 mb-8">
+                  {/* 2nd Place - Left */}
+                  {total >= 2 && (
+                    <div className="flex-1 max-w-xs">
+                      <PodiumCard
+                        entry={revealOrder[total - 2]}
+                        rank={2}
+                        visible={revealed >= total - 1}
+                      />
+                    </div>
+                  )}
+
+                  {/* 1st Place - Center */}
+                  {total >= 1 && (
+                    <div className="flex-1 max-w-xs">
+                      <PodiumCard
+                        entry={revealOrder[total - 1]}
+                        rank={1}
+                        visible={revealed >= total}
+                      />
+                    </div>
+                  )}
+
+                  {/* 3rd Place - Right */}
+                  {total >= 3 && (
+                    <div className="flex-1 max-w-xs">
+                      <PodiumCard
+                        entry={revealOrder[total - 3]}
+                        rank={3}
+                        visible={revealed >= total - 2}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Rest of the rankings - scrollable list */}
+            {total > 3 && (
+              <div className="w-full max-w-2xl max-h-80 overflow-y-auto space-y-2 px-2">
+                {revealOrder.map((entry, idx) => {
+                  const rank = total - idx;
+                  // Only show ranks 4 and onwards
+                  if (rank <= 3) return null;
+                  // Mark visible if this entry has been revealed
+                  const cardVisible = idx < revealed;
+                  return (
+                    <RestListCard
+                      key={entry.id}
+                      entry={entry}
+                      rank={rank}
+                      visible={cardVisible}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
       </div>
