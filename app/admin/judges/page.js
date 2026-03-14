@@ -34,7 +34,7 @@ export default function ManageJudgesPage() {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
+      <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
           <span className="text-sm text-zinc-400">Loading…</span>
@@ -44,7 +44,7 @@ export default function ManageJudgesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-stone-50 via-amber-50/30 to-stone-100/60 dark:bg-zinc-950">
+    <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
       <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
         <div className="mb-6">
