@@ -220,6 +220,8 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [expandedActive, setExpandedActive] = useState(true);
+  const [expandedClosed, setExpandedClosed] = useState(true);
 
   const fetchEvents = useCallback(async () => {
     const res = await authFetch('/api/events');
@@ -276,7 +278,9 @@ export default function AdminDashboard() {
               My Events
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
-              {events.length} event{events.length !== 1 ? 's' : ''}
+              {events.length} total ·{' '}
+              {events.filter((e) => !isExpired(e)).length} active ·{' '}
+              {events.filter((e) => isExpired(e)).length} closed
             </p>
           </div>
           <button
@@ -301,130 +305,297 @@ export default function AdminDashboard() {
             </button>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group ${
-                  isExpired(event)
-                    ? 'border-zinc-200 dark:border-zinc-800 opacity-75 hover:opacity-100'
-                    : 'border-zinc-200 dark:border-zinc-800 hover:border-teal-300 dark:hover:border-teal-700'
-                }`}
-                onClick={() => router.push(`/admin/events/${event.id}`)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="font-bold text-zinc-950 dark:text-zinc-100 truncate group-hover:text-zinc-700 dark:group-hover:text-teal-300 transition">
-                        {event.name}
-                      </h2>
-                      {isExpired(event) && (
-                        <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 shrink-0">
-                          Expired
-                        </span>
-                      )}
-                    </div>
-                    {event.event_date && (
-                      <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
-                        <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide">
-                          Event Time
-                        </p>
-                        <div className="text-zinc-700 dark:text-zinc-200 font-medium">
-                          {new Date(event.event_date).toLocaleDateString(
-                            'en-US',
-                            { year: 'numeric', month: 'short', day: 'numeric' },
-                          )}
-                        </div>
-                        {event.start_time && event.end_time && (
-                          <div className="text-zinc-600 dark:text-zinc-400">
-                            {event.start_time} - {event.end_time}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {event.deadline && (
-                      <div
-                        className={`rounded-lg p-2.5 space-y-1 text-xs ${
-                          isExpired(event)
-                            ? 'bg-red-50 dark:bg-red-900/20'
-                            : 'bg-amber-50 dark:bg-amber-900/20'
-                        }`}
-                      >
-                        <p
-                          className={`font-semibold uppercase tracking-wide ${
-                            isExpired(event)
-                              ? 'text-red-700 dark:text-red-300'
-                              : 'text-amber-700 dark:text-amber-300'
-                          }`}
-                        >
-                          Scoring Deadline
-                        </p>
+          <div className="space-y-8">
+            {/* Active Events Section */}
+            {events.filter((e) => !isExpired(e)).length > 0 && (
+              <div>
+                <button
+                  onClick={() => setExpandedActive(!expandedActive)}
+                  className="w-full flex items-center justify-between gap-3 mb-4 p-3 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/10 transition"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-teal-500"></div>
+                    <h2 className="text-lg font-semibold text-teal-900 dark:text-teal-200">
+                      Active Events (
+                      {events.filter((e) => !isExpired(e)).length})
+                    </h2>
+                  </div>
+                  <svg
+                    className={`w-5 h-5 text-teal-600 dark:text-teal-300 transition-transform ${expandedActive ? 'rotate-0' : '-rotate-90'}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
+                  </svg>
+                </button>
+                {expandedActive && (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {events
+                      .filter((e) => !isExpired(e))
+                      .map((event) => (
                         <div
-                          className={
-                            isExpired(event)
-                              ? 'text-red-700 dark:text-red-200 font-medium'
-                              : 'text-amber-700 dark:text-amber-200 font-medium'
+                          key={event.id}
+                          className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group border-teal-200 dark:border-teal-800/50 hover:border-teal-400 dark:hover:border-teal-700 hover:shadow-md`}
+                          onClick={() =>
+                            router.push(`/admin/events/${event.id}`)
                           }
                         >
-                          {new Date(event.deadline).toLocaleDateString(
-                            'en-US',
-                            {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            },
-                          )}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="font-bold text-zinc-950 dark:text-zinc-100 truncate group-hover:text-zinc-700 dark:group-hover:text-teal-300 transition">
+                                  {event.name}
+                                </h2>
+                              </div>
+                              {event.event_date && (
+                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                                  <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide">
+                                    Event Time
+                                  </p>
+                                  <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                                    {new Date(
+                                      event.event_date,
+                                    ).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                                  </div>
+                                  {event.start_time && event.end_time && (
+                                    <div className="text-zinc-700 dark:text-zinc-400">
+                                      {event.start_time} - {event.end_time}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {event.deadline && (
+                                <div
+                                  className={`rounded-lg p-2.5 space-y-1 text-xs bg-amber-50 dark:bg-amber-900/20`}
+                                >
+                                  <p
+                                    className={`font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300`}
+                                  >
+                                    Scoring Deadline
+                                  </p>
+                                  <div
+                                    className={`text-amber-700 dark:text-amber-200 font-medium`}
+                                  >
+                                    {new Date(
+                                      event.deadline,
+                                    ).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {event.description && (
+                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-1 line-clamp-2">
+                                  {event.description}
+                                </p>
+                              )}
+                              {event.max_score && (
+                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5">
+                                  Max score:{' '}
+                                  <strong className="text-zinc-800 dark:text-zinc-200">
+                                    {event.max_score}
+                                  </strong>{' '}
+                                  pts
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(event.id);
+                              }}
+                              className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
+                              title="Delete event"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                          <p className="text-xs text-zinc-700 dark:text-zinc-300">
+                            Created{' '}
+                            {new Date(event.created_at).toLocaleDateString()}
+                          </p>
+                          <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                            <span className="text-xs text-teal-600 dark:text-teal-400 font-medium group-hover:text-teal-800 dark:group-hover:text-teal-300 transition">
+                              Manage →
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {event.description && (
-                      <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 line-clamp-2">
-                        {event.description}
-                      </p>
-                    )}
-                    {event.max_score && (
-                      <p className="text-xs text-zinc-400 dark:text-zinc-300 mt-0.5">
-                        Max score:{' '}
-                        <strong className="text-zinc-600 dark:text-zinc-400">
-                          {event.max_score}
-                        </strong>{' '}
-                        pts
-                      </p>
-                    )}
+                      ))}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(event.id);
-                    }}
-                    className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
-                    title="Delete event"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <p className="text-xs text-zinc-600 dark:text-zinc-300">
-                  Created {new Date(event.created_at).toLocaleDateString()}
-                </p>
-                <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-xs text-teal-600 dark:text-teal-400 font-medium group-hover:text-teal-800 dark:group-hover:text-teal-300 transition">
-                    Manage →
-                  </span>
-                </div>
+                )}
               </div>
-            ))}
+            )}
+
+            {/* Closed Events Section */}
+            {events.filter((e) => isExpired(e)).length > 0 && (
+              <div>
+                <button
+                  onClick={() => setExpandedClosed(!expandedClosed)}
+                  className="w-full flex items-center justify-between gap-3 mb-4 p-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <h2 className="text-lg font-semibold text-red-900 dark:text-red-200">
+                      Closed Events ({events.filter((e) => isExpired(e)).length}
+                      )
+                    </h2>
+                  </div>
+                  <svg
+                    className={`w-5 h-5 text-red-600 dark:text-red-300 transition-transform ${expandedClosed ? 'rotate-0' : '-rotate-90'}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
+                  </svg>
+                </button>
+                {expandedClosed && (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {events
+                      .filter((e) => isExpired(e))
+                      .map((event) => (
+                        <div
+                          key={event.id}
+                          className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group opacity-75 hover:opacity-100 border-red-200 dark:border-red-800/50 hover:border-red-400 dark:hover:border-red-700`}
+                          onClick={() =>
+                            router.push(`/admin/events/${event.id}`)
+                          }
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="font-bold text-zinc-950 dark:text-zinc-100 truncate group-hover:text-zinc-700 dark:group-hover:text-red-300 transition">
+                                  {event.name}
+                                </h2>
+                                <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 shrink-0">
+                                  Expired
+                                </span>
+                              </div>
+                              {event.event_date && (
+                                <div className="bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-2.5 space-y-1 text-xs">
+                                  <p className="text-zinc-700 dark:text-zinc-400 font-semibold uppercase tracking-wide">
+                                    Event Time
+                                  </p>
+                                  <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                                    {new Date(
+                                      event.event_date,
+                                    ).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                                  </div>
+                                  {event.start_time && event.end_time && (
+                                    <div className="text-zinc-700 dark:text-zinc-400">
+                                      {event.start_time} - {event.end_time}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {event.deadline && (
+                                <div
+                                  className={`rounded-lg p-2.5 space-y-1 text-xs bg-red-50 dark:bg-red-900/20`}
+                                >
+                                  <p
+                                    className={`font-semibold uppercase tracking-wide text-red-700 dark:text-red-300`}
+                                  >
+                                    Scoring Deadline
+                                  </p>
+                                  <div
+                                    className={`text-red-700 dark:text-red-200 font-medium`}
+                                  >
+                                    {new Date(
+                                      event.deadline,
+                                    ).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {event.description && (
+                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-1 line-clamp-2">
+                                  {event.description}
+                                </p>
+                              )}
+                              {event.max_score && (
+                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5">
+                                  Max score:{' '}
+                                  <strong className="text-zinc-800 dark:text-zinc-200">
+                                    {event.max_score}
+                                  </strong>{' '}
+                                  pts
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(event.id);
+                              }}
+                              className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
+                              title="Delete event"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                          <p className="text-xs text-zinc-700 dark:text-zinc-300">
+                            Created{' '}
+                            {new Date(event.created_at).toLocaleDateString()}
+                          </p>
+                          <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                            <span className="text-xs text-red-600 dark:text-red-400 font-medium group-hover:text-red-800 dark:group-hover:text-red-300 transition">
+                              View Results →
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
