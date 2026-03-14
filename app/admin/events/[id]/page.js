@@ -230,7 +230,7 @@ function JudgesTab({ eventId }) {
         </p>
       )}
 
-      <h3 className="text-sm font-medium text-slate-900 dark:text-zinc-300">
+      <h3 className="text-sm font-medium text-black dark:text-black">
         Assigned Judges ({assignedJudges.length})
       </h3>
 
@@ -249,7 +249,9 @@ function JudgesTab({ eventId }) {
                 <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
                   {j.name}
                 </p>
-                <p className="text-xs text-zinc-700">{j.email}</p>
+                <p className="text-xs text-slate-800 dark:text-slate-200">
+                  {j.email}
+                </p>
               </div>
               <button
                 onClick={() => handleUnassign(j.id)}
@@ -571,10 +573,10 @@ export default function AdminEventPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                className={`px-4 py-2.5 text-base font-medium border-b-2 transition -mb-px ${
                   activeTab === tab
-                    ? 'border-teal-600 dark:border-teal-400 text-teal-700 dark:text-teal-400'
-                    : 'border-transparent text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                    ? 'border-teal-600 dark:border-teal-400 text-black dark:text-black'
+                    : 'border-transparent text-black dark:text-black hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 {tab}
