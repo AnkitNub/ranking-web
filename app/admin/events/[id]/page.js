@@ -283,6 +283,7 @@ function ScoreboardTab({ eventId }) {
   const [assignedJudgesCount, setAssignedJudgesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
+  const [copied, setCopied] = useState(false);
   const intervalRef = useRef(null);
 
   const fetchScoreboard = useCallback(async () => {
@@ -314,6 +315,26 @@ function ScoreboardTab({ eventId }) {
   });
   rows.sort((a, b) => b.totalScore - a.totalScore);
 
+  const allScored =
+    assignedJudgesCount > 0 &&
+    rows.length > 0 &&
+    rows.every((r) => r.judgesScored === assignedJudgesCount);
+
+  const presentUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/present/${eventId}`
+      : `/present/${eventId}`;
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(presentUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* fallback: ignore */
+    }
+  }
+
   function medalEmoji(index) {
     if (index === 0) return '🥇';
     if (index === 1) return '🥈';
@@ -326,6 +347,36 @@ function ScoreboardTab({ eventId }) {
 
   return (
     <div className="space-y-3">
+      {/* Present Results banner */}
+      {allScored && (
+        <div className="rounded-xl border border-teal-200 dark:border-teal-800/60 bg-teal-50/60 dark:bg-teal-950/20 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">
+              🎉 All scores are in!
+            </p>
+            <p className="text-xs text-teal-600 dark:text-teal-500 mt-0.5 truncate">
+              {presentUrl}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleCopyLink}
+              className="text-xs px-3 py-1.5 rounded-lg border border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/30 transition font-medium"
+            >
+              {copied ? '✓ Copied!' : 'Copy Link'}
+            </button>
+            <a
+              href={`/present/${eventId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold transition shadow shadow-teal-200 dark:shadow-none"
+            >
+              Present →
+            </a>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <p className="text-xs text-zinc-400">
           Auto-refreshes every 15s
