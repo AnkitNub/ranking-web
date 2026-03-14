@@ -6,14 +6,28 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
-function isExpired(deadline) {
-  if (!deadline) return false;
-  return new Date(deadline) < new Date(new Date().toDateString());
+function isExpired(event) {
+  if (!event) return false;
+
+  // Check if event's end_time has passed
+  if (event.event_date && event.end_time) {
+    const eventDateTime = new Date(`${event.event_date}T${event.end_time}`);
+    if (new Date() > eventDateTime) return true;
+  }
+
+  // Fall back to deadline check
+  if (event.deadline) {
+    return new Date(event.deadline) < new Date(new Date().toDateString());
+  }
+
+  return false;
 }
 
 function CreateEventModal({ onClose, onCreate }) {
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
   const [maxScore, setMaxScore] = useState('10');
@@ -34,6 +48,8 @@ function CreateEventModal({ onClose, onCreate }) {
         body: JSON.stringify({
           name: name.trim(),
           event_date: date || null,
+          start_time: startTime || null,
+          end_time: endTime || null,
           description: description || null,
           deadline: deadline || null,
           max_score: maxScore ? Number(maxScore) : 10,
@@ -73,7 +89,7 @@ function CreateEventModal({ onClose, onCreate }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Date
+              Starting Date
             </label>
             <input
               type="date"
@@ -81,6 +97,30 @@ function CreateEventModal({ onClose, onCreate }) {
               onChange={(e) => setDate(e.target.value)}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Starting Time
+              </label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Ending Time
+              </label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+            </div>
           </div>
           <div className="flex gap-3">
             <div className="flex-1">
@@ -245,7 +285,7 @@ export default function AdminDashboard() {
               <div
                 key={event.id}
                 className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group ${
-                  isExpired(event.deadline)
+                  isExpired(event)
                     ? 'border-zinc-200 dark:border-zinc-800 opacity-75 hover:opacity-100'
                     : 'border-zinc-200 dark:border-zinc-800 hover:border-teal-300 dark:hover:border-teal-700'
                 }`}
@@ -257,24 +297,29 @@ export default function AdminDashboard() {
                       <h2 className="font-bold text-zinc-950 dark:text-zinc-100 truncate group-hover:text-zinc-700 dark:group-hover:text-teal-300 transition">
                         {event.name}
                       </h2>
-                      {isExpired(event.deadline) && (
+                      {isExpired(event) && (
                         <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 shrink-0">
                           Expired
                         </span>
                       )}
                     </div>
                     {event.event_date && (
-                      <p className="text-xs text-zinc-400 mt-0.5">
+                      <p className="text-xs text-zinc-400 dark:text-zinc-300 mt-0.5">
                         {new Date(event.event_date).toLocaleDateString(
                           'en-US',
                           { year: 'numeric', month: 'short', day: 'numeric' },
+                        )}
+                        {event.start_time && event.end_time && (
+                          <span className="block text-zinc-500 dark:text-zinc-400">
+                            {event.start_time} - {event.end_time}
+                          </span>
                         )}
                       </p>
                     )}
                     {event.deadline && (
                       <p
                         className={`text-xs mt-0.5 ${
-                          isExpired(event.deadline)
+                          isExpired(event)
                             ? 'text-red-500 dark:text-red-400'
                             : 'text-amber-500 dark:text-amber-300'
                         }`}

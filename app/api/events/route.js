@@ -38,8 +38,15 @@ export async function POST(request) {
   if (user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { name, event_date, description, deadline, max_score } =
-    await request.json();
+  const {
+    name,
+    event_date,
+    start_time,
+    end_time,
+    description,
+    deadline,
+    max_score,
+  } = await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
   const maxScoreNum = Number(max_score);
@@ -58,6 +65,8 @@ export async function POST(request) {
     .insert({
       name: name.trim(),
       event_date: event_date || null,
+      start_time: start_time || null,
+      end_time: end_time || null,
       description: description?.trim() || null,
       deadline: deadline || null,
       max_score: max_score ? maxScoreNum : 10,

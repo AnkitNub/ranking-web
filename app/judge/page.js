@@ -6,13 +6,25 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
-function isExpired(deadline) {
-  if (!deadline) return false;
-  return new Date(deadline) < new Date(new Date().toDateString());
+function isExpired(event) {
+  if (!event) return false;
+
+  // Check if event's end_time has passed
+  if (event.event_date && event.end_time) {
+    const eventDateTime = new Date(`${event.event_date}T${event.end_time}`);
+    if (new Date() > eventDateTime) return true;
+  }
+
+  // Fall back to deadline check
+  if (event.deadline) {
+    return new Date(event.deadline) < new Date(new Date().toDateString());
+  }
+
+  return false;
 }
 
 function EventCard({ event, onClick }) {
-  const expired = isExpired(event.deadline);
+  const expired = isExpired(event);
   return (
     <button
       onClick={onClick}
@@ -64,11 +76,20 @@ function EventCard({ event, onClick }) {
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            {new Date(event.event_date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+            <div>
+              <div>
+                {new Date(event.event_date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </div>
+              {event.start_time && event.end_time && (
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {event.start_time} - {event.end_time}
+                </div>
+              )}
+            </div>
           </div>
         )}
         {event.deadline && (
@@ -191,8 +212,8 @@ export default function JudgeDashboard() {
     );
   }
 
-  const activeEvents = events.filter((e) => !isExpired(e.deadline));
-  const expiredEvents = events.filter((e) => isExpired(e.deadline));
+  const activeEvents = events.filter((e) => !isExpired(e));
+  const expiredEvents = events.filter((e) => isExpired(e));
 
   return (
     <div className="min-h-screen bg-[#FDFBD4] dark:bg-[#FDFBD4]">
