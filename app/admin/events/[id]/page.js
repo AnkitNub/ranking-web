@@ -55,7 +55,7 @@ function ParticipantsTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-400 py-6 text-center">Loading…</p>;
+    return <p className="text-sm text-zinc-600 py-6 text-center">Loading…</p>;
 
   return (
     <div className="space-y-4">
@@ -65,12 +65,12 @@ function ParticipantsTab({ eventId }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Participant name"
-          className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+          className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
         />
         <button
           type="submit"
           disabled={adding || !input.trim()}
-          className="rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-200 transition disabled:opacity-50"
+          className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
         >
           {adding ? '…' : 'Add'}
         </button>
@@ -83,22 +83,22 @@ function ParticipantsTab({ eventId }) {
       )}
 
       {participants.length === 0 ? (
-        <p className="text-sm text-zinc-400 text-center py-8">
+        <p className="text-sm text-zinc-700 text-center py-8">
           No participants yet. Add one above.
         </p>
       ) : (
-        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+        <ul className="divide-y divide-zinc-200 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
           {participants.map((p) => (
             <li
               key={p.id}
-              className="flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-900"
+              className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-600 transition"
             >
-              <span className="text-sm text-zinc-900 dark:text-zinc-100">
+              <span className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
                 {p.name}
               </span>
               <button
                 onClick={() => handleDelete(p.id)}
-                className="text-zinc-400 hover:text-red-500 transition p-1 rounded"
+                className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded"
                 title="Remove participant"
               >
                 <svg
@@ -119,7 +119,7 @@ function ParticipantsTab({ eventId }) {
           ))}
         </ul>
       )}
-      <p className="text-xs text-zinc-400">
+      <p className="text-xs text-zinc-700">
         {participants.length} participant{participants.length !== 1 ? 's' : ''}
       </p>
     </div>
@@ -193,9 +193,11 @@ function JudgesTab({ eventId }) {
         <select
           value={selectedJudgeId}
           onChange={(e) => setSelectedJudgeId(e.target.value)}
-          className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition"
+          className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
         >
-          <option value="">Select a judge…</option>
+          <option value="" className="text-zinc-700">
+            Select a judge…
+          </option>
           {unassignedJudges.map((j) => (
             <option key={j.id} value={j.id}>
               {j.name} ({j.email})
@@ -205,19 +207,19 @@ function JudgesTab({ eventId }) {
         <button
           onClick={handleAssign}
           disabled={assigning || !selectedJudgeId}
-          className="rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-700 dark:hover:bg-zinc-200 transition disabled:opacity-50 whitespace-nowrap"
+          className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50 whitespace-nowrap"
         >
           {assigning ? '…' : 'Assign to Event'}
         </button>
       </div>
 
       {unassignedJudges.length === 0 && allJudges.length > 0 && (
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-zinc-700">
           All registered judges have been assigned.
         </p>
       )}
       {allJudges.length === 0 && (
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-zinc-700">
           No judges registered yet. Ask judges to sign up first.
         </p>
       )}
@@ -228,30 +230,30 @@ function JudgesTab({ eventId }) {
         </p>
       )}
 
-      <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <h3 className="text-sm font-medium text-slate-900 dark:text-zinc-300">
         Assigned Judges ({assignedJudges.length})
       </h3>
 
       {assignedJudges.length === 0 ? (
-        <p className="text-sm text-zinc-400 text-center py-6">
+        <p className="text-sm text-zinc-700 text-center py-6">
           No judges assigned yet.
         </p>
       ) : (
-        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+        <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
           {assignedJudges.map((j) => (
             <li
               key={j.id}
-              className="flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-900"
+              className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-600 transition"
             >
               <div>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
                   {j.name}
                 </p>
-                <p className="text-xs text-zinc-400">{j.email}</p>
+                <p className="text-xs text-zinc-700">{j.email}</p>
               </div>
               <button
                 onClick={() => handleUnassign(j.id)}
-                className="text-zinc-400 hover:text-red-500 transition p-1 rounded text-xs"
+                className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded text-xs"
                 title="Remove judge"
               >
                 <svg
@@ -343,7 +345,7 @@ function ScoreboardTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-400 py-6 text-center">Loading…</p>;
+    return <p className="text-sm text-zinc-600 py-6 text-center">Loading…</p>;
 
   return (
     <div className="space-y-3">
@@ -378,21 +380,21 @@ function ScoreboardTab({ eventId }) {
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-zinc-600">
           Auto-refreshes every 15s
           {lastRefreshed &&
             ` · Last updated ${lastRefreshed.toLocaleTimeString()}`}
         </p>
         <button
           onClick={fetchScoreboard}
-          className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition"
+          className="text-xs text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition"
         >
           ↻ Refresh
         </button>
       </div>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-zinc-400 text-center py-8">
+        <p className="text-sm text-zinc-600 text-center py-8">
           No participants added yet.
         </p>
       ) : (
@@ -400,16 +402,16 @@ function ScoreboardTab({ eventId }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide w-12">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide w-12">
                   Rank
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide">
                   Participant
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide">
                   Total Score
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide hidden sm:table-cell">
+                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide hidden sm:table-cell">
                   Judges Scored
                 </th>
               </tr>
@@ -420,7 +422,7 @@ function ScoreboardTab({ eventId }) {
                   key={row.id}
                   className={`${index < rows.length - 1 ? 'border-b border-zinc-100 dark:border-zinc-800' : ''} ${index === 0 ? 'bg-amber-50/50 dark:bg-amber-950/10' : ''}`}
                 >
-                  <td className="px-4 py-3 text-center font-semibold text-zinc-600 dark:text-zinc-300">
+                  <td className="px-4 py-3 text-center font-semibold text-zinc-700 dark:text-zinc-300">
                     {medalEmoji(index)}
                   </td>
                   <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium">
@@ -488,7 +490,7 @@ export default function AdminEventPage() {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-[#fdfbd4] dark:bg-[#fdfbd4]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
           <span className="text-sm text-zinc-400">Loading…</span>
@@ -498,19 +500,19 @@ export default function AdminEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-[#fdfbd4] dark:bg-[#fdfbd4]">
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8">
         {/* Breadcrumb + title */}
         <div className="mb-6">
           <button
             onClick={() => router.push('/admin')}
-            className="text-xs text-zinc-500 hover:text-teal-700 dark:hover:text-teal-400 transition mb-2"
+            className="text-xs text-zinc-700 hover:text-teal-700 dark:hover:text-teal-400 transition mb-2"
           >
             ← Back to My Events
           </button>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+            <h1 className="text-2xl font-semibold text-black dark:text-black">
               {event?.name}
             </h1>
             {event?.deadline &&
@@ -522,7 +524,7 @@ export default function AdminEventPage() {
               )}
           </div>
           {event?.event_date && (
-            <p className="text-sm text-zinc-400 mt-0.5">
+            <p className="text-base text-zinc-800 mt-0.5">
               {new Date(event.event_date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -532,10 +534,10 @@ export default function AdminEventPage() {
           )}
           {event?.deadline && (
             <p
-              className={`text-sm mt-0.5 font-medium ${
+              className={`text-base mt-0.5 font-medium ${
                 new Date(event.deadline) < new Date(new Date().toDateString())
-                  ? 'text-red-500'
-                  : 'text-amber-500 dark:text-amber-400'
+                  ? 'text-red-600 dark:text-red-500'
+                  : 'text-amber-600 dark:text-amber-500'
               }`}
             >
               Scoring deadline:{' '}
@@ -547,14 +549,14 @@ export default function AdminEventPage() {
             </p>
           )}
           {event?.description && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl">
+            <p className="text-base text-slate-900 dark:text-zinc-400 mt-1 max-w-2xl">
               {event.description}
             </p>
           )}
           {event?.max_score && (
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-sm text-zinc-800 mt-1">
               Max score per judge:{' '}
-              <strong className="text-zinc-600 dark:text-zinc-300">
+              <strong className="text-green-700 dark:text-green-400">
                 {event.max_score}
               </strong>{' '}
               pts
@@ -572,7 +574,7 @@ export default function AdminEventPage() {
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
                   activeTab === tab
                     ? 'border-teal-600 dark:border-teal-400 text-teal-700 dark:text-teal-400'
-                    : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+                    : 'border-transparent text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
                 }`}
               >
                 {tab}
