@@ -353,19 +353,19 @@ function ScoreboardTab({ eventId }) {
     <div className="space-y-3">
       {/* Present Results banner */}
       {allScored && (
-        <div className="rounded-xl border border-teal-200 dark:border-teal-800/60 bg-teal-50/60 dark:bg-teal-950/20 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="rounded-xl border-2 border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">
+            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
               🎉 All scores are in!
             </p>
-            <p className="text-xs text-teal-600 dark:text-teal-500 mt-0.5 truncate">
+            <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
               {presentUrl}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleCopyLink}
-              className="text-xs px-3 py-1.5 rounded-lg border border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/30 transition font-medium"
+              className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
             >
               {copied ? '✓ Copied!' : 'Copy Link'}
             </button>
@@ -373,7 +373,7 @@ function ScoreboardTab({ eventId }) {
               href={`/present/${eventId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold transition shadow shadow-teal-200 dark:shadow-none"
+              className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
             >
               Present →
             </a>
@@ -382,14 +382,14 @@ function ScoreboardTab({ eventId }) {
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-xs text-zinc-600">
+        <p className="text-xs text-slate-800">
           Auto-refreshes every 15s
           {lastRefreshed &&
             ` · Last updated ${lastRefreshed.toLocaleTimeString()}`}
         </p>
         <button
           onClick={fetchScoreboard}
-          className="text-xs text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition"
+          className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
         >
           ↻ Refresh
         </button>
@@ -403,34 +403,34 @@ function ScoreboardTab({ eventId }) {
         <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide w-12">
+              <tr className="bg-slate-100 dark:bg-slate-600 border-b border-slate-200 dark:border-slate-700">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide w-12">
                   Rank
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
                   Participant
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide">
+                <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
                   Total Score
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-700 dark:text-zinc-400 uppercase tracking-wide hidden sm:table-cell">
+                <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide hidden sm:table-cell">
                   Judges Scored
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-zinc-900">
+            <tbody className="bg-white dark:bg-slate-700">
               {rows.map((row, index) => (
                 <tr
                   key={row.id}
-                  className={`${index < rows.length - 1 ? 'border-b border-zinc-100 dark:border-zinc-800' : ''} ${index === 0 ? 'bg-amber-50/50 dark:bg-amber-950/10' : ''}`}
+                  className={`${index < rows.length - 1 ? 'border-b border-slate-200 dark:border-slate-600' : ''} ${index === 0 ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : ''}`}
                 >
-                  <td className="px-4 py-3 text-center font-semibold text-zinc-700 dark:text-zinc-300">
+                  <td className="px-4 py-3 text-center font-semibold text-black dark:text-white">
                     {medalEmoji(index)}
                   </td>
-                  <td className="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium">
+                  <td className="px-4 py-3 text-black dark:text-white font-medium">
                     {row.name}
                   </td>
-                  <td className="px-4 py-3 text-right font-bold text-zinc-900 dark:text-zinc-50">
+                  <td className="px-4 py-3 text-right font-bold text-black dark:text-white">
                     {row.totalScore}
                   </td>
                   <td className="px-4 py-3 text-right hidden sm:table-cell">
@@ -439,7 +439,7 @@ function ScoreboardTab({ eventId }) {
                         row.judgesScored === assignedJudgesCount &&
                         assignedJudgesCount > 0
                           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                          : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+                          : 'bg-slate-300 text-slate-800 dark:bg-slate-600 dark:text-slate-100'
                       }`}
                     >
                       {row.judgesScored}/{assignedJudgesCount}
@@ -492,7 +492,7 @@ export default function AdminEventPage() {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-[#fdfbd4] dark:bg-[#fdfbd4]">
+      <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
           <span className="text-sm text-zinc-400">Loading…</span>
@@ -502,7 +502,7 @@ export default function AdminEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fdfbd4] dark:bg-[#fdfbd4]">
+    <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8">
         {/* Breadcrumb + title */}

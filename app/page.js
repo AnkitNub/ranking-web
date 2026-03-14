@@ -23,7 +23,7 @@ export default function Home() {
   }, [loading, firebaseUser, supabaseUser, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FDFBD4] dark:bg-[#FDFBD4]">
+    <div className="min-h-screen flex items-center justify-center bg-[#f9f5ea] dark:bg-[#f9f5ea]">
       <span className="text-sm text-zinc-400">Loading…</span>
     </div>
   );
