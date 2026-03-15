@@ -603,7 +603,7 @@ export default function AdminDashboard() {
                   </svg>
                 </button>
                 {expandedActive && (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                     {events
                       .filter((e) => !isExpired(e))
                       .map((event) => (
@@ -644,15 +644,15 @@ export default function AdminDashboard() {
                               )}
                               {event.deadline && (
                                 <div
-                                  className={`rounded-lg p-2.5 space-y-1 text-xs bg-amber-50 dark:bg-amber-900/20`}
+                                  className={`rounded-lg p-2.5 space-y-1 text-xs bg-teal-50 dark:bg-teal-900/20`}
                                 >
                                   <p
-                                    className={`font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300`}
+                                    className={`font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300`}
                                   >
                                     Scoring Deadline
                                   </p>
                                   <div
-                                    className={`text-amber-700 dark:text-amber-200 font-medium`}
+                                    className={`text-zinc-800 dark:text-zinc-200 font-medium`}
                                   >
                                     {new Date(
                                       event.deadline,
@@ -665,18 +665,24 @@ export default function AdminDashboard() {
                                 </div>
                               )}
                               {event.description && (
-                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-1 line-clamp-2">
-                                  {event.description}
-                                </p>
+                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                                  <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">
+                                    Description
+                                  </p>
+                                  <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
+                                    {event.description}
+                                  </p>
+                                </div>
                               )}
                               {event.max_score && (
-                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5">
-                                  Max score:{' '}
-                                  <strong className="text-zinc-800 dark:text-zinc-200">
-                                    {event.max_score}
-                                  </strong>{' '}
-                                  pts
-                                </p>
+                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                                  <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">
+                                    Max Score
+                                  </p>
+                                  <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                                    {event.max_score} pts
+                                  </div>
+                                </div>
                               )}
                             </div>
                             <div className="flex items-center gap-1">
@@ -771,7 +777,7 @@ export default function AdminDashboard() {
                   </svg>
                 </button>
                 {expandedClosed && (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                     {events
                       .filter((e) => isExpired(e))
                       .map((event) => (
@@ -793,8 +799,8 @@ export default function AdminDashboard() {
                                 </span>
                               </div>
                               {event.event_date && (
-                                <div className="bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-2.5 space-y-1 text-xs">
-                                  <p className="text-zinc-700 dark:text-zinc-400 font-semibold uppercase tracking-wide">
+                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                                  <p className="text-red-700 dark:text-red-300 font-semibold uppercase tracking-wide">
                                     Event Time
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
@@ -823,7 +829,7 @@ export default function AdminDashboard() {
                                     Scoring Deadline
                                   </p>
                                   <div
-                                    className={`text-red-700 dark:text-red-200 font-medium`}
+                                    className={`text-zinc-800 dark:text-zinc-200 font-medium`}
                                   >
                                     {new Date(
                                       event.deadline,
@@ -836,18 +842,24 @@ export default function AdminDashboard() {
                                 </div>
                               )}
                               {event.description && (
-                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-1 line-clamp-2">
-                                  {event.description}
-                                </p>
+                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                                  <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300">
+                                    Description
+                                  </p>
+                                  <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
+                                    {event.description}
+                                  </p>
+                                </div>
                               )}
                               {event.max_score && (
-                                <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5">
-                                  Max score:{' '}
-                                  <strong className="text-zinc-800 dark:text-zinc-200">
-                                    {event.max_score}
-                                  </strong>{' '}
-                                  pts
-                                </p>
+                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                                  <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300">
+                                    Max Score
+                                  </p>
+                                  <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                                    {event.max_score} pts
+                                  </div>
+                                </div>
                               )}
                             </div>
                             <div className="flex items-center gap-1">
