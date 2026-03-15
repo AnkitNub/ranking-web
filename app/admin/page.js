@@ -622,7 +622,7 @@ export default function AdminDashboard() {
                                 </h2>
                               </div>
                               {event.event_date && (
-                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
+                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide">
                                     Event Time
                                   </p>
@@ -644,10 +644,10 @@ export default function AdminDashboard() {
                               )}
                               {event.deadline && (
                                 <div
-                                  className={`rounded-lg p-2.5 space-y-1 text-xs bg-teal-50 dark:bg-teal-900/20`}
+                                  className={`rounded-lg p-2.5 space-y-1 text-sm bg-teal-50 dark:bg-teal-900/20`}
                                 >
                                   <p
-                                    className={`font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300`}
+                                    className={`font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs`}
                                   >
                                     Scoring Deadline
                                   </p>
@@ -665,8 +665,8 @@ export default function AdminDashboard() {
                                 </div>
                               )}
                               {event.description && (
-                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
-                                  <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">
+                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                                  <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs">
                                     Description
                                   </p>
                                   <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
@@ -675,8 +675,8 @@ export default function AdminDashboard() {
                                 </div>
                               )}
                               {event.max_score && (
-                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-xs">
-                                  <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">
+                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                                  <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs">
                                     Max Score
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
@@ -732,7 +732,7 @@ export default function AdminDashboard() {
                               </button>
                             </div>
                           </div>
-                          <p className="text-xs text-zinc-700 dark:text-zinc-300">
+                          <p className="text-sm text-zinc-700 dark:text-zinc-300">
                             Created{' '}
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
@@ -821,10 +821,10 @@ export default function AdminDashboard() {
                               )}
                               {event.deadline && (
                                 <div
-                                  className={`rounded-lg p-2.5 space-y-1 text-xs bg-red-50 dark:bg-red-900/20`}
+                                  className={`rounded-lg p-2.5 space-y-1 text-sm bg-red-50 dark:bg-red-900/20`}
                                 >
                                   <p
-                                    className={`font-semibold uppercase tracking-wide text-red-700 dark:text-red-300`}
+                                    className={`font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs`}
                                   >
                                     Scoring Deadline
                                   </p>
@@ -842,8 +842,8 @@ export default function AdminDashboard() {
                                 </div>
                               )}
                               {event.description && (
-                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-xs">
-                                  <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300">
+                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                                  <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs">
                                     Description
                                   </p>
                                   <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
@@ -852,8 +852,8 @@ export default function AdminDashboard() {
                                 </div>
                               )}
                               {event.max_score && (
-                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-xs">
-                                  <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300">
+                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                                  <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs">
                                     Max Score
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
@@ -909,7 +909,7 @@ export default function AdminDashboard() {
                               </button>
                             </div>
                           </div>
-                          <p className="text-xs text-zinc-700 dark:text-zinc-300">
+                          <p className="text-sm text-zinc-700 dark:text-zinc-300">
                             Created{' '}
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
