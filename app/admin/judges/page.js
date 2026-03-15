@@ -162,8 +162,8 @@ export default function ManageJudgesPage() {
                 Remove Judge?
               </h2>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-                This will permanently delete the judge from Firebase and
-                Supabase. They will no longer be able to sign in.
+                This will permanently delete the judge? They will no longer be
+                able to sign in.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
