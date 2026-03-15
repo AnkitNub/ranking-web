@@ -455,39 +455,45 @@ export default function PresentationPage() {
 
             {/* Podium section */}
             {total > 0 && (
-              <div className="w-full max-w-4xl mb-12">
+              <div className="w-full max-w-5xl mb-12">
                 {/* Podium display - shows top 3 in podium formation */}
-                <div className="flex items-flex-end justify-center gap-6 mb-8">
+                <div className="grid grid-cols-3 gap-6 items-end h-80">
                   {/* 2nd Place - Left */}
                   {total >= 2 && (
-                    <div className="flex-1 max-w-xs">
-                      <PodiumCard
-                        entry={revealOrder[total - 2]}
-                        rank={2}
-                        visible={revealed >= total - 1}
-                      />
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-md">
+                        <PodiumCard
+                          entry={revealOrder[total - 2]}
+                          rank={2}
+                          visible={revealed >= total - 1}
+                        />
+                      </div>
                     </div>
                   )}
 
-                  {/* 1st Place - Center */}
+                  {/* 1st Place - Center - Elevated */}
                   {total >= 1 && (
-                    <div className="flex-1 max-w-xs">
-                      <PodiumCard
-                        entry={revealOrder[total - 1]}
-                        rank={1}
-                        visible={revealed >= total}
-                      />
+                    <div className="flex justify-center items-start">
+                      <div className="w-full max-w-md">
+                        <PodiumCard
+                          entry={revealOrder[total - 1]}
+                          rank={1}
+                          visible={revealed >= total}
+                        />
+                      </div>
                     </div>
                   )}
 
                   {/* 3rd Place - Right */}
                   {total >= 3 && (
-                    <div className="flex-1 max-w-xs">
-                      <PodiumCard
-                        entry={revealOrder[total - 3]}
-                        rank={3}
-                        visible={revealed >= total - 2}
-                      />
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-md">
+                        <PodiumCard
+                          entry={revealOrder[total - 3]}
+                          rank={3}
+                          visible={revealed >= total - 2}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
