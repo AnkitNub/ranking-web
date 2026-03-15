@@ -239,7 +239,7 @@ export default function JudgeScoringPage() {
   return (
     <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
       <Navbar />
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         {/* Back button */}
         <button
           onClick={() => router.push('/judge')}
@@ -262,27 +262,11 @@ export default function JudgeScoringPage() {
         </button>
 
         {/* Event header */}
-        <div className="mb-6 bg-white dark:bg-zinc-900 rounded-2xl border border-teal-100 dark:border-zinc-800 p-6 shadow-sm relative overflow-hidden">
-          <span className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-teal-400 via-teal-500 to-teal-600 rounded-t-2xl" />
-          <div className="flex items-start gap-4 mt-1">
-            <div className="w-11 h-11 rounded-xl bg-linear-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-md shadow-teal-200 dark:shadow-teal-900/40 shrink-0">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                />
-              </svg>
-            </div>
+        <div className="mb-6 bg-white dark:bg-zinc-900 rounded-xl border border-teal-200 dark:border-teal-800/50 p-5 flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
+                <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-100">
                   {event?.name}
                 </h1>
                 {isExpired(event?.deadline) && (
@@ -291,60 +275,60 @@ export default function JudgeScoringPage() {
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+              <div className="mt-4 space-y-2">
                 {event?.event_date && (
-                  <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    {new Date(event.event_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                      Event Time
+                    </p>
+                    <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                      {new Date(event.event_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                      {' | '}
+                      {event.start_time}
+                    </div>
                   </div>
                 )}
-                {event?.deadline && (
-                  <div
-                    className={`flex items-center gap-1.5 text-xs font-medium ${isExpired(event.deadline) ? 'text-red-400' : 'text-amber-500 dark:text-amber-400'}`}
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    Deadline:{' '}
-                    {new Date(event.deadline).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                {event?.deadline && event?.end_time && (
+                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                      End Time
+                    </p>
+                    <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                      {new Date(event.deadline).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                      {' | '}
+                      {event.end_time}
+                    </div>
+                  </div>
+                )}
+                {event?.description && (
+                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                      Description
+                    </p>
+                    <p className="text-zinc-800 dark:text-zinc-200">
+                      {event.description}
+                    </p>
+                  </div>
+                )}
+                {event?.max_score && (
+                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                      Max Score
+                    </p>
+                    <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                      {event.max_score} pts
+                    </div>
                   </div>
                 )}
               </div>
-              {event?.description && (
-                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">
-                  {event.description}
-                </p>
-              )}
             </div>
           </div>
         </div>
