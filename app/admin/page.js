@@ -579,7 +579,7 @@ export default function AdminDashboard() {
               <div>
                 <button
                   onClick={() => setExpandedActive(!expandedActive)}
-                  className="w-full flex items-center justify-between gap-3 mb-4 p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 border border-teal-200 dark:border-teal-800/40 transition"
+                  className="w-full flex items-center justify-between gap-3 mb-4 p-4 rounded-lg bg-teal-100 dark:bg-teal-900 hover:bg-teal-200 dark:hover:bg-teal-800 border border-teal-300 dark:border-teal-700 transition"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-teal-500 dark:bg-teal-400"></div>
@@ -747,7 +747,7 @@ export default function AdminDashboard() {
               <div>
                 <button
                   onClick={() => setExpandedClosed(!expandedClosed)}
-                  className="w-full flex items-center justify-between gap-3 mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800/40 transition"
+                  className="w-full flex items-center justify-between gap-3 mb-4 p-4 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 border border-red-300 dark:border-red-700 transition"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-red-500 dark:bg-red-400"></div>
@@ -777,7 +777,7 @@ export default function AdminDashboard() {
                       .map((event) => (
                         <div
                           key={event.id}
-                          className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group opacity-75 hover:opacity-100 border-red-200 dark:border-red-800/50 hover:border-red-400 dark:hover:border-red-700`}
+                          className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group border-red-200 dark:border-red-800/50 hover:border-red-400 dark:hover:border-red-700`}
                           onClick={() =>
                             router.push(`/admin/events/${event.id}`)
                           }
