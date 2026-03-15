@@ -28,142 +28,101 @@ function EventCard({ event, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`group relative w-full text-left rounded-2xl border bg-white dark:bg-zinc-900 p-5 pt-6 transition-all duration-200 shadow-sm hover:shadow-lg overflow-hidden ${
+      className={`w-full text-left rounded-xl border bg-white dark:bg-zinc-900 p-5 flex flex-col gap-3 transition cursor-pointer group ${
         expired
-          ? 'border-stone-200 dark:border-zinc-800 opacity-80 hover:opacity-100'
-          : 'border-teal-100 dark:border-teal-900/30 hover:border-teal-300 dark:hover:border-teal-800 hover:-translate-y-0.5'
+          ? 'border-stone-200 dark:border-zinc-800'
+          : 'border-teal-200 dark:border-teal-800/50 hover:border-teal-400 dark:hover:border-teal-700 hover:shadow-md'
       }`}
     >
-      {/* Top accent stripe */}
-      <span
-        className={`absolute top-0 left-0 right-0 h-1.5 ${
-          expired
-            ? 'bg-zinc-300 dark:bg-zinc-700'
-            : 'bg-linear-to-r from-teal-400 via-teal-500 to-teal-600'
-        }`}
-      />
-
-      {/* Header row */}
       <div className="flex items-start justify-between gap-2">
-        <p className="font-bold text-zinc-950 dark:text-zinc-100 text-base leading-snug group-hover:text-teal-700 dark:group-hover:text-teal-300 transition line-clamp-2 flex-1">
-          {event.name}
-        </p>
-        {expired ? (
-          <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400">
-            Closed
-          </span>
-        ) : (
-          <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
-            Active
-          </span>
-        )}
-      </div>
-
-      {/* Dates */}
-      <div className="mt-3 space-y-2">
-        {event.event_date && (
-          <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1">
-            <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wide">
-              Event Time
-            </p>
-            <div className="flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-300">
-              <svg
-                className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <div>
-                <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {new Date(event.event_date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </div>
-                {event.start_time && event.end_time && (
-                  <div className="text-zinc-500 dark:text-zinc-400">
-                    {event.start_time} - {event.end_time}
-                  </div>
-                )}
-              </div>
-            </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-bold text-zinc-950 dark:text-zinc-100 truncate group-hover:text-zinc-700 dark:group-hover:text-teal-300 transition">
+              {event.name}
+            </h2>
           </div>
-        )}
-        {event.deadline && (
-          <div
-            className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-amber-50 dark:bg-amber-900/20'} rounded-lg p-2.5 space-y-1`}
-          >
-            <p
-              className={`text-xs font-semibold uppercase tracking-wide ${expired ? 'text-red-700 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}
-            >
-              Scoring Deadline
-            </p>
+          {event.event_date && (
             <div
-              className={`flex items-start gap-2 text-xs font-medium ${expired ? 'text-red-600 dark:text-red-300' : 'text-amber-600 dark:text-amber-300'}`}
+              className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-teal-50 dark:bg-teal-900/20'} rounded-lg p-2.5 space-y-1 text-sm mt-3`}
             >
-              <svg
-                className={`w-3.5 h-3.5 shrink-0 mt-0.5`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <p
+                className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div>
-                <div
-                  className={`${expired ? 'text-red-700 dark:text-red-200' : 'text-amber-700 dark:text-amber-200'}`}
-                >
-                  {new Date(event.deadline).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </div>
-                {!expired && (
-                  <div className="text-xs opacity-75">
-                    {Math.ceil(
-                      (new Date(event.deadline) - new Date()) /
-                        (1000 * 60 * 60 * 24),
-                    )}{' '}
-                    days left
-                  </div>
-                )}
+                Event Time
+              </p>
+              <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                {new Date(event.event_date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+                {' | '}
+                {event.start_time}
               </div>
             </div>
-          </div>
-        )}
-        {event.description && (
-          <p className="text-xs text-zinc-600 dark:text-zinc-300 line-clamp-2 mt-1 leading-relaxed">
-            {event.description}
-          </p>
-        )}
+          )}
+          {event.deadline && (
+            <div
+              className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-teal-50 dark:bg-teal-900/20'} rounded-lg p-2.5 space-y-1 text-sm`}
+            >
+              <p
+                className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
+              >
+                End Time
+              </p>
+              <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                {new Date(event.deadline).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+                {' | '}
+                {event.end_time}
+              </div>
+            </div>
+          )}
+          {event.description && (
+            <div
+              className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-teal-50 dark:bg-teal-900/20'} rounded-lg p-2.5 space-y-1 text-sm`}
+            >
+              <p
+                className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
+              >
+                Description
+              </p>
+              <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
+                {event.description}
+              </p>
+            </div>
+          )}
+          {event.max_score && (
+            <div
+              className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-teal-50 dark:bg-teal-900/20'} rounded-lg p-2.5 space-y-1 text-sm`}
+            >
+              <p
+                className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
+              >
+                Max Score
+              </p>
+              <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                {event.max_score} pts
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Footer CTA */}
       <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
         <span
-          className={`text-xs font-semibold flex items-center gap-1 transition-all ${
+          className={`text-sm font-semibold flex items-center gap-2 transition-all ${
             expired
-              ? 'text-stone-600 dark:text-stone-300'
-              : 'text-teal-700 dark:text-teal-300 group-hover:gap-2'
+              ? 'text-stone-700 dark:text-stone-200'
+              : 'text-teal-700 dark:text-teal-300 group-hover:gap-3'
           }`}
         >
           {expired ? 'View scores' : 'Start scoring'}
           <svg
-            className="w-3.5 h-3.5"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -177,9 +136,9 @@ function EventCard({ event, onClick }) {
           </svg>
         </span>
         {!expired && (
-          <div className="w-6 h-6 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition">
+          <div className="w-7 h-7 rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center group-hover:bg-teal-200 dark:group-hover:bg-teal-900/60 transition">
             <svg
-              className="w-3 h-3 text-teal-700"
+              className="w-4 h-4 text-teal-700 dark:text-teal-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -246,7 +205,7 @@ export default function JudgeDashboard() {
   return (
     <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
       <Navbar />
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         {/* Page Header */}
         <div className="mb-8 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-linear-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-md shadow-teal-200 dark:shadow-teal-900/40">
@@ -268,7 +227,7 @@ export default function JudgeDashboard() {
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 leading-tight">
               My Assigned Events
             </h1>
-            <p className="text-sm text-zinc-700 dark:text-zinc-300">
+            <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
               Select an event to start scoring participants.
             </p>
           </div>
@@ -308,7 +267,7 @@ export default function JudgeDashboard() {
                     Active — {activeEvents.length}
                   </h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                   {activeEvents.map((event) => (
                     <EventCard
                       key={event.id}
@@ -328,7 +287,7 @@ export default function JudgeDashboard() {
                     Closed — {expiredEvents.length}
                   </h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                   {expiredEvents.map((event) => (
                     <EventCard
                       key={event.id}
