@@ -33,6 +33,8 @@ function CreateEventModal({ onClose, onCreate }) {
   const [maxScore, setMaxScore] = useState('10');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmedStartTime, setConfirmedStartTime] = useState('');
+  const [confirmedEndTime, setConfirmedEndTime] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -124,23 +126,61 @@ function CreateEventModal({ onClose, onCreate }) {
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Starting Time
               </label>
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setConfirmedStartTime(startTime)}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    startTime
+                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                  }`}
+                  disabled={!startTime}
+                >
+                  OK
+                </button>
+              </div>
+              {confirmedStartTime && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                  ✓ Selected
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Ending Time
               </label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setConfirmedEndTime(endTime)}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    endTime
+                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                  }`}
+                  disabled={!endTime}
+                >
+                  OK
+                </button>
+              </div>
+              {confirmedEndTime && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                  ✓ Selected
+                </p>
+              )}
             </div>
           </div>
           <div>
@@ -218,6 +258,12 @@ function EditEventModal({ event, onClose, onEdit }) {
   const [maxScore, setMaxScore] = useState(event?.max_score || '10');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmedStartTime, setConfirmedStartTime] = useState(
+    event?.start_time || '',
+  );
+  const [confirmedEndTime, setConfirmedEndTime] = useState(
+    event?.end_time || '',
+  );
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -308,23 +354,61 @@ function EditEventModal({ event, onClose, onEdit }) {
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Starting Time
               </label>
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setConfirmedStartTime(startTime)}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    startTime
+                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                  }`}
+                  disabled={!startTime}
+                >
+                  OK
+                </button>
+              </div>
+              {confirmedStartTime && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                  ✓ Selected
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Ending Time
               </label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setConfirmedEndTime(endTime)}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    endTime
+                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                  }`}
+                  disabled={!endTime}
+                >
+                  OK
+                </button>
+              </div>
+              {confirmedEndTime && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                  ✓ Selected
+                </p>
+              )}
             </div>
           </div>
           <div>
