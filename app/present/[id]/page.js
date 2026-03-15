@@ -40,7 +40,7 @@ function Confetti() {
 /* ─── Podium card for top 3 ───────────────────────────────────────────────── */
 function PodiumCard({ entry, rank, visible }) {
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-  const heightClass = rank === 1 ? 'h-64' : rank === 2 ? 'h-52' : 'h-48';
+  const heightClass = rank === 1 ? 'h-72' : rank === 2 ? 'h-64' : 'h-60';
   const borderColor =
     rank === 1
       ? 'border-amber-400/60'
@@ -122,7 +122,7 @@ function PodiumCard({ entry, rank, visible }) {
         </div>
 
         {/* Name */}
-        <p className={`font-bold text-center truncate max-w-xs ${nameText}`}>
+        <p className={`font-bold text-center truncate max-w-full ${nameText}`}>
           {rank === 1 ? (
             <span className="text-2xl">{entry.name}</span>
           ) : (
