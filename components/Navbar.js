@@ -18,7 +18,11 @@ export default function Navbar() {
   }
 
   function navLink(href, label) {
-    const active = pathname === href || pathname.startsWith(href + '/');
+    let active = pathname === href || pathname.startsWith(href + '/');
+    // Exclude more specific routes from parent path matching
+    if (href === '/admin' && pathname.startsWith('/admin/judges')) {
+      active = false;
+    }
     return (
       <Link
         href={href}
