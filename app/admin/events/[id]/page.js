@@ -6,6 +6,96 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
+/* ─── Score Details Modal ──────────────────────────────────────────────────── */
+function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
+  const [judges, setJudges] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJudges = async () => {
+      try {
+        const res = await authFetch(`/api/events/${eventId}/judges`);
+        const data = await res.json();
+        setJudges(data.judges || []);
+      } catch (error) {
+        console.error('Failed to fetch judges:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJudges();
+  }, [eventId]);
+
+  const participantScores = scores.filter(
+    (s) => s.participant_id === participant.id,
+  );
+
+  const judgeScores = judges.map((judge) => {
+    const score = participantScores.find((s) => s.judge_id === judge.id);
+    return {
+      judge_name: judge.name || 'Unknown Judge',
+      score: score ? score.score : '-',
+    };
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-slate-700 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-black dark:text-white">
+            Scores for {participant.name}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-black dark:hover:text-white transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
+            Loading judges...
+          </p>
+        ) : judgeScores.length === 0 ? (
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
+            No judges assigned yet.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {judgeScores.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between bg-slate-100 dark:bg-slate-600 px-3 py-2 rounded-lg"
+              >
+                <span className="text-sm font-medium text-black dark:text-white">
+                  {item.judge_name}
+                </span>
+                <span
+                  className={`text-sm font-bold ${
+                    item.score === '-'
+                      ? 'text-zinc-500 dark:text-zinc-400'
+                      : 'text-emerald-600 dark:text-emerald-400'
+                  }`}
+                >
+                  {item.score}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={onClose}
+          className="mt-6 w-full px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 text-black dark:text-white font-semibold hover:bg-slate-300 dark:hover:bg-slate-500 transition"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Participants Tab ─────────────────────────────────────────────────────── */
 function ParticipantsTab({ eventId }) {
   const [participants, setParticipants] = useState([]);
@@ -342,6 +432,7 @@ function ScoreboardTab({ eventId }) {
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
   const intervalRef = useRef(null);
 
   const fetchScoreboard = useCallback(async () => {
@@ -470,6 +561,9 @@ function ScoreboardTab({ eventId }) {
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide hidden sm:table-cell">
                   Judges Scored
                 </th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-slate-700">
@@ -499,11 +593,28 @@ function ScoreboardTab({ eventId }) {
                       {row.judgesScored}/{assignedJudgesCount}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => setSelectedParticipant(row)}
+                      className="text-xs px-2 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold transition"
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedParticipant && (
+        <ScoreDetailsModal
+          participant={selectedParticipant}
+          scores={scores}
+          eventId={eventId}
+          onClose={() => setSelectedParticipant(null)}
+        />
       )}
     </div>
   );
