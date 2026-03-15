@@ -731,9 +731,9 @@ export default function AdminDashboard() {
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
                           <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                            <span className="text-xs text-teal-600 dark:text-teal-400 font-medium group-hover:text-teal-800 dark:group-hover:text-teal-300 transition">
+                            <button className="w-full text-sm font-bold px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 text-white transition">
                               Manage →
-                            </span>
+                            </button>
                           </div>
                         </div>
                       ))}
