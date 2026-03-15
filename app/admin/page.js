@@ -634,22 +634,19 @@ export default function AdminDashboard() {
                                       month: 'short',
                                       day: 'numeric',
                                     })}
+                                    {' | '}
+                                    {event.start_time}
                                   </div>
-                                  {event.start_time && event.end_time && (
-                                    <div className="text-zinc-700 dark:text-zinc-400">
-                                      {event.start_time} - {event.end_time}
-                                    </div>
-                                  )}
                                 </div>
                               )}
-                              {event.deadline && (
+                              {event.deadline && event.end_time && (
                                 <div
                                   className={`rounded-lg p-2.5 space-y-1 text-sm bg-teal-50 dark:bg-teal-900/20`}
                                 >
                                   <p
                                     className={`font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs`}
                                   >
-                                    Scoring Deadline
+                                    End Time
                                   </p>
                                   <div
                                     className={`text-zinc-800 dark:text-zinc-200 font-medium`}
@@ -661,6 +658,8 @@ export default function AdminDashboard() {
                                       month: 'short',
                                       day: 'numeric',
                                     })}
+                                    {' | '}
+                                    {event.end_time}
                                   </div>
                                 </div>
                               )}
@@ -799,8 +798,8 @@ export default function AdminDashboard() {
                                 </span>
                               </div>
                               {event.event_date && (
-                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-xs">
-                                  <p className="text-red-700 dark:text-red-300 font-semibold uppercase tracking-wide">
+                                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                                  <p className="text-red-700 dark:text-red-300 font-semibold uppercase tracking-wide text-xs">
                                     Event Time
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
@@ -811,22 +810,19 @@ export default function AdminDashboard() {
                                       month: 'short',
                                       day: 'numeric',
                                     })}
+                                    {' | '}
+                                    {event.start_time}
                                   </div>
-                                  {event.start_time && event.end_time && (
-                                    <div className="text-zinc-700 dark:text-zinc-400">
-                                      {event.start_time} - {event.end_time}
-                                    </div>
-                                  )}
                                 </div>
                               )}
-                              {event.deadline && (
+                              {event.deadline && event.end_time && (
                                 <div
                                   className={`rounded-lg p-2.5 space-y-1 text-sm bg-red-50 dark:bg-red-900/20`}
                                 >
                                   <p
                                     className={`font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs`}
                                   >
-                                    Scoring Deadline
+                                    End Time
                                   </p>
                                   <div
                                     className={`text-zinc-800 dark:text-zinc-200 font-medium`}
@@ -838,6 +834,8 @@ export default function AdminDashboard() {
                                       month: 'short',
                                       day: 'numeric',
                                     })}
+                                    {' | '}
+                                    {event.end_time}
                                   </div>
                                 </div>
                               )}
