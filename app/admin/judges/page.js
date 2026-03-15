@@ -11,6 +11,9 @@ export default function ManageJudgesPage() {
   const router = useRouter();
   const [judges, setJudges] = useState([]);
   const [pageLoading, setPageLoading] = useState(true);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const fetchJudges = useCallback(async () => {
     const res = await authFetch('/api/judges');
@@ -31,6 +34,31 @@ export default function ManageJudgesPage() {
     }
     if (supabaseUser) fetchJudges();
   }, [loading, firebaseUser, supabaseUser, fetchJudges, router]);
+
+  const handleDeleteJudge = async (judgeId, judgeName) => {
+    setDeleting(judgeId);
+    setDeleteError('');
+
+    try {
+      const res = await authFetch('/api/judges', {
+        method: 'DELETE',
+        body: JSON.stringify({ judgeId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setDeleteError(data.error || 'Failed to delete judge');
+        setDeleting(null);
+        return;
+      }
+
+      setJudges(judges.filter((j) => j.id !== judgeId));
+      setConfirmDelete(null);
+    } catch (error) {
+      setDeleteError('Error deleting judge: ' + error.message);
+      setDeleting(null);
+    }
+  };
 
   if (loading || pageLoading) {
     return (
@@ -57,6 +85,12 @@ export default function ManageJudgesPage() {
           </p>
         </div>
 
+        {deleteError && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+            {deleteError}
+          </div>
+        )}
+
         {judges.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-teal-200 dark:border-zinc-800 rounded-2xl">
             <p className="text-zinc-700 dark:text-zinc-300 text-sm">
@@ -81,6 +115,9 @@ export default function ManageJudgesPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide hidden sm:table-cell">
                     Joined
                   </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -102,10 +139,54 @@ export default function ManageJudgesPage() {
                         day: 'numeric',
                       })}
                     </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => setConfirmDelete(judge.id)}
+                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm font-medium transition"
+                        disabled={deleting === judge.id}
+                      >
+                        {deleting === judge.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {confirmDelete && (
+          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-sm w-full p-6">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                Remove Judge?
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+                This will permanently delete the judge from Firebase and
+                Supabase. They will no longer be able to sign in.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+                  disabled={deleting === confirmDelete}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() =>
+                    handleDeleteJudge(
+                      confirmDelete,
+                      judges.find((j) => j.id === confirmDelete)?.name,
+                    )
+                  }
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                  disabled={deleting === confirmDelete}
+                >
+                  {deleting === confirmDelete ? 'Deleting…' : 'Delete Judge'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </main>
