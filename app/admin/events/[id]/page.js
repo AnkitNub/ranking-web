@@ -242,7 +242,8 @@ function JudgesTab({ eventId }) {
             {unassignedJudges.map((j) => (
               <li
                 key={j.id}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition"
+                onClick={() => toggleJudge(j.id)}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition cursor-pointer"
               >
                 <input
                   type="checkbox"
@@ -301,7 +302,8 @@ function JudgesTab({ eventId }) {
           {assignedJudges.map((j) => (
             <li
               key={j.id}
-              className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-600 transition"
+              onClick={() => handleUnassign(j.id)}
+              className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-600 transition cursor-pointer group"
             >
               <div>
                 <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
@@ -311,25 +313,19 @@ function JudgesTab({ eventId }) {
                   {j.email}
                 </p>
               </div>
-              <button
-                onClick={() => handleUnassign(j.id)}
-                className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded text-xs"
-                title="Remove judge"
+              <svg
+                className="w-4 h-4 text-zinc-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </li>
           ))}
         </ul>
@@ -584,13 +580,28 @@ export default function AdminEventPage() {
               )}
           </div>
           {event?.event_date && (
-            <p className="text-base text-zinc-800 mt-0.5">
-              {new Date(event.event_date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
+            <div className="mt-2 space-y-1">
+              <p className="text-base text-zinc-800">
+                <strong>Start:</strong>{' '}
+                {new Date(event.event_date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+                {event?.start_time && <> at {event.start_time}</>}
+              </p>
+              {event?.deadline && event?.end_time && (
+                <p className="text-base text-zinc-800">
+                  <strong>End:</strong>{' '}
+                  {new Date(event.deadline).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}{' '}
+                  at {event.end_time}
+                </p>
+              )}
+            </div>
           )}
           {event?.deadline && (
             <p
