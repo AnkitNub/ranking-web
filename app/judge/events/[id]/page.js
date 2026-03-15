@@ -335,24 +335,23 @@ export default function JudgeScoringPage() {
 
         {/* Expired banner */}
         {isExpired(event?.deadline) && (
-          <div className="mb-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl px-4 py-3 flex items-start gap-3">
+          <div className="mb-6 bg-red-600 dark:bg-red-700 rounded-xl px-6 py-4 flex items-start gap-4 shadow-md">
             <svg
-              className="w-4 h-4 text-red-500 mt-0.5 shrink-0"
-              fill="none"
-              stroke="currentColor"
+              className="w-5 h-5 text-white mt-0.5 shrink-0"
+              fill="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
-            <p className="text-sm text-red-700 dark:text-red-400">
-              <strong>Voting closed.</strong> The scoring deadline has passed.
-              Scores can no longer be submitted or updated.
-            </p>
+            <div>
+              <p className="text-sm font-semibold text-white mb-1">
+                Voting Closed
+              </p>
+              <p className="text-sm text-red-100">
+                The scoring deadline has passed. Scores can no longer be
+                submitted or updated.
+              </p>
+            </div>
           </div>
         )}
 
