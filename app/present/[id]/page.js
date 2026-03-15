@@ -169,9 +169,7 @@ function RestListCard({ entry, rank, visible }) {
 
         {/* Name + score */}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-zinc-200 truncate text-sm">
-            {entry.name}
-          </p>
+          <p className="font-semibold text-zinc-200 text-sm">{entry.name}</p>
         </div>
 
         {/* Score */}
@@ -409,7 +407,7 @@ export default function PresentationPage() {
       </div>
 
       {/* Stage */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 py-8">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 pt-8">
         {/* Pre-start screen */}
         {!started ? (
           <div className="text-center">
@@ -502,22 +500,22 @@ export default function PresentationPage() {
 
             {/* Rest of the rankings - scrollable list */}
             {total > 3 && (
-              <div className="w-full max-w-2xl max-h-80 overflow-y-auto space-y-2 px-2">
-                {revealOrder.map((entry, idx) => {
-                  const rank = total - idx;
-                  // Only show ranks 4 and onwards
-                  if (rank <= 3) return null;
-                  // Mark visible if this entry has been revealed
-                  const cardVisible = idx < revealed;
-                  return (
-                    <RestListCard
-                      key={entry.id}
-                      entry={entry}
-                      rank={rank}
-                      visible={cardVisible}
-                    />
-                  );
-                })}
+              <div className="w-full max-w-2xl max-h-96 overflow-y-auto space-y-2 px-2 pb-4">
+                {revealOrder
+                  .map((entry, idx) => ({ entry, idx, rank: total - idx }))
+                  .filter(({ rank }) => rank > 3)
+                  .sort((a, b) => a.rank - b.rank)
+                  .map(({ entry, idx, rank }) => {
+                    const cardVisible = idx < revealed;
+                    return (
+                      <RestListCard
+                        key={entry.id}
+                        entry={entry}
+                        rank={rank}
+                        visible={cardVisible}
+                      />
+                    );
+                  })}
               </div>
             )}
           </>
