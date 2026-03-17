@@ -155,10 +155,10 @@ function PodiumCard({ entry, rank, visible }) {
 function RestListCard({ entry, rank, visible }) {
   return (
     <div
-      className={`transition-all duration-500 ease-out ${
+      className={`transition-all duration-500 ease-out overflow-hidden flex flex-col justify-center ${
         visible
-          ? 'opacity-100 translate-x-0'
-          : 'opacity-0 -translate-x-4 pointer-events-none'
+          ? 'max-h-[100px] opacity-100 translate-y-0 mb-2'
+          : 'max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none'
       }`}
     >
       <div className="relative overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/50 hover:bg-zinc-900/70 px-4 py-3 flex items-center gap-4 transition">
@@ -453,9 +453,15 @@ export default function PresentationPage() {
 
             {/* Podium section */}
             {total > 0 && (
-              <div className="w-full max-w-5xl mb-12">
+              <div
+                className={`w-full max-w-5xl transition-all duration-1000 ease-out flex justify-center ${
+                  revealed >= total - 2
+                    ? 'mb-12 max-h-[500px] opacity-100'
+                    : 'mb-0 max-h-0 opacity-0 pointer-events-none'
+                }`}
+              >
                 {/* Podium display - shows top 3 in podium formation */}
-                <div className="grid grid-cols-3 gap-6 items-end h-80">
+                <div className="grid grid-cols-3 gap-6 items-end h-80 w-full">
                   {/* 2nd Place - Left */}
                   {total >= 2 && (
                     <div className="flex justify-center">
@@ -500,7 +506,7 @@ export default function PresentationPage() {
 
             {/* Rest of the rankings - scrollable list */}
             {total > 3 && (
-              <div className="w-full max-w-2xl max-h-96 overflow-y-auto space-y-2 px-2 pb-4">
+              <div className="w-full max-w-2xl max-h-96 overflow-y-auto px-2 pb-4">
                 {revealOrder
                   .map((entry, idx) => ({ entry, idx, rank: total - idx }))
                   .filter(({ rank }) => rank > 3)
