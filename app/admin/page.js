@@ -239,6 +239,50 @@ function CreateEventModal({ onClose, onCreate }) {
   );
 }
 
+function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleConfirm() {
+    setLoading(true);
+    try {
+      await authFetch(`/api/events/${eventId}`, { method: 'DELETE' });
+      onConfirm(eventId);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+          Delete Event
+        </h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+          Are you sure you want to delete <strong>{eventName}</strong> and all
+          its data? This action cannot be undone.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="flex-1 rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+          >
+            {loading ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function EditEventModal({ event, onClose, onEdit }) {
   const [name, setName] = useState(event?.name || '');
   const [date, setDate] = useState(
@@ -476,6 +520,7 @@ export default function AdminDashboard() {
   const [pageLoading, setPageLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [deletingEventId, setDeletingEventId] = useState(null);
   const [expandedActive, setExpandedActive] = useState(true);
   const [expandedClosed, setExpandedClosed] = useState(true);
 
@@ -499,9 +544,11 @@ export default function AdminDashboard() {
     if (supabaseUser) fetchEvents();
   }, [loading, firebaseUser, supabaseUser, fetchEvents, router]);
 
-  async function handleDelete(eventId) {
-    if (!confirm('Delete this event and all its data?')) return;
-    await authFetch(`/api/events/${eventId}`, { method: 'DELETE' });
+  function handleDelete(eventId) {
+    setDeletingEventId(eventId);
+  }
+
+  function handleConfirmDelete(eventId) {
     setEvents((prev) => prev.filter((e) => e.id !== eventId));
   }
 
@@ -534,6 +581,14 @@ export default function AdminDashboard() {
               prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)),
             );
           }}
+        />
+      )}
+      {deletingEventId && (
+        <DeleteEventModal
+          eventId={deletingEventId}
+          eventName={events.find((e) => e.id === deletingEventId)?.name}
+          onClose={() => setDeletingEventId(null)}
+          onConfirm={handleConfirmDelete}
         />
       )}
 
