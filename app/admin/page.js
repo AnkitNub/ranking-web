@@ -15,6 +15,11 @@ function isExpired(event) {
     if (new Date() > scoringDeadline) return true;
   }
 
+  // Fall back to deadline check without time
+  if (event.deadline && !event.end_time) {
+    return new Date(event.deadline) < new Date(new Date().toDateString());
+  }
+
   return false;
 }
 

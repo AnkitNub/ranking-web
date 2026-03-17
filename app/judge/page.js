@@ -9,14 +9,14 @@ import { authFetch } from '@/lib/authFetch';
 function isExpired(event) {
   if (!event) return false;
 
-  // Check if event's end_time has passed
-  if (event.event_date && event.end_time) {
-    const eventDateTime = new Date(`${event.event_date}T${event.end_time}`);
+  // Check if event's end time has passed
+  if (event.deadline && event.end_time) {
+    const eventDateTime = new Date(`${event.deadline}T${event.end_time}`);
     if (new Date() > eventDateTime) return true;
   }
 
-  // Fall back to deadline check
-  if (event.deadline) {
+  // Fall back to deadline check without time
+  if (event.deadline && !event.end_time) {
     return new Date(event.deadline) < new Date(new Date().toDateString());
   }
 

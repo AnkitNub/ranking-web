@@ -6,9 +6,21 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
-function isExpired(deadline) {
-  if (!deadline) return false;
-  return new Date(deadline) < new Date(new Date().toDateString());
+function isExpired(event) {
+  if (!event) return false;
+
+  // Check if scoring deadline (deadline + end_time) has passed
+  if (event.deadline && event.end_time) {
+    const scoringDeadline = new Date(`${event.deadline}T${event.end_time}`);
+    if (new Date() > scoringDeadline) return true;
+  }
+
+  // Fall back to deadline check without time
+  if (event.deadline && !event.end_time) {
+    return new Date(event.deadline) < new Date(new Date().toDateString());
+  }
+
+  return false;
 }
 
 function ScoreCard({
@@ -269,7 +281,7 @@ export default function JudgeScoringPage() {
                 <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-100">
                   {event?.name}
                 </h1>
-                {isExpired(event?.deadline) && (
+                {isExpired(event) && (
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400">
                     Closed
                   </span>
@@ -334,7 +346,7 @@ export default function JudgeScoringPage() {
         </div>
 
         {/* Expired banner */}
-        {isExpired(event?.deadline) && (
+        {isExpired(event) && (
           <div className="mb-6 bg-red-600 dark:bg-red-700 rounded-xl px-6 py-4 flex items-start gap-4 shadow-md">
             <svg
               className="w-5 h-5 text-white mt-0.5 shrink-0"
@@ -459,7 +471,7 @@ export default function JudgeScoringPage() {
                 existingScore={myScores[p.id] ?? null}
                 eventId={id}
                 onScored={handleScored}
-                disabled={isExpired(event?.deadline)}
+                disabled={isExpired(event)}
                 maxScore={event?.max_score ?? 10}
               />
             ))}
