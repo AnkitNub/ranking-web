@@ -93,6 +93,7 @@ function CreateEventModal({ onClose, onCreate }) {
               </label>
               <input
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
@@ -107,6 +108,7 @@ function CreateEventModal({ onClose, onCreate }) {
               </label>
               <input
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
@@ -321,6 +323,7 @@ function EditEventModal({ event, onClose, onEdit }) {
               </label>
               <input
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
@@ -335,6 +338,7 @@ function EditEventModal({ event, onClose, onEdit }) {
               </label>
               <input
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
