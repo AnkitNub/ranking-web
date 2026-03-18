@@ -12,6 +12,7 @@
     "@supabase/supabase-js": "^2.99.1",
     "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",
+    "luxon": "^3.7.2",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"

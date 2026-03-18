@@ -22,7 +22,13 @@ export async function GET(_request, { params }) {
         .order('created_at', { ascending: true }),
       supabaseAdmin
         .from('scores')
-        .select('participant_id, score')
+        .select(
+          `
+          participant_id,
+          score,
+          judge:users(name)
+        `,
+        )
         .eq('event_id', id),
       supabaseAdmin
         .from('event_judges')
@@ -42,7 +48,19 @@ export async function GET(_request, { params }) {
       const participantScores = scores.filter((s) => s.participant_id === p.id);
       const totalScore = participantScores.reduce((sum, s) => sum + s.score, 0);
       const judgesScored = participantScores.length;
-      return { id: p.id, name: p.name, totalScore, judgesScored };
+
+      const detailedScores = participantScores.map((s) => ({
+        score: s.score,
+        judgeName: s.judge?.name || 'Judge',
+      }));
+
+      return {
+        id: p.id,
+        name: p.name,
+        totalScore,
+        judgesScored,
+        scores: detailedScores,
+      };
     })
     .sort((a, b) => b.totalScore - a.totalScore);
 

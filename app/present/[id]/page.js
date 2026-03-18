@@ -1,20 +1,37 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 
 /* ─── Confetti burst for the winner ───────────────────────────────────────── */
 function Confetti() {
-  const particles = Array.from({ length: 60 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    delay: Math.random() * 1.5,
-    duration: 2 + Math.random() * 2,
-    color: ['#2dd4bf', '#f59e0b', '#a78bfa', '#f472b6', '#34d399', '#fbbf24'][
-      Math.floor(Math.random() * 6)
-    ],
-    size: 6 + Math.random() * 8,
-  }));
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setParticles(
+        Array.from({ length: 60 }, (_, i) => ({
+          id: i,
+          left: Math.random() * 100,
+          delay: Math.random() * 1.5,
+          duration: 2 + Math.random() * 2,
+          color: [
+            '#2dd4bf',
+            '#f59e0b',
+            '#a78bfa',
+            '#f472b6',
+            '#34d399',
+            '#fbbf24',
+          ][Math.floor(Math.random() * 6)],
+          size: 6 + Math.random() * 8,
+          isCircle: Math.random() > 0.5,
+        })),
+      );
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (particles.length === 0) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden z-50">
@@ -29,7 +46,7 @@ function Confetti() {
             width: p.size,
             height: p.size,
             backgroundColor: p.color,
-            borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+            borderRadius: p.isCircle ? '50%' : '2px',
           }}
         />
       ))}
@@ -200,8 +217,12 @@ export default function PresentationPage() {
   // Auto speed in ms
   const [autoSpeed, setAutoSpeed] = useState(2000);
 
-  const autoRef = useRef(null);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Phase: 'intro' | 'breakdown' | 'leaderboard'
+  const [phase, setPhase] = useState('intro');
+  const [breakdownPIndex, setBreakdownPIndex] = useState(0);
+  const [breakdownJIndex, setBreakdownJIndex] = useState(0);
 
   const fetchData = useCallback(async () => {
     try {
@@ -224,62 +245,161 @@ export default function PresentationPage() {
   }, [fetchData]);
 
   // ranked from last → first for reveal order
-  const revealOrder = data ? [...data.ranked].reverse() : [];
+  const revealOrder = useMemo(
+    () => (data?.ranked ? [...data.ranked].reverse() : []),
+    [data],
+  );
+  const breakdownOrder = useMemo(
+    () =>
+      data?.ranked
+        ? [...data.ranked].sort((a, b) => a.name.localeCompare(b.name))
+        : [],
+    [data],
+  );
+
   const total = revealOrder.length;
   const allRevealed = revealed >= total;
 
   // When the final card (rank 1) is revealed, fire confetti
   useEffect(() => {
-    if (allRevealed && total > 0) {
+    if (phase === 'leaderboard' && allRevealed && total > 0) {
       setShowConfetti(true);
       const t = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(t);
     }
-  }, [allRevealed, total]);
+  }, [allRevealed, total, phase]);
 
   // Auto mode ticker
   useEffect(() => {
-    if (mode === 'auto' && started && !allRevealed) {
-      autoRef.current = setInterval(() => {
-        setRevealed((r) => {
-          if (r >= total) {
-            clearInterval(autoRef.current);
-            return r;
+    if (mode !== 'auto' || !started) return;
+
+    let timer;
+
+    if (phase === 'breakdown') {
+      const currentParticipant = breakdownOrder[breakdownPIndex];
+      const N = currentParticipant?.scores?.length || 0;
+
+      if (breakdownJIndex < N) {
+        timer = setTimeout(() => {
+          setBreakdownJIndex((j) => j + 1);
+        }, autoSpeed);
+      } else {
+        // short wait before moving to next participant (1.25x the speed)
+        timer = setTimeout(() => {
+          if (breakdownPIndex < breakdownOrder.length - 1) {
+            setBreakdownPIndex((p) => p + 1);
+            setBreakdownJIndex(0);
+          } else {
+            setPhase('leaderboard');
           }
-          return r + 1;
-        });
-      }, autoSpeed);
+        }, autoSpeed * 1.5);
+      }
+    } else if (phase === 'leaderboard') {
+      if (!allRevealed) {
+        timer = setTimeout(() => {
+          setRevealed((r) => {
+            if (r >= total) return r;
+            return r + 1;
+          });
+        }, autoSpeed);
+      }
     }
-    return () => clearInterval(autoRef.current);
-  }, [mode, started, allRevealed, autoSpeed, total]);
+
+    return () => clearTimeout(timer);
+  }, [
+    mode,
+    started,
+    phase,
+    breakdownPIndex,
+    breakdownJIndex,
+    allRevealed,
+    revealed,
+    autoSpeed,
+    total,
+    breakdownOrder,
+  ]);
 
   function handleStart() {
-    setRevealed(0);
+    // Check if there are participants
+    if (breakdownOrder.length === 0) {
+      setPhase('leaderboard');
+      setRevealed(mode === 'manual' ? 1 : 0);
+    } else {
+      setPhase('breakdown');
+      setBreakdownPIndex(0);
+      setBreakdownJIndex(0);
+      setRevealed(0);
+    }
     setStarted(true);
     setShowConfetti(false);
-    if (mode === 'manual') {
-      setRevealed(1);
-    }
   }
 
   function handleNext() {
-    if (revealed < total) setRevealed((r) => r + 1);
+    if (phase === 'breakdown') {
+      const currentParticipant = breakdownOrder[breakdownPIndex];
+      const N = currentParticipant?.scores?.length || 0;
+      if (breakdownJIndex < N) {
+        setBreakdownJIndex((j) => j + 1);
+      } else {
+        if (breakdownPIndex < breakdownOrder.length - 1) {
+          setBreakdownPIndex((p) => p + 1);
+          setBreakdownJIndex(0);
+        } else {
+          setPhase('leaderboard');
+          setRevealed(1);
+        }
+      }
+    } else if (phase === 'leaderboard') {
+      if (revealed < total) setRevealed((r) => r + 1);
+    }
   }
 
   function handlePrev() {
-    if (revealed > 1) setRevealed((r) => r - 1);
+    if (phase === 'breakdown') {
+      if (breakdownJIndex > 0) {
+        setBreakdownJIndex((j) => j - 1);
+      } else if (breakdownPIndex > 0) {
+        setBreakdownPIndex((p) => p - 1);
+        const prevParticipant = breakdownOrder[breakdownPIndex - 1];
+        setBreakdownJIndex(prevParticipant?.scores?.length || 0);
+      }
+    } else if (phase === 'leaderboard') {
+      if (revealed > 1) {
+        setRevealed((r) => r - 1);
+      } else {
+        // Go back to breakdown
+        if (breakdownOrder.length > 0) {
+          setPhase('breakdown');
+          setBreakdownPIndex(breakdownOrder.length - 1);
+          const lastParticipant = breakdownOrder[breakdownOrder.length - 1];
+          setBreakdownJIndex(lastParticipant?.scores?.length || 0);
+          setRevealed(0);
+        }
+      }
+    }
+  }
+
+  function handleSkipToLeaderboard() {
+    setStarted(true);
+    setShowConfetti(false);
+    setPhase('leaderboard');
+    setRevealed(mode === 'manual' ? 1 : 0);
   }
 
   function handleReset() {
-    clearInterval(autoRef.current);
+    setPhase('intro');
+    setBreakdownPIndex(0);
+    setBreakdownJIndex(0);
     setRevealed(0);
     setStarted(false);
     setShowConfetti(false);
   }
 
   function handleModeToggle(newMode) {
-    clearInterval(autoRef.current);
     setMode(newMode);
+    setPhase('intro');
+    setBreakdownPIndex(0);
+    setBreakdownJIndex(0);
     setRevealed(0);
     setStarted(false);
     setShowConfetti(false);
@@ -390,9 +510,11 @@ export default function PresentationPage() {
             <select
               value={autoSpeed}
               onChange={(e) => {
-                clearInterval(autoRef.current);
                 setAutoSpeed(Number(e.target.value));
                 setStarted(false);
+                setPhase('intro');
+                setBreakdownPIndex(0);
+                setBreakdownJIndex(0);
                 setRevealed(0);
               }}
               className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-emerald-500"
@@ -407,9 +529,9 @@ export default function PresentationPage() {
       </div>
 
       {/* Stage */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 pt-8">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 pt-8 pb-12">
         {/* Pre-start screen */}
-        {!started ? (
+        {phase === 'intro' ? (
           <div className="text-center">
             <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-emerald-900/60">
               <svg
@@ -435,14 +557,79 @@ export default function PresentationPage() {
                 ? `Auto reveal every ${autoSpeed / 1000}s`
                 : 'You control each reveal'}
             </p>
-            <button
-              onClick={handleStart}
-              className="px-8 py-3 rounded-xl bg-linear-to-br from-emerald-500 to-emerald-700 text-white font-bold text-lg hover:from-emerald-400 hover:to-emerald-600 transition shadow-xl shadow-emerald-900/40 active:scale-95"
+            <div className="flex flex-col gap-3 items-center">
+              <button
+                onClick={handleStart}
+                className="px-8 py-3 rounded-xl bg-linear-to-br from-emerald-500 to-emerald-700 text-white font-bold text-lg hover:from-emerald-400 hover:to-emerald-600 transition shadow-xl shadow-emerald-900/40 active:scale-95 w-64"
+              >
+                Start Breakdown
+              </button>
+              <button
+                onClick={handleSkipToLeaderboard}
+                className="px-8 py-3 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-sm hover:bg-zinc-700 transition active:scale-95 w-64 border border-zinc-700"
+              >
+                Skip to Leaderboard
+              </button>
+            </div>
+          </div>
+        ) : phase === 'breakdown' ? (
+          /* Breakdown View */
+          <div className="w-full max-w-4xl flex flex-col items-center">
+            <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-8">
+              Evaluating Participant {breakdownPIndex + 1} of{' '}
+              {breakdownOrder.length}
+            </p>
+
+            <h2 className="text-5xl font-black mb-12 text-emerald-400 text-center drop-shadow-md">
+              {breakdownOrder[breakdownPIndex]?.name}
+            </h2>
+
+            {/* Judges Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full mb-12 justify-center">
+              {breakdownOrder[breakdownPIndex]?.scores?.map((scoreObj, idx) => {
+                const isRevealed = idx < breakdownJIndex;
+                return (
+                  <div
+                    key={idx}
+                    className={`relative p-6 rounded-2xl border transition-all duration-500 ease-out flex flex-col items-center justify-center shadow-lg ${
+                      isRevealed
+                        ? 'border-emerald-700 bg-emerald-950/40 text-white translate-y-0 opacity-100 scale-100 shadow-emerald-900/20'
+                        : 'border-zinc-800/50 bg-zinc-900/30 text-zinc-600 translate-y-4 opacity-0 scale-95'
+                    }`}
+                  >
+                    <div className="text-xs uppercase tracking-widest font-semibold mb-2 text-zinc-400 text-center truncate w-full">
+                      {scoreObj.judgeName}
+                    </div>
+                    <div className="text-5xl font-black">
+                      {isRevealed ? scoreObj.score : '?'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Running Total */}
+            <div
+              className={`transition-all duration-700 ease-out ${
+                breakdownJIndex > 0
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-4 pointer-events-none'
+              }`}
             >
-              Start Presentation
-            </button>
+              <div className="flex flex-col items-center p-6 bg-zinc-900/60 rounded-3xl border border-zinc-800 shadow-xl min-w-[200px]">
+                <div className="text-zinc-500 text-sm uppercase tracking-widest font-bold mb-2">
+                  Total Score
+                </div>
+                <div className="text-7xl font-black text-amber-500 drop-shadow-md tabular-nums">
+                  {(breakdownOrder[breakdownPIndex]?.scores || [])
+                    .slice(0, breakdownJIndex)
+                    .reduce((sum, s) => sum + s.score, 0)}
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
+          /* Leaderboard View */
           <>
             {/* Reveal counter */}
             <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-8">
@@ -542,24 +729,33 @@ export default function PresentationPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrev}
-                disabled={revealed <= 1}
+                disabled={
+                  (phase === 'leaderboard' &&
+                    revealed <= 1 &&
+                    breakdownOrder.length === 0) ||
+                  (phase === 'breakdown' &&
+                    breakdownJIndex === 0 &&
+                    breakdownPIndex === 0)
+                }
                 className="px-4 py-2 rounded-lg border border-zinc-700 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 ← Prev
               </button>
               <button
                 onClick={handleNext}
-                disabled={allRevealed}
+                disabled={phase === 'leaderboard' && allRevealed}
                 className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/40"
               >
-                {allRevealed ? 'All done 🎉' : 'Next →'}
+                {phase === 'leaderboard' && allRevealed
+                  ? 'All done 🎉'
+                  : 'Next →'}
               </button>
             </div>
           )}
 
           {mode === 'auto' && (
             <div className="flex items-center gap-2">
-              {!allRevealed ? (
+              {!(phase === 'leaderboard' && allRevealed) ? (
                 <span className="text-xs text-emerald-400 animate-pulse">
                   Auto-revealing…
                 </span>
