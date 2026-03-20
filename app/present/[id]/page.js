@@ -81,7 +81,7 @@ function Confetti() {
 /* ─── Podium card for top 3 ───────────────────────────────────────────────── */
 function PodiumCard({ entry, rank, visible }) {
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-  const heightClass = rank === 1 ? 'h-72' : rank === 2 ? 'h-64' : 'h-60';
+  const heightClass = rank === 1 ? 'h-56' : rank === 2 ? 'h-48' : 'h-44';
   const borderColor =
     rank === 1
       ? 'border-amber-400/60'
@@ -146,7 +146,7 @@ function PodiumCard({ entry, rank, visible }) {
       }`}
     >
       <div
-        className={`relative overflow-hidden rounded-t-3xl border-t border-l border-r ${borderColor} bg-gradient-to-b ${bgGradient} shadow-2xl ${shadowColor} ${heightClass} flex flex-col items-center justify-end px-4 py-6`}
+        className={`relative overflow-hidden rounded-t-3xl border-t border-l border-r ${borderColor} bg-gradient-to-b ${bgGradient} shadow-2xl ${shadowColor} ${heightClass} flex flex-col items-center justify-end px-4 py-4`}
       >
         {/* Accent bar at top */}
         <div
@@ -154,20 +154,22 @@ function PodiumCard({ entry, rank, visible }) {
         />
 
         {/* Medal + Score */}
-        <div className="flex flex-col items-center gap-3 mb-4">
-          <div className={`text-5xl font-black`}>{medal}</div>
-          <p className={`font-black tabular-nums text-5xl ${scoreText}`}>
+        <div className="flex flex-col items-center gap-2 mb-3">
+          <div className={`text-4xl font-black`}>{medal}</div>
+          <p className={`font-black tabular-nums text-4xl ${scoreText}`}>
             {visible ? <CountUp end={entry.totalScore} duration={0.8} /> : 0}
           </p>
-          <p className="text-xs text-zinc-500 font-semibold">pts</p>
+          <p className="text-xs text-zinc-500 font-semibold leading-none">
+            pts
+          </p>
         </div>
 
         {/* Name */}
         <p className={`font-bold text-center truncate max-w-full ${nameText}`}>
           {rank === 1 ? (
-            <span className="text-2xl">{entry.name}</span>
+            <span className="text-xl">{entry.name}</span>
           ) : (
-            <span className="text-lg">{entry.name}</span>
+            <span className="text-base">{entry.name}</span>
           )}
         </p>
 
@@ -758,12 +760,12 @@ export default function PresentationPage() {
               <div
                 className={`w-full max-w-5xl transition-all duration-1000 ease-out flex justify-center ${
                   revealed >= total - 2
-                    ? 'mb-12 max-h-[500px] opacity-100'
+                    ? 'mb-6 max-h-[500px] opacity-100'
                     : 'mb-0 max-h-0 opacity-0 pointer-events-none'
                 }`}
               >
                 {/* Podium display - shows top 3 in podium formation */}
-                <div className="grid grid-cols-3 gap-6 items-end h-80 w-full">
+                <div className="grid grid-cols-3 gap-6 items-end w-full">
                   {/* 2nd Place - Left */}
                   {total >= 2 && (
                     <div className="flex justify-center">
@@ -779,7 +781,7 @@ export default function PresentationPage() {
 
                   {/* 1st Place - Center - Elevated */}
                   {total >= 1 && (
-                    <div className="flex justify-center items-start">
+                    <div className="flex justify-center">
                       <div className="w-full max-w-md">
                         <PodiumCard
                           entry={revealOrder[total - 1]}
