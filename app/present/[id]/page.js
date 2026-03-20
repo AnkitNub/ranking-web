@@ -3,6 +3,29 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
+
+/* ── Animated counter ── */
+function CountUp({ end, duration = 1.2 }) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = end / (duration * 60);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) {
+        setVal(end);
+        clearInterval(timer);
+      } else {
+        setVal(Math.round(start * 10) / 10);
+      }
+    }, 1000 / 60);
+    return () => clearInterval(timer);
+  }, [end, duration]);
+  return (
+    <span className="tabular-nums">{val.toFixed(val % 1 === 0 ? 0 : 1)}</span>
+  );
+}
 
 /* ─── Confetti burst for the winner ───────────────────────────────────────── */
 function Confetti() {
@@ -629,47 +652,106 @@ export default function PresentationPage() {
             </h2>
 
             {/* Judges Grid */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6 w-full mb-12">
-              {breakdownOrder[breakdownPIndex]?.scores?.map((scoreObj, idx) => {
-                const isRevealed = idx < breakdownJIndex;
-                return (
-                  <div
-                    key={idx}
-                    className={`w-[45%] sm:w-48 md:w-56 relative p-6 rounded-2xl border transition-all duration-500 ease-out flex flex-col items-center justify-center shadow-lg shrink-0 ${
-                      isRevealed
-                        ? 'border-emerald-700 bg-emerald-950/40 text-white translate-y-0 opacity-100 scale-100 shadow-emerald-900/20'
-                        : 'border-zinc-800/50 bg-zinc-900/30 text-zinc-600 translate-y-4 opacity-0 scale-95'
-                    }`}
-                  >
-                    <div className="text-xs uppercase tracking-widest font-semibold mb-2 text-zinc-400 text-center truncate w-full">
-                      {scoreObj.judgeName}
-                    </div>
-                    <div className="text-5xl font-black">
-                      {isRevealed ? scoreObj.score : '?'}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full mb-12 min-h-[80px]">
+              <AnimatePresence>
+                {breakdownOrder[breakdownPIndex]?.scores?.map(
+                  (scoreObj, idx) => {
+                    const isRevealed = idx < breakdownJIndex;
+                    return (
+                      <div
+                        key={idx}
+                        className={`w-[45%] sm:w-48 md:w-56 relative p-6 rounded-2xl border transition-all duration-500 ease-out flex flex-col items-center justify-center shadow-lg shrink-0 ${
+                          isRevealed
+                            ? 'border-emerald-700 bg-emerald-950/40 text-white shadow-emerald-900/20'
+                            : 'border-zinc-800/50 bg-zinc-900/30 text-zinc-600'
+                        }`}
+                      >
+                        <div className="text-xs uppercase tracking-widest font-semibold mb-2 text-zinc-400 text-center truncate w-full">
+                          {scoreObj.judgeName}
+                        </div>
+
+                        {isRevealed ? (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0, rotate: -15 }}
+                            animate={{
+                              opacity: 1,
+                              scale: [0, 1.4, 1],
+                              rotate: [-15, 5, 0],
+                            }}
+                            transition={{
+                              duration: 0.6,
+                              ease: [0.16, 1, 0.3, 1],
+                              scale: { times: [0, 0.5, 1] },
+                              rotate: { times: [0, 0.5, 1] },
+                            }}
+                            className="relative"
+                          >
+                            {/* Boom ring effect */}
+                            <motion.div
+                              className="absolute inset-0 rounded-full border-2 border-emerald-500 z-0"
+                              initial={{ scale: 0.8, opacity: 1 }}
+                              animate={{ scale: 2.5, opacity: 0 }}
+                              transition={{ duration: 0.8, ease: 'easeOut' }}
+                            />
+                            <span className="text-5xl font-black relative z-10 flex items-center justify-center">
+                              <CountUp end={scoreObj.score} duration={0.6} />
+                            </span>
+                          </motion.div>
+                        ) : (
+                          <div className="text-5xl font-black flex items-center justify-center">
+                            ?
+                          </div>
+                        )}
+                      </div>
+                    );
+                  },
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Running Total */}
-            <div
-              className={`transition-all duration-700 ease-out ${
-                breakdownJIndex > 0
-                  ? 'opacity-100 translate-y-0'
-                  : 'opacity-0 translate-y-4 pointer-events-none'
-              }`}
-            >
-              <div className="flex flex-col items-center p-6 bg-zinc-900/60 rounded-3xl border border-zinc-800 shadow-xl min-w-[200px]">
-                <div className="text-zinc-500 text-sm uppercase tracking-widest font-bold mb-2">
-                  Total Score
-                </div>
-                <div className="text-7xl font-black text-amber-500 drop-shadow-md tabular-nums">
-                  {(breakdownOrder[breakdownPIndex]?.scores || [])
-                    .slice(0, breakdownJIndex)
-                    .reduce((sum, s) => sum + s.score, 0)}
-                </div>
-              </div>
+            <div className="min-h-[160px]">
+              <AnimatePresence>
+                {breakdownJIndex > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.3, y: 30 }}
+                    animate={{
+                      opacity: 1,
+                      scale: [0.3, 1.2, 1],
+                      y: [30, -5, 0],
+                    }}
+                    transition={{
+                      duration: 0.7,
+                      ease: [0.16, 1, 0.3, 1],
+                      scale: { times: [0, 0.6, 1] },
+                    }}
+                    className="flex flex-col items-center p-6 bg-zinc-900/60 rounded-3xl border border-zinc-800 shadow-xl min-w-[200px]"
+                  >
+                    <div className="text-zinc-500 text-sm uppercase tracking-widest font-bold mb-2">
+                      Total Score
+                    </div>
+                    <motion.div
+                      className="text-7xl font-black text-amber-500 drop-shadow-md tabular-nums relative"
+                      animate={{ scale: [1, 1.03, 1] }}
+                      transition={{
+                        duration: 1.2,
+                        repeat: Infinity,
+                        repeatDelay: 0.5,
+                      }}
+                    >
+                      <div className="absolute inset-0 blur-xl bg-amber-500/10 rounded-full" />
+                      <span className="relative z-10">
+                        <CountUp
+                          end={(breakdownOrder[breakdownPIndex]?.scores || [])
+                            .slice(0, breakdownJIndex)
+                            .reduce((sum, s) => sum + s.score, 0)}
+                          duration={0.8}
+                        />
+                      </span>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         ) : (
