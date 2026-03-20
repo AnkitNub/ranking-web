@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
+    "canvas-confetti": "^1.9.4",
     "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",
     "luxon": "^3.7.2",

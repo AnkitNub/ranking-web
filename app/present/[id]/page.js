@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
+import confetti from 'canvas-confetti';
 
 /* ─── Confetti burst for the winner ───────────────────────────────────────── */
 function Confetti() {
@@ -268,6 +269,49 @@ export default function PresentationPage() {
       return () => clearTimeout(t);
     }
   }, [allRevealed, total, phase]);
+
+  // Firework on each judge reveal
+  useEffect(() => {
+    if (phase === 'breakdown' && breakdownJIndex > 0) {
+      const duration = 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = {
+        startVelocity: 20,
+        spread: 360,
+        ticks: 40,
+        zIndex: 100,
+      };
+
+      const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 30 * (timeLeft / duration);
+        confetti(
+          Object.assign({}, defaults, {
+            particleCount,
+            origin: {
+              x: Math.random() * 0.6 + 0.2,
+              y: Math.random() * 0.4 + 0.1,
+            },
+            colors: [
+              '#2dd4bf',
+              '#f59e0b',
+              '#a78bfa',
+              '#f472b6',
+              '#34d399',
+              '#fbbf24',
+            ],
+          }),
+        );
+      }, 250);
+
+      return () => clearInterval(interval);
+    }
+  }, [breakdownJIndex, phase]);
 
   // Auto mode ticker
   useEffect(() => {
