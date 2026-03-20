@@ -585,13 +585,13 @@ export default function PresentationPage() {
             </h2>
 
             {/* Judges Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full mb-12 justify-center">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 w-full mb-12">
               {breakdownOrder[breakdownPIndex]?.scores?.map((scoreObj, idx) => {
                 const isRevealed = idx < breakdownJIndex;
                 return (
                   <div
                     key={idx}
-                    className={`relative p-6 rounded-2xl border transition-all duration-500 ease-out flex flex-col items-center justify-center shadow-lg ${
+                    className={`w-[45%] sm:w-48 md:w-56 relative p-6 rounded-2xl border transition-all duration-500 ease-out flex flex-col items-center justify-center shadow-lg shrink-0 ${
                       isRevealed
                         ? 'border-emerald-700 bg-emerald-950/40 text-white translate-y-0 opacity-100 scale-100 shadow-emerald-900/20'
                         : 'border-zinc-800/50 bg-zinc-900/30 text-zinc-600 translate-y-4 opacity-0 scale-95'
