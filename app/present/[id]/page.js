@@ -157,7 +157,7 @@ function PodiumCard({ entry, rank, visible }) {
         <div className="flex flex-col items-center gap-3 mb-4">
           <div className={`text-5xl font-black`}>{medal}</div>
           <p className={`font-black tabular-nums text-5xl ${scoreText}`}>
-            {entry.totalScore}
+            {visible ? <CountUp end={entry.totalScore} duration={0.8} /> : 0}
           </p>
           <p className="text-xs text-zinc-500 font-semibold">pts</p>
         </div>
@@ -216,7 +216,7 @@ function RestListCard({ entry, rank, visible }) {
         {/* Score */}
         <div className="text-right shrink-0">
           <p className="font-bold text-zinc-300 text-lg tabular-nums">
-            {entry.totalScore}
+            {visible ? <CountUp end={entry.totalScore} duration={0.8} /> : 0}
           </p>
           <p className="text-xs text-zinc-600">pts</p>
         </div>
