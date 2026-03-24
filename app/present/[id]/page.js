@@ -5,10 +5,13 @@ import { useParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
+
 /* ── Animated counter ── */
 function CountUp({ end, duration = 1.2 }) {
   const [val, setVal] = useState(0);
   useEffect(() => {
+    playDrumroll();
     let start = 0;
     const step = end / (duration * 60);
     const timer = setInterval(() => {
@@ -289,6 +292,7 @@ export default function PresentationPage() {
   // When the final card (rank 1) is revealed, fire confetti
   useEffect(() => {
     if (phase === 'leaderboard' && allRevealed && total > 0) {
+      playVictoryFanfare();
       setShowConfetti(true);
       const t = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(t);
