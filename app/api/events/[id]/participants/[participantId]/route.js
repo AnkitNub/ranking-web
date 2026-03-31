@@ -19,9 +19,18 @@ export async function DELETE(request, { params }) {
 
   if (!participant)
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  if (participant.event_id !== id || participant.events?.admin_id !== user.id) {
+  if (
+    String(participant.event_id) !== id ||
+    participant.events?.admin_id !== user.id
+  ) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
+
+  // Delete associated scores first to avoid foreign key constraints
+  await supabaseAdmin
+    .from('scores')
+    .delete()
+    .eq('participant_id', participantId);
 
   const { error } = await supabaseAdmin
     .from('participants')

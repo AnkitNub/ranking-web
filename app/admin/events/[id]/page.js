@@ -102,6 +102,74 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
   );
 }
 
+/* ─── Delete Participant Modal ─────────────────────────────────────────────── */
+function DeleteParticipantModal({
+  participantId,
+  participantName,
+  eventId,
+  onClose,
+  onConfirm,
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleConfirm() {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await authFetch(
+        `/api/events/${eventId}/participants/${participantId}`,
+        { method: 'DELETE' },
+      );
+      if (res.ok) {
+        onConfirm(participantId);
+        onClose();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to delete participant');
+      }
+    } catch (err) {
+      setError('An error occurred while deleting');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+          Delete Participant
+        </h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+          Are you sure you want to delete <strong>{participantName}</strong> and
+          all their scores? This action cannot be undone.
+        </p>
+        {error && (
+          <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 mb-4">
+            {error}
+          </p>
+        )}
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="flex-1 rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+          >
+            {loading ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Participants Tab ─────────────────────────────────────────────────────── */
 function ParticipantsTab({ eventId }) {
   const [participants, setParticipants] = useState([]);
@@ -109,6 +177,7 @@ function ParticipantsTab({ eventId }) {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
+  const [participantToDelete, setParticipantToDelete] = useState(null);
 
   const fetchParticipants = useCallback(async () => {
     const res = await authFetch(`/api/events/${eventId}/participants`);
@@ -143,10 +212,7 @@ function ParticipantsTab({ eventId }) {
     }
   }
 
-  async function handleDelete(participantId) {
-    await authFetch(`/api/events/${eventId}/participants/${participantId}`, {
-      method: 'DELETE',
-    });
+  function handleConfirmDeleted(participantId) {
     setParticipants((prev) => prev.filter((p) => p.id !== participantId));
   }
 
@@ -155,6 +221,16 @@ function ParticipantsTab({ eventId }) {
 
   return (
     <div className="space-y-4">
+      {participantToDelete && (
+        <DeleteParticipantModal
+          participantId={participantToDelete.id}
+          participantName={participantToDelete.name}
+          eventId={eventId}
+          onClose={() => setParticipantToDelete(null)}
+          onConfirm={handleConfirmDeleted}
+        />
+      )}
+
       <form onSubmit={handleAdd} className="flex gap-2">
         <input
           type="text"
@@ -193,7 +269,7 @@ function ParticipantsTab({ eventId }) {
                 {p.name}
               </span>
               <button
-                onClick={() => handleDelete(p.id)}
+                onClick={() => setParticipantToDelete(p)}
                 className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded"
                 title="Remove participant"
               >
