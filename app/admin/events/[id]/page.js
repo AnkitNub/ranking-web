@@ -30,13 +30,19 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
     (s) => s.participant_id === participant.id,
   );
 
-  const judgeScores = judges.map((judge) => {
-    const score = participantScores.find((s) => s.judge_id === judge.id);
-    return {
-      judge_name: judge.name || 'Unknown Judge',
-      score: score ? score.score : '-',
-    };
-  });
+  const judgeScores = judges
+    .map((judge) => {
+      const score = participantScores.find((s) => s.judge_id === judge.id);
+      return {
+        judge_name: judge.name || 'Unknown Judge',
+        score: score ? score.score : '-',
+      };
+    })
+    .sort((a, b) => {
+      const scoreA = a.score === '-' ? -Infinity : a.score;
+      const scoreB = b.score === '-' ? -Infinity : b.score;
+      return scoreB - scoreA;
+    });
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
