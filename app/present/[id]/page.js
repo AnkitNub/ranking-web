@@ -724,7 +724,7 @@ export default function PresentationPage() {
                         </motion.div>
 
                         <div
-                          className={`text-[10px] sm:text-xs uppercase tracking-widest font-semibold mt-3 ${
+                          className={`text-sm sm:text-base uppercase tracking-widest font-semibold mt-3 ${
                             isRevealed ? 'text-zinc-300' : 'text-zinc-500'
                           } text-center truncate w-full`}
                         >
