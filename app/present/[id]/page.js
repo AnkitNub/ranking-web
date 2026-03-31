@@ -7,26 +7,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
 
-/* ── Animated counter ── */
+/* ── Animated counter (Animation removed, kept for sound trigger) ── */
 function CountUp({ end, duration = 1.2 }) {
-  const [val, setVal] = useState(0);
   useEffect(() => {
     playDrumroll();
-    let start = 0;
-    const step = end / (duration * 60);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= end) {
-        setVal(end);
-        clearInterval(timer);
-      } else {
-        setVal(Math.round(start * 10) / 10);
-      }
-    }, 1000 / 60);
-    return () => clearInterval(timer);
-  }, [end, duration]);
+  }, []);
   return (
-    <span className="tabular-nums">{val.toFixed(val % 1 === 0 ? 0 : 1)}</span>
+    <span className="tabular-nums">{end.toFixed(end % 1 === 0 ? 0 : 1)}</span>
   );
 }
 
