@@ -14,6 +14,8 @@ export default function EditEventPage() {
   const [formData, setFormData] = useState({
     name: '',
     event_date: '',
+    start_time: '',
+    end_time: '',
     deadline: '',
     description: '',
     max_score: '',
@@ -36,6 +38,8 @@ export default function EditEventPage() {
       event_date: data.event.event_date
         ? new Date(data.event.event_date).toISOString().split('T')[0]
         : '',
+      start_time: data.event.start_time || '',
+      end_time: data.event.end_time || '',
       deadline: data.event.deadline
         ? new Date(data.event.deadline).toISOString().split('T')[0]
         : '',
@@ -140,11 +144,12 @@ export default function EditEventPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Event Date
+                Event Date *
               </label>
               <input
                 type="date"
                 name="event_date"
+                required
                 value={formData.event_date}
                 onChange={handleChange}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
@@ -159,6 +164,35 @@ export default function EditEventPage() {
                 type="date"
                 name="deadline"
                 value={formData.deadline}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Starting Time *
+              </label>
+              <input
+                type="time"
+                name="start_time"
+                required
+                value={formData.start_time}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Ending Time
+              </label>
+              <input
+                type="time"
+                name="end_time"
+                value={formData.end_time}
                 onChange={handleChange}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />

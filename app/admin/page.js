@@ -94,10 +94,11 @@ function CreateEventModal({ onClose, onCreate }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Starting Date
+                Starting Date *
               </label>
               <input
                 type="date"
+                required
                 min={new Date().toISOString().split('T')[0]}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -126,11 +127,12 @@ function CreateEventModal({ onClose, onCreate }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Starting Time
+                Starting Time *
               </label>
               <div className="flex gap-2">
                 <input
                   type="time"
+                  required
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
@@ -368,10 +370,11 @@ function EditEventModal({ event, onClose, onEdit }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Event Date
+                Event Date *
               </label>
               <input
                 type="date"
+                required
                 min={new Date().toISOString().split('T')[0]}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -400,11 +403,12 @@ function EditEventModal({ event, onClose, onEdit }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Starting Time
+                Starting Time *
               </label>
               <div className="flex gap-2">
                 <input
                   type="time"
+                  required
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"

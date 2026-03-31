@@ -65,6 +65,15 @@ export async function PUT(request, { params }) {
       { status: 400 },
     );
 
+  if (event_date !== undefined && !event_date)
+    return NextResponse.json({ error: 'Date is required' }, { status: 400 });
+
+  if (start_time !== undefined && !start_time)
+    return NextResponse.json(
+      { error: 'Start time is required' },
+      { status: 400 },
+    );
+
   if (max_score !== undefined && max_score !== null) {
     const maxScoreNum = Number(max_score);
     if (isNaN(maxScoreNum) || maxScoreNum < 1 || !Number.isInteger(maxScoreNum))

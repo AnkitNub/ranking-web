@@ -49,6 +49,14 @@ export async function POST(request) {
   } = await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+  if (!event_date)
+    return NextResponse.json({ error: 'Date is required' }, { status: 400 });
+  if (!start_time)
+    return NextResponse.json(
+      { error: 'Start time is required' },
+      { status: 400 },
+    );
+
   const maxScoreNum = Number(max_score);
   if (
     max_score !== undefined &&
