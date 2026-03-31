@@ -267,7 +267,7 @@ export default function PresentationPage() {
     return arr;
   }, [data]);
 
-  // The actually visible list of users on the leaderboard, 
+  // The actually visible list of users on the leaderboard,
   // keeping their correctly sorted final ranking
   const currentlyRevealed = useMemo(() => {
     if (!data?.ranked) return [];
@@ -799,11 +799,7 @@ export default function PresentationPage() {
               <div className="flex flex-col w-full relative h-[450px]">
                 <AnimatePresence mode="popLayout">
                   {currentlyRevealed.slice(0, 3).map((entry, idx) => (
-                    <Top3Card
-                      key={entry.id}
-                      entry={entry}
-                      rank={idx + 1}
-                    />
+                    <Top3Card key={entry.id} entry={entry} rank={idx + 1} />
                   ))}
                 </AnimatePresence>
               </div>
