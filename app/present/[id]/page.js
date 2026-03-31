@@ -280,7 +280,7 @@ export default function PresentationPage() {
   const breakdownOrder = useMemo(
     () =>
       data?.ranked
-        ? [...data.ranked].sort((a, b) => a.name.localeCompare(b.name))
+        ? [...data.ranked].sort((a, b) => a.originalIndex - b.originalIndex)
         : [],
     [data],
   );

@@ -44,7 +44,7 @@ export async function GET(_request, { params }) {
   const assignedJudgesCount = judgesCountRes.count ?? 0;
 
   const ranked = participants
-    .map((p) => {
+    .map((p, index) => {
       const participantScores = scores.filter((s) => s.participant_id === p.id);
       const totalScore = participantScores.reduce((sum, s) => sum + s.score, 0);
       const judgesScored = participantScores.length;
@@ -57,6 +57,7 @@ export async function GET(_request, { params }) {
       return {
         id: p.id,
         name: p.name,
+        originalIndex: index,
         totalScore,
         judgesScored,
         scores: detailedScores,
