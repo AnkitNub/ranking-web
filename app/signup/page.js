@@ -44,6 +44,16 @@ export default function SignUpPage() {
       );
       if (name.trim()) {
         await updateProfile(user, { displayName: name.trim() });
+        // Force sync with the new completely set up user info
+        await fetch('/api/sync-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firebase_uid: user.uid,
+            email: user.email,
+            name: name.trim(),
+          }),
+        });
       }
       // AuthContext onAuthStateChanged will fire and sync to Supabase automatically
       router.push('/');
@@ -59,7 +69,18 @@ export default function SignUpPage() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const { user } = await signInWithPopup(auth, provider);
+      if (user.displayName) {
+        await fetch('/api/sync-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firebase_uid: user.uid,
+            email: user.email,
+            name: user.displayName,
+          }),
+        });
+      }
       router.push('/');
     } catch (err) {
       setError(friendlyError(err.code));

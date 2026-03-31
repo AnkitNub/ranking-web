@@ -21,8 +21,8 @@ export async function POST(request) {
     // Fall back to the local part of the email when no display name is set
     const resolvedName = name?.trim() || email.split('@')[0];
 
-    // Insert the user if they don't exist yet; if they do, leave all columns as-is
-    // (ignoreDuplicates keeps the existing role for returning users)
+    // Try to safely upsert the user first, avoiding race conditions
+    // ignoreDuplicates: true means it won't overwrite existing users on insert
     const { error: upsertError } = await supabaseAdmin
       .from('users')
       .upsert(
@@ -35,8 +35,8 @@ export async function POST(request) {
       return NextResponse.json({ error: upsertError.message }, { status: 500 });
     }
 
-    // Always fetch the current row (works for both new and existing users)
-    const { data, error: selectError } = await supabaseAdmin
+    // After ensuring the user exists, fetch their current data
+    const { data: existingUser, error: selectError } = await supabaseAdmin
       .from('users')
       .select()
       .eq('firebase_uid', firebase_uid)
@@ -47,7 +47,25 @@ export async function POST(request) {
       return NextResponse.json({ error: selectError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ user: data }, { status: 200 });
+    // User exists. Update name if a valid one is provided and differs
+    let finalUser = existingUser;
+    if (name && name.trim() && existingUser.name !== name.trim()) {
+      const { data: updatedUser, error: updateError } = await supabaseAdmin
+        .from('users')
+        .update({ name: name.trim() })
+        .eq('firebase_uid', firebase_uid)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Supabase update error:', updateError);
+        // non-fatal, proceed with existing
+      } else if (updatedUser) {
+        finalUser = updatedUser;
+      }
+    }
+
+    return NextResponse.json({ user: finalUser }, { status: 200 });
   } catch (err) {
     console.error('sync-user error:', err);
     return NextResponse.json(
