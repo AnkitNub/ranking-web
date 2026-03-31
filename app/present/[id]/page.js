@@ -352,7 +352,7 @@ export default function PresentationPage() {
       const currentParticipant = breakdownOrder[breakdownPIndex];
       const N = currentParticipant?.scores?.length || 0;
 
-      if (breakdownJIndex < N) {
+      if (breakdownJIndex <= N) {
         timer = setTimeout(() => {
           setBreakdownJIndex((j) => j + 1);
         }, autoSpeed);
@@ -411,7 +411,7 @@ export default function PresentationPage() {
     if (phase === 'breakdown') {
       const currentParticipant = breakdownOrder[breakdownPIndex];
       const N = currentParticipant?.scores?.length || 0;
-      if (breakdownJIndex < N) {
+      if (breakdownJIndex <= N) {
         setBreakdownJIndex((j) => j + 1);
       } else {
         if (breakdownPIndex < breakdownOrder.length - 1) {
@@ -434,7 +434,7 @@ export default function PresentationPage() {
       } else if (breakdownPIndex > 0) {
         setBreakdownPIndex((p) => p - 1);
         const prevParticipant = breakdownOrder[breakdownPIndex - 1];
-        setBreakdownJIndex(prevParticipant?.scores?.length || 0);
+        setBreakdownJIndex((prevParticipant?.scores?.length || 0) + 1);
       }
     } else if (phase === 'leaderboard') {
       if (revealed > 1) {
@@ -445,7 +445,7 @@ export default function PresentationPage() {
           setPhase('breakdown');
           setBreakdownPIndex(breakdownOrder.length - 1);
           const lastParticipant = breakdownOrder[breakdownOrder.length - 1];
-          setBreakdownJIndex(lastParticipant?.scores?.length || 0);
+          setBreakdownJIndex((lastParticipant?.scores?.length || 0) + 1);
           setRevealed(0);
         }
       }
@@ -647,67 +647,102 @@ export default function PresentationPage() {
           </div>
         ) : phase === 'breakdown' ? (
           /* Breakdown View */
-          <div className="w-full max-w-4xl flex flex-col items-center">
+          <div className="w-full max-w-5xl flex flex-col items-center">
             <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-8">
               Evaluating Participant {breakdownPIndex + 1} of{' '}
               {breakdownOrder.length}
             </p>
 
-            <h2 className="text-5xl font-black mb-12 text-emerald-400 text-center drop-shadow-md">
+            <h2 className="text-4xl md:text-5xl font-black mb-8 md:mb-12 text-emerald-400 text-center drop-shadow-md">
               {breakdownOrder[breakdownPIndex]?.name}
             </h2>
 
             {/* Judges Grid */}
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full mb-12 min-h-[80px]">
+            <div
+              className={`flex flex-wrap items-center justify-center w-full mb-8 md:mb-12 min-h-[80px] ${
+                (breakdownOrder[breakdownPIndex]?.scores?.length || 0) > 6
+                  ? 'gap-3 md:gap-4'
+                  : 'gap-4 md:gap-6'
+              }`}
+            >
               <AnimatePresence>
-                {breakdownOrder[breakdownPIndex]?.scores
-                  ?.slice(0, breakdownJIndex)
-                  .map((scoreObj, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, scale: 0, rotate: -15 }}
-                      animate={{
-                        opacity: 1,
-                        scale: [0, 1.4, 1],
-                        rotate: [-15, 5, 0],
-                      }}
-                      transition={{
-                        duration: 0.6,
-                        ease: [0.16, 1, 0.3, 1],
-                        scale: { times: [0, 0.5, 1] },
-                        rotate: { times: [0, 0.5, 1] },
-                      }}
-                      className="w-[45%] sm:w-48 md:w-56 relative p-4 shrink-0 flex flex-col items-center justify-center"
-                    >
-                      <motion.div
-                        animate={{ scale: [1, 1.05, 1] }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                        className="relative"
-                      >
-                        {/* Boom ring effect */}
-                        <motion.div
-                          className="absolute inset-0 rounded-full border-2 border-emerald-500 z-0"
-                          initial={{ scale: 0.8, opacity: 1 }}
-                          animate={{ scale: 2.5, opacity: 0 }}
-                          transition={{ duration: 0.8, ease: 'easeOut' }}
-                        />
-                        <span className="text-6xl font-black text-emerald-400 relative z-10 flex items-center justify-center tabular-nums drop-shadow-md">
-                          <CountUp end={scoreObj.score} duration={0.6} />
-                        </span>
-                      </motion.div>
+                {breakdownOrder[breakdownPIndex]?.scores?.map(
+                  (scoreObj, idx) => {
+                    const isRevealed = idx < breakdownJIndex;
+                    const numScores =
+                      breakdownOrder[breakdownPIndex]?.scores?.length || 0;
+                    const isMany = numScores > 6;
 
-                      <div className="text-xs uppercase tracking-widest font-semibold mt-4 text-zinc-400 text-center truncate w-full">
-                        {scoreObj.judgeName}
-                      </div>
-                    </motion.div>
-                  ))}
+                    return (
+                      <motion.div
+                        key={`${breakdownPIndex}-${idx}`}
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{
+                          opacity: 1,
+                          scale: isRevealed ? [1, 1.2, 1] : 1,
+                          y: 0,
+                        }}
+                        transition={{
+                          duration: 0.5,
+                          delay: isRevealed ? 0 : idx * 0.05,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
+                        className={`${
+                          isMany
+                            ? 'w-[28%] sm:w-28 md:w-32 p-2'
+                            : 'w-[45%] sm:w-48 md:w-56 p-4'
+                        } relative shrink-0 flex flex-col items-center justify-center`}
+                      >
+                        <motion.div
+                          animate={isRevealed ? { scale: [1, 1.05, 1] } : {}}
+                          transition={
+                            isRevealed ? { duration: 0.8, delay: 0.2 } : {}
+                          }
+                          className="relative"
+                        >
+                          {/* Boom ring effect */}
+                          {isRevealed && (
+                            <motion.div
+                              className="absolute inset-0 rounded-full border-2 border-emerald-500 z-0"
+                              initial={{ scale: 0.8, opacity: 1 }}
+                              animate={{ scale: 2.2, opacity: 0 }}
+                              transition={{ duration: 0.7, ease: 'easeOut' }}
+                            />
+                          )}
+                          <span
+                            className={`${
+                              isMany ? 'text-4xl md:text-5xl' : 'text-6xl'
+                            } font-black ${
+                              isRevealed ? 'text-emerald-400' : 'text-zinc-600'
+                            } relative z-10 flex items-center justify-center tabular-nums drop-shadow-md`}
+                          >
+                            {isRevealed ? (
+                              <CountUp end={scoreObj.score} duration={0.6} />
+                            ) : (
+                              '?'
+                            )}
+                          </span>
+                        </motion.div>
+
+                        <div
+                          className={`text-[10px] sm:text-xs uppercase tracking-widest font-semibold mt-3 ${
+                            isRevealed ? 'text-zinc-300' : 'text-zinc-500'
+                          } text-center truncate w-full`}
+                        >
+                          {scoreObj.judgeName}
+                        </div>
+                      </motion.div>
+                    );
+                  },
+                )}
               </AnimatePresence>
             </div>
 
             {/* Running Total */}
-            <div className="min-h-[160px]">
+            <div className="min-h-[140px] md:min-h-[160px]">
               <AnimatePresence>
-                {breakdownJIndex > 0 && (
+                {breakdownJIndex >
+                  (breakdownOrder[breakdownPIndex]?.scores?.length || 0) && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.3, y: 30 }}
                     animate={{
