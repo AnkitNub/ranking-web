@@ -81,10 +81,9 @@ function Confetti() {
   );
 }
 
-/* ─── Podium card for top 3 ───────────────────────────────────────────────── */
-function PodiumCard({ entry, rank, visible }) {
+/* ─── Top 3 card ───────────────────────────────────────────────────────── */
+function Top3Card({ entry, rank }) {
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-  const heightClass = rank === 1 ? 'h-56' : rank === 2 ? 'h-48' : 'h-44';
   const borderColor =
     rank === 1
       ? 'border-amber-400/60'
@@ -109,24 +108,6 @@ function PodiumCard({ entry, rank, visible }) {
       : rank === 2
         ? 'from-zinc-300 to-zinc-500'
         : 'from-amber-600 to-amber-800';
-  const badgeBg =
-    rank === 1
-      ? 'bg-amber-400/20'
-      : rank === 2
-        ? 'bg-zinc-400/10'
-        : 'bg-amber-700/20';
-  const badgeText =
-    rank === 1
-      ? 'text-amber-300'
-      : rank === 2
-        ? 'text-zinc-300'
-        : 'text-amber-500';
-  const badgeRing =
-    rank === 1
-      ? 'ring-amber-400/40'
-      : rank === 2
-        ? 'ring-zinc-400/30'
-        : 'ring-amber-700/40';
   const scoreText =
     rank === 1
       ? 'text-amber-300'
@@ -141,71 +122,73 @@ function PodiumCard({ entry, rank, visible }) {
         : 'text-amber-200';
 
   return (
-    <div
-      className={`transition-all duration-700 ease-out ${
-        visible
-          ? 'opacity-100 translate-y-0 scale-100'
-          : 'opacity-0 translate-y-12 scale-90 pointer-events-none'
-      }`}
+    <motion.div
+      layoutId={`card-${entry.id}`}
+      initial={{ opacity: 0, x: -30, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.5, type: 'spring', bounce: 0.2 }}
+      className="flex w-full mb-3"
     >
       <div
-        className={`relative overflow-hidden rounded-t-3xl border-t border-l border-r ${borderColor} bg-gradient-to-b ${bgGradient} shadow-2xl ${shadowColor} ${heightClass} flex flex-col items-center justify-end px-4 py-4`}
+        className={`relative overflow-hidden w-full rounded-2xl border ${borderColor} bg-gradient-to-r ${bgGradient} shadow-xl ${shadowColor} flex items-center px-6 py-5`}
       >
-        {/* Accent bar at top */}
+        {/* Accent bar at left */}
         <div
-          className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${accentGradient} rounded-t-3xl`}
+          className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${accentGradient}`}
         />
 
-        {/* Medal + Score */}
-        <div className="flex flex-col items-center gap-2 mb-3">
-          <div className={`text-4xl font-black`}>{medal}</div>
-          <p className={`font-black tabular-nums text-4xl ${scoreText}`}>
-            {visible ? <CountUp end={entry.totalScore} duration={0.8} /> : 0}
+        {/* Medal */}
+        <div className="text-5xl mr-6 drop-shadow-md">{medal}</div>
+
+        {/* Name */}
+        <div className="flex-1 min-w-0">
+          <p
+            className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-80 transition-colors"
+            style={{
+              color:
+                rank === 1 ? '#fbbf24' : rank === 2 ? '#a1a1aa' : '#b45309',
+            }}
+          >
+            {rank === 1 ? '1st Place' : rank === 2 ? '2nd Place' : '3rd Place'}
           </p>
-          <p className="text-xs text-zinc-500 font-semibold leading-none">
-            pts
+          <p
+            className={`font-black truncate transition-all duration-500 ${nameText} ${
+              rank === 1 ? 'text-3xl lg:text-4xl' : 'text-2xl lg:text-3xl'
+            }`}
+          >
+            {entry.name}
           </p>
         </div>
 
-        {/* Name */}
-        <p className={`font-bold text-center truncate max-w-full ${nameText}`}>
-          {rank === 1 ? (
-            <span className="text-xl">{entry.name}</span>
-          ) : (
-            <span className="text-base">{entry.name}</span>
-          )}
-        </p>
-
-        {/* Rank label */}
-        {rank === 1 && (
-          <p className="text-xs text-amber-400/80 font-semibold uppercase tracking-widest mt-2">
-            1st Place
+        {/* Score */}
+        <div className="text-right shrink-0 ml-4 flex flex-col items-end">
+          <p
+            className={`font-black tabular-nums transition-all duration-500 ${
+              rank === 1 ? 'text-5xl' : 'text-4xl'
+            } ${scoreText} drop-shadow-sm`}
+          >
+            <CountUp end={entry.totalScore} duration={0.8} />
           </p>
-        )}
-        {rank === 2 && (
-          <p className="text-xs text-zinc-400/80 font-semibold uppercase tracking-widest mt-1">
-            2nd Place
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mt-1">
+            pts
           </p>
-        )}
-        {rank === 3 && (
-          <p className="text-xs text-amber-600/80 font-semibold uppercase tracking-widest mt-1">
-            3rd Place
-          </p>
-        )}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 /* ─── Rest list card ────────────────────────────────────────────────────────── */
-function RestListCard({ entry, rank, visible }) {
+function RestListCard({ entry, rank }) {
   return (
-    <div
-      className={`transition-all duration-500 ease-out overflow-hidden flex flex-col justify-center ${
-        visible
-          ? 'max-h-[100px] opacity-100 translate-y-0 mb-2'
-          : 'max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none'
-      }`}
+    <motion.div
+      layoutId={`card-${entry.id}`}
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.5, type: 'spring', bounce: 0.2 }}
+      className="flex flex-col justify-center mb-2 shrink-0"
     >
       <div className="relative overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/50 hover:bg-zinc-900/70 px-4 py-3 flex items-center gap-4 transition">
         {/* Rank number */}
@@ -221,12 +204,12 @@ function RestListCard({ entry, rank, visible }) {
         {/* Score */}
         <div className="text-right shrink-0">
           <p className="font-bold text-zinc-300 text-lg tabular-nums">
-            {visible ? <CountUp end={entry.totalScore} duration={0.8} /> : 0}
+            <CountUp end={entry.totalScore} duration={0.8} />
           </p>
           <p className="text-xs text-zinc-600">pts</p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -273,11 +256,27 @@ export default function PresentationPage() {
     fetchData();
   }, [fetchData]);
 
-  // ranked from last → first for reveal order
-  const revealOrder = useMemo(
-    () => (data?.ranked ? [...data.ranked].reverse() : []),
-    [data],
-  );
+  // Random reveal order (shuffled once when data is loaded)
+  const randomRevealQueue = useMemo(() => {
+    if (!data?.ranked) return [];
+    const arr = [...data.ranked];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [data]);
+
+  // The actually visible list of users on the leaderboard, 
+  // keeping their correctly sorted final ranking
+  const currentlyRevealed = useMemo(() => {
+    if (!data?.ranked) return [];
+    const revealedIds = new Set(
+      randomRevealQueue.slice(0, revealed).map((p) => p.id),
+    );
+    return data.ranked.filter((p) => revealedIds.has(p.id));
+  }, [randomRevealQueue, revealed, data]);
+
   const breakdownOrder = useMemo(
     () =>
       data?.ranked
@@ -286,7 +285,7 @@ export default function PresentationPage() {
     [data],
   );
 
-  const total = revealOrder.length;
+  const total = randomRevealQueue.length;
   const allRevealed = revealed >= total;
 
   // When the final card (rank 1) is revealed, fire confetti
@@ -786,88 +785,74 @@ export default function PresentationPage() {
           </div>
         ) : (
           /* Leaderboard View */
-          <>
-            {/* Reveal counter */}
-            <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-8">
-              {allRevealed
-                ? `All ${total} results revealed`
-                : `Revealing rank ${total - revealed + 1} of ${total}`}
-            </p>
+          <div className="w-full max-w-7xl h-full flex flex-col md:flex-row gap-8 lg:gap-12 pb-4">
+            {/* Split Screen Leaderboard */}
 
-            {/* Podium section */}
-            {total > 0 && (
-              <div
-                className={`w-full max-w-5xl transition-all duration-1000 ease-out flex justify-center ${
-                  revealed >= total - 2
-                    ? 'mb-6 max-h-[500px] opacity-100'
-                    : 'mb-0 max-h-0 opacity-0 pointer-events-none'
-                }`}
-              >
-                {/* Podium display - shows top 3 in podium formation */}
-                <div className="grid grid-cols-3 gap-6 items-end w-full">
-                  {/* 2nd Place - Left */}
-                  {total >= 2 && (
-                    <div className="flex justify-center">
-                      <div className="w-full max-w-md">
-                        <PodiumCard
-                          entry={revealOrder[total - 2]}
-                          rank={2}
-                          visible={revealed >= total - 1}
-                        />
-                      </div>
-                    </div>
-                  )}
+            {/* Left Side: Top 3 */}
+            <div className="flex-1 flex flex-col gap-4 relative">
+              <div className="mb-2 shrink-0">
+                <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                  Live Top 3
+                </h3>
+              </div>
 
-                  {/* 1st Place - Center - Elevated */}
-                  {total >= 1 && (
-                    <div className="flex justify-center">
-                      <div className="w-full max-w-md">
-                        <PodiumCard
-                          entry={revealOrder[total - 1]}
-                          rank={1}
-                          visible={revealed >= total}
-                        />
-                      </div>
-                    </div>
-                  )}
+              <div className="flex flex-col w-full relative h-[450px]">
+                <AnimatePresence mode="popLayout">
+                  {currentlyRevealed.slice(0, 3).map((entry, idx) => (
+                    <Top3Card
+                      key={entry.id}
+                      entry={entry}
+                      rank={idx + 1}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
 
-                  {/* 3rd Place - Right */}
-                  {total >= 3 && (
-                    <div className="flex justify-center">
-                      <div className="w-full max-w-md">
-                        <PodiumCard
-                          entry={revealOrder[total - 3]}
-                          rank={3}
-                          visible={revealed >= total - 2}
-                        />
-                      </div>
-                    </div>
-                  )}
+            {/* Right Side: Ranks 4+ */}
+            {total > 3 && (
+              <div className="flex-1 flex flex-col overflow-hidden max-h-full">
+                {/* Right side header */}
+                <div className="mb-4 mt-2 flex items-center justify-between shrink-0">
+                  <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                    Other Rankings
+                  </h3>
+                  <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold text-right">
+                    {allRevealed
+                      ? `All ${total} revealed`
+                      : `Revealed ${revealed} of ${total}`}
+                  </p>
+                </div>
+
+                {/* Scrollable list */}
+                <div className="flex-1 overflow-y-auto pr-2 flex flex-col relative w-full pt-1">
+                  <AnimatePresence mode="popLayout">
+                    {currentlyRevealed.slice(3).map((entry, idx) => (
+                      <RestListCard
+                        key={entry.id}
+                        entry={entry}
+                        rank={idx + 4}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </div>
               </div>
             )}
 
-            {/* Rest of the rankings - scrollable list */}
-            {total > 3 && (
-              <div className="w-full max-w-2xl max-h-96 overflow-y-auto px-2 pb-4">
-                {revealOrder
-                  .map((entry, idx) => ({ entry, idx, rank: total - idx }))
-                  .filter(({ rank }) => rank > 3)
-                  .sort((a, b) => a.rank - b.rank)
-                  .map(({ entry, idx, rank }) => {
-                    const cardVisible = idx < revealed;
-                    return (
-                      <RestListCard
-                        key={entry.id}
-                        entry={entry}
-                        rank={rank}
-                        visible={cardVisible}
-                      />
-                    );
-                  })}
+            {/* Fallback if total <= 3 */}
+            {total <= 3 && (
+              <div className="flex-1 flex flex-col justify-center items-center opacity-50">
+                <p className="text-zinc-600 text-sm italic">
+                  No further rankings
+                </p>
+                <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mt-2">
+                  {allRevealed
+                    ? `All ${total} results revealed`
+                    : `Revealed ${revealed} of ${total}`}
+                </p>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
 
