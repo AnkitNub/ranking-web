@@ -69,7 +69,7 @@ function Confetti() {
 }
 
 /* ─── Top 3 card ───────────────────────────────────────────────────────── */
-function Top3Card({ entry, rank }) {
+function Top3Card({ entry, rank, isNew }) {
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
   const borderColor =
     rank === 1
@@ -115,21 +115,36 @@ function Top3Card({ entry, rank }) {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       transition={{ duration: 0.5, type: 'spring', bounce: 0.2 }}
-      className="flex w-full mb-3"
+      className="flex w-full mb-3 relative"
+      style={{ zIndex: isNew ? 20 : 1 }}
     >
       <div
         className={`relative overflow-hidden w-full rounded-2xl border ${borderColor} bg-gradient-to-r ${bgGradient} shadow-xl ${shadowColor} flex items-center px-6 py-5`}
       >
+        {isNew && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: '200%' }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              repeatDelay: 0.5,
+            }}
+            className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+          />
+        )}
+
         {/* Accent bar at left */}
         <div
           className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${accentGradient}`}
         />
 
         {/* Medal */}
-        <div className="text-5xl mr-6 drop-shadow-md">{medal}</div>
+        <div className="text-5xl mr-6 drop-shadow-md z-10">{medal}</div>
 
         {/* Name */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 z-10">
           <p
             className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-80 transition-colors"
             style={{
@@ -149,7 +164,7 @@ function Top3Card({ entry, rank }) {
         </div>
 
         {/* Score */}
-        <div className="text-right shrink-0 ml-4 flex flex-col items-end">
+        <div className="text-right shrink-0 ml-4 flex flex-col items-end z-10">
           <p
             className={`font-black tabular-nums transition-all duration-500 ${
               rank === 1 ? 'text-5xl' : 'text-4xl'
@@ -161,13 +176,23 @@ function Top3Card({ entry, rank }) {
             pts
           </p>
         </div>
+
+        {/* Subtle sliding indicator for new entry instead of big badge */}
+        {isNew && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="absolute top-0 right-0 bottom-0 w-1 bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"
+          />
+        )}
       </div>
     </motion.div>
   );
 }
 
 /* ─── Rest list card ────────────────────────────────────────────────────────── */
-function RestListCard({ entry, rank }) {
+function RestListCard({ entry, rank, isNew }) {
   return (
     <motion.div
       layoutId={`card-${entry.id}`}
@@ -175,25 +200,75 @@ function RestListCard({ entry, rank }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       transition={{ duration: 0.5, type: 'spring', bounce: 0.2 }}
-      className="flex flex-col justify-center mb-2 shrink-0"
+      className="flex flex-col justify-center mb-2 shrink-0 relative"
+      style={{ zIndex: isNew ? 20 : 1 }}
     >
-      <div className="relative overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/50 hover:bg-zinc-900/70 px-4 py-3 flex items-center gap-4 transition">
+      <div
+        className={`relative overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/50 hover:bg-zinc-900/70 px-4 py-3 flex items-center gap-4 transition shadow-sm`}
+      >
+        {/* Shimmer/Swipe effect */}
+        {isNew && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: '200%' }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              repeatDelay: 0.5,
+            }}
+            className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12"
+          />
+        )}
+
+        {/* Subtle sliding indicator for new entry instead of big badge */}
+        {isNew && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="absolute top-0 right-0 bottom-0 w-1 bg-emerald-500 shadow-[0_0_10px_rgba(52,211,153,0.5)]"
+          />
+        )}
+
         {/* Rank number */}
-        <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-zinc-800 text-zinc-400 font-bold text-sm">
+        <div
+          className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center z-10 ${
+            isNew
+              ? 'bg-emerald-900/60 text-emerald-400'
+              : 'bg-zinc-800 text-zinc-400'
+          } font-bold text-sm`}
+        >
           {rank}
         </div>
 
         {/* Name + score */}
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-zinc-200 text-sm">{entry.name}</p>
+        <div className="flex-1 min-w-0 z-10">
+          <p
+            className={`font-semibold ${
+              isNew ? 'text-emerald-100' : 'text-zinc-200'
+            } text-sm`}
+          >
+            {entry.name}
+          </p>
         </div>
 
         {/* Score */}
-        <div className="text-right shrink-0">
-          <p className="font-bold text-zinc-300 text-lg tabular-nums">
+        <div className="text-right shrink-0 z-10">
+          <p
+            className={`font-bold ${
+              isNew ? 'text-emerald-300' : 'text-zinc-300'
+            } text-lg tabular-nums`}
+          >
             <CountUp end={entry.totalScore} duration={0.8} />
           </p>
-          <p className="text-xs text-zinc-600">pts</p>
+          <p
+            className={`text-xs ${
+              isNew ? 'text-emerald-600' : 'text-zinc-600'
+            }`}
+          >
+            pts
+          </p>
         </div>
       </div>
     </motion.div>
@@ -755,7 +830,15 @@ export default function PresentationPage() {
               <div className="flex flex-col w-full relative h-[450px]">
                 <AnimatePresence mode="popLayout">
                   {currentlyRevealed.slice(0, 3).map((entry, idx) => (
-                    <Top3Card key={entry.id} entry={entry} rank={idx + 1} />
+                    <Top3Card
+                      key={entry.id}
+                      entry={entry}
+                      rank={idx + 1}
+                      isNew={
+                        !allRevealed &&
+                        entry.id === breakdownOrder[breakdownPIndex]?.id
+                      }
+                    />
                   ))}
                 </AnimatePresence>
               </div>
@@ -784,6 +867,10 @@ export default function PresentationPage() {
                         key={entry.id}
                         entry={entry}
                         rank={idx + 4}
+                        isNew={
+                          !allRevealed &&
+                          entry.id === breakdownOrder[breakdownPIndex]?.id
+                        }
                       />
                     ))}
                   </AnimatePresence>
