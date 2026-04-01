@@ -207,8 +207,6 @@ export default function PresentationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Reveal state: how many cards are currently visible (counted from last rank)
-  const [revealed, setRevealed] = useState(0);
   const [started, setStarted] = useState(false);
 
   // Mode: 'manual' | 'auto'
@@ -243,27 +241,6 @@ export default function PresentationPage() {
     fetchData();
   }, [fetchData]);
 
-  // Random reveal order (shuffled once when data is loaded)
-  const randomRevealQueue = useMemo(() => {
-    if (!data?.ranked) return [];
-    const arr = [...data.ranked];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }, [data]);
-
-  // The actually visible list of users on the leaderboard,
-  // keeping their correctly sorted final ranking
-  const currentlyRevealed = useMemo(() => {
-    if (!data?.ranked) return [];
-    const revealedIds = new Set(
-      randomRevealQueue.slice(0, revealed).map((p) => p.id),
-    );
-    return data.ranked.filter((p) => revealedIds.has(p.id));
-  }, [randomRevealQueue, revealed, data]);
-
   const breakdownOrder = useMemo(
     () =>
       data?.ranked
@@ -272,18 +249,34 @@ export default function PresentationPage() {
     [data],
   );
 
-  const total = randomRevealQueue.length;
-  const allRevealed = revealed >= total;
+  // The actually visible list of users on the leaderboard,
+  // keeping their correctly sorted final ranking
+  const currentlyRevealed = useMemo(() => {
+    if (!data?.ranked || breakdownOrder.length === 0) return [];
+
+    // In breakdown phase, we don't display the current participant on the
+    // leaderboard yet until we transition to the leaderboard phase.
+    const maxIndex =
+      phase === 'leaderboard' ? breakdownPIndex : breakdownPIndex - 1;
+
+    const revealedIds = new Set(
+      breakdownOrder.slice(0, maxIndex + 1).map((p) => p.id),
+    );
+    return data.ranked.filter((p) => revealedIds.has(p.id));
+  }, [breakdownOrder, phase, breakdownPIndex, data]);
+
+  const total = breakdownOrder.length;
+  const allRevealed = phase === 'leaderboard' && breakdownPIndex >= total - 1;
 
   // When the final card (rank 1) is revealed, fire confetti
   useEffect(() => {
-    if (phase === 'leaderboard' && allRevealed && total > 0) {
+    if (allRevealed && total > 0) {
       playVictoryFanfare();
       setShowConfetti(true);
       const t = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(t);
     }
-  }, [allRevealed, total, phase]);
+  }, [allRevealed, total]);
 
   // Firework on each judge reveal
   useEffect(() => {
@@ -343,24 +336,18 @@ export default function PresentationPage() {
           setBreakdownJIndex((j) => j + 1);
         }, autoSpeed);
       } else {
-        // short wait before moving to next participant (1.25x the speed)
+        // short wait before moving to leaderboard
         timer = setTimeout(() => {
-          if (breakdownPIndex < breakdownOrder.length - 1) {
-            setBreakdownPIndex((p) => p + 1);
-            setBreakdownJIndex(0);
-          } else {
-            setPhase('leaderboard');
-          }
+          setPhase('leaderboard');
         }, autoSpeed * 1.5);
       }
     } else if (phase === 'leaderboard') {
-      if (!allRevealed) {
+      if (breakdownPIndex < breakdownOrder.length - 1) {
         timer = setTimeout(() => {
-          setRevealed((r) => {
-            if (r >= total) return r;
-            return r + 1;
-          });
-        }, autoSpeed);
+          setBreakdownPIndex((p) => p + 1);
+          setBreakdownJIndex(0);
+          setPhase('breakdown');
+        }, autoSpeed * 2);
       }
     }
 
@@ -371,10 +358,7 @@ export default function PresentationPage() {
     phase,
     breakdownPIndex,
     breakdownJIndex,
-    allRevealed,
-    revealed,
     autoSpeed,
-    total,
     breakdownOrder,
   ]);
 
@@ -382,12 +366,10 @@ export default function PresentationPage() {
     // Check if there are participants
     if (breakdownOrder.length === 0) {
       setPhase('leaderboard');
-      setRevealed(mode === 'manual' ? 1 : 0);
     } else {
       setPhase('breakdown');
       setBreakdownPIndex(0);
       setBreakdownJIndex(0);
-      setRevealed(0);
     }
     setStarted(true);
     setShowConfetti(false);
@@ -400,16 +382,14 @@ export default function PresentationPage() {
       if (breakdownJIndex <= N) {
         setBreakdownJIndex((j) => j + 1);
       } else {
-        if (breakdownPIndex < breakdownOrder.length - 1) {
-          setBreakdownPIndex((p) => p + 1);
-          setBreakdownJIndex(0);
-        } else {
-          setPhase('leaderboard');
-          setRevealed(1);
-        }
+        setPhase('leaderboard');
       }
     } else if (phase === 'leaderboard') {
-      if (revealed < total) setRevealed((r) => r + 1);
+      if (breakdownPIndex < breakdownOrder.length - 1) {
+        setBreakdownPIndex((p) => p + 1);
+        setBreakdownJIndex(0);
+        setPhase('breakdown');
+      }
     }
   }
 
@@ -419,37 +399,28 @@ export default function PresentationPage() {
         setBreakdownJIndex((j) => j - 1);
       } else if (breakdownPIndex > 0) {
         setBreakdownPIndex((p) => p - 1);
-        const prevParticipant = breakdownOrder[breakdownPIndex - 1];
-        setBreakdownJIndex((prevParticipant?.scores?.length || 0) + 1);
+        setPhase('leaderboard');
       }
     } else if (phase === 'leaderboard') {
-      if (revealed > 1) {
-        setRevealed((r) => r - 1);
-      } else {
-        // Go back to breakdown
-        if (breakdownOrder.length > 0) {
-          setPhase('breakdown');
-          setBreakdownPIndex(breakdownOrder.length - 1);
-          const lastParticipant = breakdownOrder[breakdownOrder.length - 1];
-          setBreakdownJIndex((lastParticipant?.scores?.length || 0) + 1);
-          setRevealed(0);
-        }
-      }
+      setPhase('breakdown');
+      const currentParticipant = breakdownOrder[breakdownPIndex];
+      setBreakdownJIndex((currentParticipant?.scores?.length || 0) + 1);
     }
   }
 
   function handleSkipToLeaderboard() {
     setStarted(true);
     setShowConfetti(false);
+    if (breakdownOrder.length > 0) {
+      setBreakdownPIndex(breakdownOrder.length - 1);
+    }
     setPhase('leaderboard');
-    setRevealed(mode === 'manual' ? 1 : 0);
   }
 
   function handleReset() {
     setPhase('intro');
     setBreakdownPIndex(0);
     setBreakdownJIndex(0);
-    setRevealed(0);
     setStarted(false);
     setShowConfetti(false);
   }
@@ -459,7 +430,6 @@ export default function PresentationPage() {
     setPhase('intro');
     setBreakdownPIndex(0);
     setBreakdownJIndex(0);
-    setRevealed(0);
     setStarted(false);
     setShowConfetti(false);
   }
@@ -574,7 +544,6 @@ export default function PresentationPage() {
                 setPhase('intro');
                 setBreakdownPIndex(0);
                 setBreakdownJIndex(0);
-                setRevealed(0);
               }}
               className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-emerald-500"
             >
@@ -803,7 +772,7 @@ export default function PresentationPage() {
                   <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold text-right">
                     {allRevealed
                       ? `All ${total} revealed`
-                      : `Revealed ${revealed} of ${total}`}
+                      : `Revealed ${currentlyRevealed.length} of ${total}`}
                   </p>
                 </div>
 
@@ -831,7 +800,7 @@ export default function PresentationPage() {
                 <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mt-2">
                   {allRevealed
                     ? `All ${total} results revealed`
-                    : `Revealed ${revealed} of ${total}`}
+                    : `Revealed ${currentlyRevealed.length} of ${total}`}
                 </p>
               </div>
             )}
@@ -855,7 +824,7 @@ export default function PresentationPage() {
                 onClick={handlePrev}
                 disabled={
                   (phase === 'leaderboard' &&
-                    revealed <= 1 &&
+                    breakdownPIndex === 0 &&
                     breakdownOrder.length === 0) ||
                   (phase === 'breakdown' &&
                     breakdownJIndex === 0 &&
