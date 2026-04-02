@@ -104,7 +104,7 @@ export default function SignUpPage() {
         <form onSubmit={handleEmailSignUp} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Full name
+              氏名
             </label>
             <input
               type="text"
@@ -155,7 +155,7 @@ export default function SignUpPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Confirm password
+              パスワードの確認
             </label>
             <div className="relative">
               <input
@@ -188,7 +188,7 @@ export default function SignUpPage() {
             disabled={loading}
             className="w-full rounded-lg bg-teal-600 text-white py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating account…' : 'Create account'}
+            {loading ? 'アカウントを作成中…' : 'アカウントを作成する'}
           </button>
         </form>
 
@@ -208,7 +208,8 @@ export default function SignUpPage() {
         </button>
 
         <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-700">
-          すでにアカウントをお持ちですか？ <Link
+          すでにアカウントをお持ちですか？{' '}
+          <Link
             href="/signin"
             className="font-medium text-teal-700 dark:text-teal-400 hover:underline"
           >
