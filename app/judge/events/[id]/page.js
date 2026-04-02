@@ -42,12 +42,12 @@ function ScoreCard({
     e.preventDefault();
     if (disabled) return;
     if (value === '' || value === null) {
-      setError('Enter a score.');
+      setError('スコアを入力してください。');
       return;
     }
     const num = Number(value);
     if (isNaN(num) || num < 1 || num > max) {
-      setError(`Score must be 1–${max}.`);
+      setError(`スコアは1から${max}の間で入力してください。`);
       return;
     }
     setError('');
@@ -59,7 +59,7 @@ function ScoreCard({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to save score.');
+        setError(data.error || 'スコアの保存に失敗しました。');
         return;
       }
       onScored(participant.id, data.score);
@@ -157,14 +157,14 @@ function ScoreCard({
             >
               {disabled
                 ? isScored
-                  ? '✓ Scored'
-                  : 'Closed'
+                  ? '✓ 採点済み'
+                  : '終了'
                 : submitting
                   ? '…'
                   : isScored && isDirty
-                    ? 'Update'
+                    ? '更新'
                     : isScored
-                      ? '✓ Done'
+                      ? '✓ 完了'
                       : '送信'}
             </button>
           </div>
@@ -240,7 +240,7 @@ export default function JudgeScoringPage() {
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 rounded-full border-2 border-teal-200 border-t-teal-600 animate-spin" />
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Loading…
+              読み込み中…
             </span>
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function JudgeScoringPage() {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          Back to Events
+          イベント一覧に戻る
         </button>
 
         {/* Event header */}
@@ -283,7 +283,7 @@ export default function JudgeScoringPage() {
                 </h1>
                 {isExpired(event) && (
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400">
-                    Closed
+                    終了
                   </span>
                 )}
               </div>
@@ -291,7 +291,7 @@ export default function JudgeScoringPage() {
                 {event?.event_date && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      Event Time
+                      イベント日時
                     </p>
                     <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                       {new Date(event.event_date).toLocaleDateString('en-US', {
@@ -307,7 +307,7 @@ export default function JudgeScoringPage() {
                 {event?.deadline && event?.end_time && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      End Time
+                      終了日時
                     </p>
                     <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                       {new Date(event.deadline).toLocaleDateString('en-US', {
@@ -333,7 +333,7 @@ export default function JudgeScoringPage() {
                 {event?.max_score && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      Max Score
+                      最高スコア
                     </p>
                     <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                       {event.max_score} pts
@@ -357,11 +357,10 @@ export default function JudgeScoringPage() {
             </svg>
             <div>
               <p className="text-sm font-semibold text-white mb-1">
-                Voting Closed
+                投票終了
               </p>
               <p className="text-sm text-red-100">
-                The scoring deadline has passed. Scores can no longer be
-                submitted or updated.
+                採点の締め切りを過ぎました。スコアを送信または更新することはできなくなりました。
               </p>
             </div>
           </div>
@@ -388,7 +387,7 @@ export default function JudgeScoringPage() {
                   </svg>
                 </div>
                 <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                  Your Progress
+                  進捗状況
                 </span>
               </div>
               <span className="text-sm font-bold text-teal-700 dark:text-teal-400">
@@ -423,7 +422,7 @@ export default function JudgeScoringPage() {
                   />
                 </svg>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                  All participants scored!
+                  すべての参加者を採点しました！
                 </p>
               </div>
             )}
@@ -435,7 +434,7 @@ export default function JudgeScoringPage() {
           <div className="flex items-center gap-2 mb-4">
             <span className="w-2 h-2 rounded-full bg-teal-500" />
             <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-              Participants — {participants.length}
+              参加者一覧 — {participants.length}
             </h2>
           </div>
         )}
@@ -459,7 +458,7 @@ export default function JudgeScoringPage() {
               </svg>
             </div>
             <p className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">
-              No participants in this event yet.
+              このイベントにはまだ参加者がいません。
             </p>
           </div>
         ) : (

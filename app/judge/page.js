@@ -48,7 +48,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide`}
               >
-                Event Time
+                イベント日時
               </p>
               <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                 {new Date(event.event_date).toLocaleDateString('en-US', {
@@ -68,7 +68,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
               >
-                End Time
+                終了日時
               </p>
               <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                 {new Date(event.deadline).toLocaleDateString('en-US', {
@@ -102,7 +102,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
               >
-                Max Score
+                最高スコア
               </p>
               <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                 {event.max_score} pts
@@ -120,7 +120,7 @@ function EventCard({ event, onClick }) {
               : 'text-teal-700 dark:text-teal-300 group-hover:gap-3'
           }`}
         >
-          {expired ? 'View scores' : 'Start scoring'}
+          {expired ? 'スコアを見る' : '採点を開始'}
           <svg
             className="w-4 h-4"
             fill="none"
@@ -191,7 +191,7 @@ export default function JudgeDashboard() {
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 rounded-full border-2 border-teal-200 border-t-teal-600 animate-spin" />
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Loading events…
+              読み込み中…
             </span>
           </div>
         </div>
@@ -225,10 +225,10 @@ export default function JudgeDashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 leading-tight">
-              My Assigned Events
+              担当イベント
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
-              Select an event to start scoring participants.
+              イベントを選択して参加者の採点を開始してください。
             </p>
           </div>
         </div>
@@ -251,10 +251,10 @@ export default function JudgeDashboard() {
               </svg>
             </div>
             <p className="text-zinc-700 dark:text-zinc-200 font-semibold">
-              No events assigned yet
+              担当しているイベントはまだありません
             </p>
             <p className="text-xs text-zinc-600 dark:text-zinc-700 mt-1.5 max-w-xs mx-auto">
-              An admin will assign you to events once they&apos;re created.
+              イベントが作成されると管理者から割り当てられます。
             </p>
           </div>
         ) : (
@@ -264,7 +264,7 @@ export default function JudgeDashboard() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
                   <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                    Active — {activeEvents.length}
+                    アクティブ — {activeEvents.length}
                   </h2>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
@@ -284,7 +284,7 @@ export default function JudgeDashboard() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600" />
                   <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-700">
-                    Closed — {expiredEvents.length}
+                    終了 — {expiredEvents.length}
                   </h2>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
