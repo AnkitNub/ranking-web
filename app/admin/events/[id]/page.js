@@ -142,7 +142,8 @@ function DeleteParticipantModal({
           参加者を削除
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-          本当に <strong>{participantName}</strong> とそのすべてのスコアを削除しますか？この操作は元に戻せません。
+          本当に <strong>{participantName}</strong>{' '}
+          とそのすべてのスコアを削除しますか？この操作は元に戻せません。
         </p>
         {error && (
           <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 mb-4">
@@ -216,7 +217,9 @@ function ParticipantsTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>;
+    return (
+      <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>
+    );
 
   return (
     <div className="space-y-4">
@@ -386,7 +389,9 @@ function JudgesTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-400 py-6 text-center">読み込み中…</p>;
+    return (
+      <p className="text-sm text-zinc-400 py-6 text-center">読み込み中…</p>
+    );
 
   return (
     <div className="space-y-4">
@@ -440,7 +445,9 @@ function JudgesTab({ eventId }) {
               disabled={assigning}
               className="w-full rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
             >
-              {assigning ? '…' : `選択した審査員を割り当てる (${selectedJudgeIds.size})`}
+              {assigning
+                ? '…'
+                : `選択した審査員を割り当てる (${selectedJudgeIds.size})`}
             </button>
           )}
         </>
@@ -573,7 +580,9 @@ function ScoreboardTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>;
+    return (
+      <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>
+    );
 
   return (
     <div className="space-y-3">
@@ -610,8 +619,7 @@ function ScoreboardTab({ eventId }) {
       <div className="flex items-center justify-between">
         <p className="text-xs text-slate-800">
           15秒ごとに自動更新
-          {lastRefreshed &&
-            ` · 最終更新 ${lastRefreshed.toLocaleTimeString()}`}
+          {lastRefreshed && ` · 最終更新 ${lastRefreshed.toLocaleTimeString()}`}
         </p>
         <button
           onClick={fetchScoreboard}
