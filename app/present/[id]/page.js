@@ -1,20 +1,57 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
 
-/* ── Animated counter (Animation removed, kept for sound trigger) ── */
+/* ── Animated counter with roll-up + sound trigger ── */
 function CountUp({ end, duration = 1.2 }) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const frameRef = useRef(null);
+
   useEffect(() => {
     playDrumroll();
-  }, []);
-  return (
-    <span className="tabular-nums">{end.toFixed(end % 1 === 0 ? 0 : 1)}</span>
-  );
+
+    const safeDuration = Math.max(duration, 0.1) * 1000;
+    const startValue = 0;
+    const endValue = Number(end) || 0;
+    const startTime = performance.now();
+
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / safeDuration, 1);
+
+      // Ease-out curve for a game-show style reveal.
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const nextValue = startValue + (endValue - startValue) * eased;
+
+      setDisplayValue(nextValue);
+
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    frameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, [end, duration]);
+
+  const decimals = end % 1 === 0 ? 0 : 1;
+
+  return <span className="tabular-nums">{displayValue.toFixed(decimals)}</span>;
+}
+
+function formatScore(value) {
+  const num = Number(value) || 0;
+  return Number.isInteger(num) ? String(num) : num.toFixed(1);
 }
 
 /* ─── Confetti burst for the winner ───────────────────────────────────────── */
@@ -170,7 +207,7 @@ function Top3Card({ entry, rank, isNew }) {
               rank === 1 ? 'text-5xl' : 'text-4xl'
             } ${scoreText} drop-shadow-sm`}
           >
-            <CountUp end={entry.totalScore} duration={0.8} />
+            {formatScore(entry.totalScore)}
           </p>
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mt-1">
             pts
@@ -260,7 +297,7 @@ function RestListCard({ entry, rank, isNew }) {
               isNew ? 'text-emerald-300' : 'text-zinc-300'
             } text-lg tabular-nums`}
           >
-            <CountUp end={entry.totalScore} duration={0.8} />
+            {formatScore(entry.totalScore)}
           </p>
           <p
             className={`text-xs ${
