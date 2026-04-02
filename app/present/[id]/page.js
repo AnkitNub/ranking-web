@@ -106,7 +106,15 @@ function Confetti() {
 }
 
 /* ─── Top 3 card ───────────────────────────────────────────────────────── */
-function Top3Card({ entry, rank, isNew }) {
+function Top3Card({
+  entry,
+  rank,
+  isNew,
+  movement,
+  isPlacementFocus,
+  isMuted,
+  placementSignal,
+}) {
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
   const borderColor =
     rank === 1
@@ -144,20 +152,137 @@ function Top3Card({ entry, rank, isNew }) {
       : rank === 2
         ? 'text-zinc-100'
         : 'text-amber-200';
+  const isMovingDown = movement?.direction === 'down';
+  const isMovingUp = movement?.direction === 'up';
+  const moveDistance = movement?.distance || 0;
+  const motionDelay = movement ? Math.min((moveDistance - 1) * 0.07, 0.24) : 0;
+  const downImpactOpacity = Math.min(0.22 + moveDistance * 0.08, 0.5);
+  const upImpactOpacity = Math.min(0.18 + moveDistance * 0.06, 0.4);
 
   return (
     <motion.div
       layoutId={`card-${entry.id}`}
       initial={{ opacity: 0, x: -30, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
+      animate={
+        isMovingDown
+          ? {
+              opacity: 1,
+              x: [0, -14, 10, -8, 4, 0],
+              y: [0, 12, -2, 0],
+              scale: [1, 1.03, 0.995, 1],
+              rotate: [0, -1.8, 1.4, -0.8, 0],
+              filter: [
+                'brightness(1)',
+                'brightness(1.2)',
+                'brightness(0.98)',
+                'brightness(1)',
+              ],
+            }
+          : isMovingUp
+            ? {
+                opacity: 1,
+                x: [0, 2, -2, 0],
+                y: [0, -14, 2, 0],
+                scale: [1, 1.045, 0.998, 1],
+                rotate: [0, -0.9, 0.4, 0],
+                filter: ['brightness(1)', 'brightness(1.14)', 'brightness(1)'],
+              }
+            : {
+                opacity: 1,
+                x: 0,
+                y: 0,
+                scale: 1,
+                rotate: 0,
+                filter: 'brightness(1)',
+              }
+      }
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.5, type: 'spring', bounce: 0.2 }}
+      transition={
+        movement
+          ? {
+              duration: 0.82,
+              ease: [0.22, 1, 0.36, 1],
+              delay: motionDelay,
+            }
+          : { duration: 0.5, type: 'spring', bounce: 0.2 }
+      }
       className="flex w-full mb-3 relative"
-      style={{ zIndex: isNew ? 20 : 1 }}
+      style={{ zIndex: isPlacementFocus ? 30 : isNew || movement ? 20 : 1 }}
     >
       <div
-        className={`relative overflow-hidden w-full rounded-2xl border ${borderColor} bg-gradient-to-r ${bgGradient} shadow-xl ${shadowColor} flex items-center px-6 py-5`}
+        className={`relative overflow-hidden w-full rounded-2xl border ${borderColor} bg-gradient-to-r ${bgGradient} shadow-xl ${shadowColor} flex items-center px-6 py-5 transition-all duration-300 ${
+          isMuted ? 'opacity-45 saturate-75 scale-[0.985]' : 'opacity-100'
+        }`}
       >
+        {isPlacementFocus && (
+          <motion.div
+            key={`top3-placement-focus-${placementSignal}`}
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: [0, 0.8, 0], scale: [0.94, 1.045, 1] }}
+            transition={{ duration: 1.05, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute -inset-[2px] pointer-events-none rounded-2xl border border-cyan-300/75 shadow-[0_0_30px_rgba(34,211,238,0.55)] z-20"
+          />
+        )}
+
+        {isPlacementFocus && (
+          <motion.div
+            key={`top3-placement-sweep-${placementSignal}`}
+            initial={{ opacity: 0, x: '-120%', skewX: -14 }}
+            animate={{ opacity: [0, 0.65, 0], x: '140%' }}
+            transition={{
+              duration: 0.9,
+              ease: [0.22, 1, 0.36, 1],
+              delay: 0.08,
+            }}
+            className="absolute inset-y-0 -left-10 w-20 pointer-events-none bg-gradient-to-r from-cyan-300/0 via-cyan-200/80 to-cyan-300/0 blur-[2px] z-20"
+          />
+        )}
+
+        {isPlacementFocus && (
+          <motion.div
+            key={`top3-placement-orbit-${placementSignal}`}
+            initial={{ opacity: 0.7, scale: 0.9 }}
+            animate={{ opacity: [0.7, 0], scale: [0.9, 1.08] }}
+            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.06 }}
+            className="absolute -inset-1 pointer-events-none rounded-2xl border border-cyan-300/65 z-10"
+          />
+        )}
+
+        {movement && (
+          <motion.div
+            initial={{ opacity: 0, scale: 1 }}
+            animate={{
+              opacity: [
+                0,
+                isMovingDown ? downImpactOpacity : upImpactOpacity,
+                0,
+              ],
+              scale: [1, 1.06, 1],
+            }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: motionDelay }}
+            className={`absolute inset-0 pointer-events-none z-0 ${
+              isMovingDown ? 'bg-rose-400/30' : 'bg-emerald-400/28'
+            }`}
+          />
+        )}
+
+        {movement && (
+          <motion.div
+            initial={{ opacity: 0, x: 0 }}
+            animate={
+              isMovingDown
+                ? { opacity: [0, 0.45, 0], x: [18, -20], scaleY: [1, 1.12, 1] }
+                : { opacity: [0, 0.38, 0], x: [-18, 20], scaleY: [1, 1.1, 1] }
+            }
+            transition={{ duration: 0.65, ease: 'easeOut', delay: motionDelay }}
+            className={`absolute inset-y-0 left-0 right-0 pointer-events-none z-0 blur-sm ${
+              isMovingDown
+                ? 'bg-gradient-to-r from-rose-500/0 via-rose-400/30 to-rose-500/0'
+                : 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/28 to-emerald-500/0'
+            }`}
+          />
+        )}
+
         {isNew && (
           <motion.div
             initial={{ x: '-100%' }}
@@ -229,20 +354,146 @@ function Top3Card({ entry, rank, isNew }) {
 }
 
 /* ─── Rest list card ────────────────────────────────────────────────────────── */
-function RestListCard({ entry, rank, isNew }) {
+function RestListCard({
+  entry,
+  rank,
+  isNew,
+  movement,
+  isPlacementFocus,
+  isMuted,
+  placementSignal,
+}) {
+  const isMovingDown = movement?.direction === 'down';
+  const isMovingUp = movement?.direction === 'up';
+  const moveDistance = movement?.distance || 0;
+  const motionDelay = movement ? Math.min((moveDistance - 1) * 0.06, 0.22) : 0;
+  const downImpactOpacity = Math.min(0.18 + moveDistance * 0.07, 0.42);
+  const upImpactOpacity = Math.min(0.14 + moveDistance * 0.06, 0.34);
+
   return (
     <motion.div
       layoutId={`card-${entry.id}`}
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      animate={
+        isMovingDown
+          ? {
+              opacity: 1,
+              x: [0, -12, 9, -6, 2, 0],
+              y: [0, 10, -2, 0],
+              scale: [1, 1.025, 0.998, 1],
+              rotate: [0, -1.1, 0.9, -0.4, 0],
+              filter: [
+                'brightness(1)',
+                'brightness(1.16)',
+                'brightness(0.99)',
+                'brightness(1)',
+              ],
+            }
+          : isMovingUp
+            ? {
+                opacity: 1,
+                x: [0, 2, -2, 0],
+                y: [0, -10, 1, 0],
+                scale: [1, 1.032, 0.998, 1],
+                rotate: [0, -0.7, 0.3, 0],
+                filter: ['brightness(1)', 'brightness(1.11)', 'brightness(1)'],
+              }
+            : {
+                opacity: 1,
+                x: 0,
+                y: 0,
+                scale: 1,
+                rotate: 0,
+                filter: 'brightness(1)',
+              }
+      }
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.5, type: 'spring', bounce: 0.2 }}
+      transition={
+        movement
+          ? {
+              duration: 0.76,
+              ease: [0.22, 1, 0.36, 1],
+              delay: motionDelay,
+            }
+          : { duration: 0.5, type: 'spring', bounce: 0.2 }
+      }
       className="flex flex-col justify-center mb-2 shrink-0 relative"
-      style={{ zIndex: isNew ? 20 : 1 }}
+      style={{ zIndex: isPlacementFocus ? 30 : isNew || movement ? 20 : 1 }}
     >
       <div
-        className={`relative overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/50 hover:bg-zinc-900/70 px-4 py-3 flex items-center gap-4 transition shadow-sm`}
+        className={`relative overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/50 hover:bg-zinc-900/70 px-4 py-3 flex items-center gap-4 transition shadow-sm duration-300 ${
+          isMuted ? 'opacity-45 saturate-75 scale-[0.988]' : 'opacity-100'
+        }`}
       >
+        {isPlacementFocus && (
+          <motion.div
+            key={`rest-placement-focus-${placementSignal}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: [0, 0.74, 0], scale: [0.95, 1.04, 1] }}
+            transition={{ duration: 0.98, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute -inset-[2px] pointer-events-none rounded-xl border border-cyan-300/70 shadow-[0_0_26px_rgba(34,211,238,0.45)] z-20"
+          />
+        )}
+
+        {isPlacementFocus && (
+          <motion.div
+            key={`rest-placement-sweep-${placementSignal}`}
+            initial={{ opacity: 0, x: '-125%', skewX: -16 }}
+            animate={{ opacity: [0, 0.56, 0], x: '145%' }}
+            transition={{
+              duration: 0.82,
+              ease: [0.22, 1, 0.36, 1],
+              delay: 0.06,
+            }}
+            className="absolute inset-y-0 -left-8 w-14 pointer-events-none bg-gradient-to-r from-cyan-300/0 via-cyan-200/75 to-cyan-300/0 blur-[1px] z-20"
+          />
+        )}
+
+        {isPlacementFocus && (
+          <motion.div
+            key={`rest-placement-orbit-${placementSignal}`}
+            initial={{ opacity: 0.62, scale: 0.9 }}
+            animate={{ opacity: [0.62, 0], scale: [0.9, 1.08] }}
+            transition={{ duration: 0.74, ease: 'easeOut', delay: 0.04 }}
+            className="absolute -inset-[2px] pointer-events-none rounded-xl border border-cyan-300/60 z-10"
+          />
+        )}
+
+        {movement && (
+          <motion.div
+            initial={{ opacity: 0, scale: 1 }}
+            animate={{
+              opacity: [
+                0,
+                isMovingDown ? downImpactOpacity : upImpactOpacity,
+                0,
+              ],
+              scale: [1, 1.05, 1],
+            }}
+            transition={{ duration: 0.64, ease: 'easeOut', delay: motionDelay }}
+            className={`absolute inset-0 pointer-events-none z-0 ${
+              isMovingDown ? 'bg-rose-400/28' : 'bg-emerald-400/24'
+            }`}
+          />
+        )}
+
+        {movement && (
+          <motion.div
+            initial={{ opacity: 0, x: 0 }}
+            animate={
+              isMovingDown
+                ? { opacity: [0, 0.33, 0], x: [14, -16], scaleY: [1, 1.08, 1] }
+                : { opacity: [0, 0.3, 0], x: [-14, 16], scaleY: [1, 1.08, 1] }
+            }
+            transition={{ duration: 0.58, ease: 'easeOut', delay: motionDelay }}
+            className={`absolute inset-y-0 left-0 right-0 pointer-events-none z-0 blur-sm ${
+              isMovingDown
+                ? 'bg-gradient-to-r from-rose-500/0 via-rose-400/24 to-rose-500/0'
+                : 'bg-gradient-to-r from-emerald-500/0 via-emerald-400/20 to-emerald-500/0'
+            }`}
+          />
+        )}
+
         {/* Shimmer/Swipe effect */}
         {isNew && (
           <motion.div
@@ -327,6 +578,15 @@ export default function PresentationPage() {
   const [autoSpeed, setAutoSpeed] = useState(2000);
 
   const [showConfetti, setShowConfetti] = useState(false);
+  const [rankMotionById, setRankMotionById] = useState({});
+  const [leaderboardShockwave, setLeaderboardShockwave] = useState(false);
+  const [leaderboardStagePunchSignal, setLeaderboardStagePunchSignal] =
+    useState(0);
+  const [leaderboardPlacementFlash, setLeaderboardPlacementFlash] =
+    useState(false);
+  const [placementFocus, setPlacementFocus] = useState({ id: null, signal: 0 });
+  const previousRanksRef = useRef(new Map());
+  const previousPhaseRef = useRef('intro');
 
   // Phase: 'intro' | 'breakdown' | 'leaderboard'
   const [phase, setPhase] = useState('intro');
@@ -379,6 +639,103 @@ export default function PresentationPage() {
 
   const total = breakdownOrder.length;
   const allRevealed = phase === 'leaderboard' && breakdownPIndex >= total - 1;
+  const placementTargetRank = useMemo(() => {
+    if (!placementFocus.id) return null;
+
+    const index = currentlyRevealed.findIndex(
+      (p) => p.id === placementFocus.id,
+    );
+    return index === -1 ? null : index + 1;
+  }, [currentlyRevealed, placementFocus.id]);
+
+  useEffect(() => {
+    const prevPhase = previousPhaseRef.current;
+
+    if (phase === 'leaderboard' && prevPhase !== 'leaderboard') {
+      const placedId = breakdownOrder[breakdownPIndex]?.id;
+
+      if (placedId) {
+        setPlacementFocus((prev) => ({
+          id: placedId,
+          signal: prev.signal + 1,
+        }));
+        setLeaderboardPlacementFlash(true);
+        setLeaderboardStagePunchSignal((prev) => prev + 1);
+
+        const clearFocusTimer = setTimeout(() => {
+          setPlacementFocus((prev) =>
+            prev.id === placedId ? { ...prev, id: null } : prev,
+          );
+        }, 1200);
+
+        const clearFlashTimer = setTimeout(
+          () => setLeaderboardPlacementFlash(false),
+          520,
+        );
+
+        previousPhaseRef.current = phase;
+
+        return () => {
+          clearTimeout(clearFocusTimer);
+          clearTimeout(clearFlashTimer);
+        };
+      }
+    }
+
+    previousPhaseRef.current = phase;
+  }, [phase, breakdownOrder, breakdownPIndex]);
+
+  useEffect(() => {
+    if (phase !== 'leaderboard' || currentlyRevealed.length === 0) return;
+
+    const currentRanks = new Map(
+      currentlyRevealed.map((entry, idx) => [entry.id, idx + 1]),
+    );
+
+    if (previousRanksRef.current.size === 0) {
+      previousRanksRef.current = currentRanks;
+      return;
+    }
+
+    const motionById = {};
+    let hasDemotion = false;
+
+    currentRanks.forEach((currentRank, entryId) => {
+      if (!previousRanksRef.current.has(entryId)) return;
+
+      const prevRank = previousRanksRef.current.get(entryId);
+      if (prevRank === currentRank) return;
+
+      const delta = currentRank - prevRank;
+      motionById[entryId] = {
+        direction: delta > 0 ? 'down' : 'up',
+        distance: Math.abs(delta),
+      };
+
+      if (delta > 0) {
+        hasDemotion = true;
+      }
+    });
+
+    previousRanksRef.current = currentRanks;
+
+    if (Object.keys(motionById).length === 0) return;
+
+    setRankMotionById(motionById);
+    setLeaderboardStagePunchSignal((prev) => prev + 1);
+    const clearTimer = setTimeout(() => setRankMotionById({}), 1300);
+
+    let shockTimer;
+    if (hasDemotion) {
+      setLeaderboardShockwave(true);
+      shockTimer = setTimeout(() => setLeaderboardShockwave(false), 620);
+    }
+
+    return () => {
+      clearTimeout(clearTimer);
+      if (shockTimer) clearTimeout(shockTimer);
+    };
+  }, [currentlyRevealed, phase]);
 
   // When the final card (rank 1) is revealed, fire confetti
   useEffect(() => {
@@ -485,6 +842,13 @@ export default function PresentationPage() {
     }
     setStarted(true);
     setShowConfetti(false);
+    setRankMotionById({});
+    setLeaderboardShockwave(false);
+    setLeaderboardStagePunchSignal(0);
+    setLeaderboardPlacementFlash(false);
+    setPlacementFocus({ id: null, signal: 0 });
+    previousRanksRef.current = new Map();
+    previousPhaseRef.current = 'intro';
   }
 
   function handleNext() {
@@ -523,6 +887,13 @@ export default function PresentationPage() {
   function handleSkipToLeaderboard() {
     setStarted(true);
     setShowConfetti(false);
+    setRankMotionById({});
+    setLeaderboardShockwave(false);
+    setLeaderboardStagePunchSignal(0);
+    setLeaderboardPlacementFlash(false);
+    setPlacementFocus({ id: null, signal: 0 });
+    previousRanksRef.current = new Map();
+    previousPhaseRef.current = 'intro';
     if (breakdownOrder.length > 0) {
       setBreakdownPIndex(breakdownOrder.length - 1);
     }
@@ -535,6 +906,13 @@ export default function PresentationPage() {
     setBreakdownJIndex(0);
     setStarted(false);
     setShowConfetti(false);
+    setRankMotionById({});
+    setLeaderboardShockwave(false);
+    setLeaderboardStagePunchSignal(0);
+    setLeaderboardPlacementFlash(false);
+    setPlacementFocus({ id: null, signal: 0 });
+    previousRanksRef.current = new Map();
+    previousPhaseRef.current = 'intro';
   }
 
   function handleModeToggle(newMode) {
@@ -544,6 +922,13 @@ export default function PresentationPage() {
     setBreakdownJIndex(0);
     setStarted(false);
     setShowConfetti(false);
+    setRankMotionById({});
+    setLeaderboardShockwave(false);
+    setLeaderboardStagePunchSignal(0);
+    setLeaderboardPlacementFlash(false);
+    setPlacementFocus({ id: null, signal: 0 });
+    previousRanksRef.current = new Map();
+    previousPhaseRef.current = 'intro';
   }
 
   /* ── Loading ── */
@@ -853,7 +1238,89 @@ export default function PresentationPage() {
           </div>
         ) : (
           /* Leaderboard View */
-          <div className="w-full max-w-7xl h-full flex flex-col md:flex-row gap-8 lg:gap-12 pb-4">
+          <div className="w-full max-w-7xl h-full flex flex-col md:flex-row gap-8 lg:gap-12 pb-4 relative">
+            <AnimatePresence>
+              {leaderboardStagePunchSignal > 0 && (
+                <motion.div
+                  key={`leaderboard-stage-punch-${leaderboardStagePunchSignal}`}
+                  initial={{ opacity: 0, scale: 0.985 }}
+                  animate={{ opacity: [0, 0.34, 0], scale: [0.985, 1.02, 1] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.56, ease: [0.22, 1, 0.36, 1] }}
+                  className="pointer-events-none absolute inset-0 rounded-3xl border border-cyan-300/28 shadow-[0_0_45px_rgba(34,211,238,0.25)] z-20"
+                />
+              )}
+
+              {placementFocus.id && (
+                <motion.div
+                  key={`placement-dimmer-${placementFocus.signal}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 0.34, 0.16] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.55, ease: 'easeOut' }}
+                  className="pointer-events-none absolute inset-0 rounded-3xl bg-zinc-950/35 z-10"
+                />
+              )}
+
+              {leaderboardPlacementFlash && (
+                <motion.div
+                  key="leaderboard-placement-flash"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 0.24, 0] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.48, ease: 'easeOut' }}
+                  className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-r from-cyan-400/15 via-cyan-200/20 to-cyan-400/15 z-30"
+                />
+              )}
+
+              {placementFocus.id && placementTargetRank && (
+                <div
+                  key={`placement-tracker-${placementFocus.signal}`}
+                  className={`pointer-events-none absolute top-3 bottom-3 -translate-x-1/2 z-40 ${
+                    placementTargetRank <= 3 ? 'left-[26%]' : 'left-[74%]'
+                  }`}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scaleY: 0.8 }}
+                    animate={{ opacity: [0, 0.9, 0.18], scaleY: [0.8, 1, 1] }}
+                    transition={{ duration: 0.55, ease: 'easeOut' }}
+                    className="h-full w-[2px] rounded-full bg-gradient-to-b from-cyan-200/0 via-cyan-200/85 to-cyan-200/0 shadow-[0_0_18px_rgba(34,211,238,0.7)]"
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: '-8%' }}
+                    animate={{ opacity: [0, 1, 0], y: ['-8%', '95%', '108%'] }}
+                    transition={{
+                      duration: 0.9,
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: 0.04,
+                    }}
+                    className="absolute -left-[7px] top-0 h-4 w-4 rounded-full bg-cyan-200 shadow-[0_0_18px_rgba(34,211,238,0.95)]"
+                  />
+                </div>
+              )}
+
+              {leaderboardShockwave && (
+                <>
+                  <motion.div
+                    key="leaderboard-shockwave"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 0.35, 0] }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-b from-rose-500/18 via-rose-400/5 to-rose-500/10 z-30"
+                  />
+                  <motion.div
+                    key="leaderboard-shockwave-ring"
+                    initial={{ opacity: 0.45, scale: 0.96 }}
+                    animate={{ opacity: [0.45, 0], scale: [0.96, 1.05] }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.55, ease: 'easeOut' }}
+                    className="pointer-events-none absolute inset-0 rounded-3xl border border-rose-400/40 z-30"
+                  />
+                </>
+              )}
+            </AnimatePresence>
+
             {/* Split Screen Leaderboard */}
 
             {/* Left Side: Top 3 */}
@@ -871,6 +1338,13 @@ export default function PresentationPage() {
                       key={entry.id}
                       entry={entry}
                       rank={idx + 1}
+                      movement={rankMotionById[entry.id]}
+                      isPlacementFocus={placementFocus.id === entry.id}
+                      isMuted={
+                        Boolean(placementFocus.id) &&
+                        placementFocus.id !== entry.id
+                      }
+                      placementSignal={placementFocus.signal}
                       isNew={
                         !allRevealed &&
                         entry.id === breakdownOrder[breakdownPIndex]?.id
@@ -904,6 +1378,13 @@ export default function PresentationPage() {
                         key={entry.id}
                         entry={entry}
                         rank={idx + 4}
+                        movement={rankMotionById[entry.id]}
+                        isPlacementFocus={placementFocus.id === entry.id}
+                        isMuted={
+                          Boolean(placementFocus.id) &&
+                          placementFocus.id !== entry.id
+                        }
+                        placementSignal={placementFocus.signal}
                         isNew={
                           !allRevealed &&
                           entry.id === breakdownOrder[breakdownPIndex]?.id
