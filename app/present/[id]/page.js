@@ -314,7 +314,7 @@ function Top3Card({
                 rank === 1 ? '#fbbf24' : rank === 2 ? '#a1a1aa' : '#b45309',
             }}
           >
-            {rank === 1 ? '1st Place' : rank === 2 ? '2nd Place' : '3rd Place'}
+            {rank === 1 ? '1位' : rank === 2 ? '2位' : '3位'}
           </p>
           <p
             className={`font-black truncate transition-all duration-500 ${nameText} ${
@@ -335,7 +335,7 @@ function Top3Card({
             {formatScore(entry.totalScore)}
           </p>
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mt-1">
-            pts
+            pt
           </p>
         </div>
 
@@ -555,7 +555,7 @@ function RestListCard({
               isNew ? 'text-emerald-600' : 'text-zinc-600'
             }`}
           >
-            pts
+            pt
           </p>
         </div>
       </div>
@@ -598,12 +598,12 @@ export default function PresentationPage() {
       const res = await fetch(`/api/public/events/${id}/results`);
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error || 'Failed to load results.');
+        setError(json.error || '結果の読み込みに失敗しました。');
         return;
       }
       setData(json);
     } catch {
-      setError('Network error — please try again.');
+      setError('ネットワークエラー — もう一度お試しください。');
     } finally {
       setLoading(false);
     }
@@ -937,7 +937,7 @@ export default function PresentationPage() {
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-emerald-700 border-t-emerald-400 animate-spin" />
-          <p className="text-zinc-500 text-sm">Loading results…</p>
+          <p className="text-zinc-500 text-sm">結果を読み込み中…</p>
         </div>
       </div>
     );
@@ -974,12 +974,9 @@ export default function PresentationPage() {
               />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-zinc-100 mb-2">
-            Scoring in progress
-          </h1>
+          <h1 className="text-xl font-bold text-zinc-100 mb-2">採点中</h1>
           <p className="text-sm text-zinc-500 mb-6">
-            Not all judges have submitted their scores yet. Come back when
-            scoring is complete.
+            まだすべての審査員がスコアを送信していません。採点が完了してからもう一度確認してください。
           </p>
           <p className="text-xs text-zinc-600 font-semibold uppercase tracking-widest">
             {data?.event?.name}
@@ -988,7 +985,7 @@ export default function PresentationPage() {
             onClick={fetchData}
             className="mt-4 text-xs text-emerald-500 hover:text-emerald-300 transition"
           >
-            ↻ Refresh
+            ↻ 更新
           </button>
         </div>
       </div>
@@ -1005,7 +1002,7 @@ export default function PresentationPage() {
         {/* Event name */}
         <div className="min-w-0">
           <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold">
-            Results
+            結果
           </p>
           <h1 className="text-sm font-bold text-zinc-100 truncate">
             {data.event.name}
@@ -1026,7 +1023,7 @@ export default function PresentationPage() {
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                {m === 'manual' ? '⏸ Manual' : '▶ Auto'}
+                {m === 'manual' ? '⏸ 手動' : '▶ 自動'}
               </button>
             ))}
           </div>
@@ -1044,10 +1041,10 @@ export default function PresentationPage() {
               }}
               className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              <option value={1000}>Fast (1s)</option>
-              <option value={2000}>Normal (2s)</option>
-              <option value={3500}>Slow (3.5s)</option>
-              <option value={5000}>Very slow (5s)</option>
+              <option value={1000}>早い (1秒)</option>
+              <option value={2000}>普通 (2秒)</option>
+              <option value={3500}>遅い (3.5秒)</option>
+              <option value={5000}>非常に遅い (5秒)</option>
             </select>
           )}
         </div>
@@ -1074,26 +1071,26 @@ export default function PresentationPage() {
               </svg>
             </div>
             <h2 className="text-3xl font-black text-zinc-100 mb-2">
-              Ready to reveal
+              結果発表の準備完了
             </h2>
             <p className="text-zinc-500 text-sm mb-8">
-              {total} participant{total !== 1 ? 's' : ''} ·{' '}
+              {total}組の参加者 ·{' '}
               {mode === 'auto'
-                ? `Auto reveal every ${autoSpeed / 1000}s`
-                : 'You control each reveal'}
+                ? `${autoSpeed / 1000}秒ごとに自動表示`
+                : '手動で表示を制御'}
             </p>
             <div className="flex flex-col gap-3 items-center">
               <button
                 onClick={handleStart}
                 className="px-8 py-3 rounded-xl bg-linear-to-br from-emerald-500 to-emerald-700 text-white font-bold text-lg hover:from-emerald-400 hover:to-emerald-600 transition shadow-xl shadow-emerald-900/40 active:scale-95 w-64"
               >
-                Start Breakdown
+                結果発表を開始
               </button>
               <button
                 onClick={handleSkipToLeaderboard}
                 className="px-8 py-3 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-sm hover:bg-zinc-700 transition active:scale-95 w-64 border border-zinc-700"
               >
-                Skip to Leaderboard
+                順位表へスキップ
               </button>
             </div>
           </div>
@@ -1101,8 +1098,7 @@ export default function PresentationPage() {
           /* Breakdown View */
           <div className="w-full max-w-5xl flex flex-col items-center">
             <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-8">
-              Evaluating Participant {breakdownPIndex + 1} of{' '}
-              {breakdownOrder.length}
+              参加者を評価中: {breakdownPIndex + 1} / {breakdownOrder.length}
             </p>
 
             <h2 className="text-4xl md:text-5xl font-black mb-8 md:mb-12 text-emerald-400 text-center drop-shadow-md">
@@ -1327,7 +1323,7 @@ export default function PresentationPage() {
             <div className="flex-1 flex flex-col gap-4 relative">
               <div className="mb-2 shrink-0">
                 <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                  Live Top 3
+                  現在のトップ3
                 </h3>
               </div>
 
@@ -1361,12 +1357,12 @@ export default function PresentationPage() {
                 {/* Right side header */}
                 <div className="mb-4 mt-2 flex items-center justify-between shrink-0">
                   <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                    Other Rankings
+                    その他の順位
                   </h3>
                   <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold text-right">
                     {allRevealed
-                      ? `All ${total} revealed`
-                      : `Revealed ${currentlyRevealed.length} of ${total}`}
+                      ? `全${total}組の順位発表完了`
+                      : `${total}組中${currentlyRevealed.length}組を表示済み`}
                   </p>
                 </div>
 
@@ -1400,12 +1396,12 @@ export default function PresentationPage() {
             {total <= 3 && (
               <div className="flex-1 flex flex-col justify-center items-center opacity-50">
                 <p className="text-zinc-600 text-sm italic">
-                  No further rankings
+                  これ以下の順位はありません
                 </p>
                 <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mt-2">
                   {allRevealed
-                    ? `All ${total} results revealed`
-                    : `Revealed ${currentlyRevealed.length} of ${total}`}
+                    ? `全${total}組の順位発表完了`
+                    : `${total}組中${currentlyRevealed.length}組を表示済み`}
                 </p>
               </div>
             )}
@@ -1420,7 +1416,7 @@ export default function PresentationPage() {
             onClick={handleReset}
             className="text-xs text-zinc-500 hover:text-zinc-300 transition"
           >
-            ↺ Restart
+            ↺ やり直す
           </button>
 
           {mode === 'manual' && (
@@ -1437,7 +1433,7 @@ export default function PresentationPage() {
                 }
                 className="px-4 py-2 rounded-lg border border-zinc-700 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                ← Prev
+                ← 前へ
               </button>
               <button
                 onClick={handleNext}
@@ -1445,8 +1441,8 @@ export default function PresentationPage() {
                 className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/40"
               >
                 {phase === 'leaderboard' && allRevealed
-                  ? 'All done 🎉'
-                  : 'Next →'}
+                  ? 'すべて完了 🎉'
+                  : '次へ →'}
               </button>
             </div>
           )}
@@ -1455,12 +1451,10 @@ export default function PresentationPage() {
             <div className="flex items-center gap-2">
               {!(phase === 'leaderboard' && allRevealed) ? (
                 <span className="text-xs text-emerald-400 animate-pulse">
-                  Auto-revealing…
+                  自動表示中…
                 </span>
               ) : (
-                <span className="text-xs text-amber-400">
-                  Presentation complete 🎉
-                </span>
+                <span className="text-xs text-amber-400">結果発表完了 🎉</span>
               )}
             </div>
           )}
