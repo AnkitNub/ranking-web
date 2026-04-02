@@ -49,7 +49,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
       <div className="bg-white dark:bg-slate-700 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black dark:text-white">
-            Scores for {participant.name}
+            {participant.name} のスコア
           </h2>
           <button
             onClick={onClose}
@@ -61,11 +61,11 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
 
         {loading ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
-            Loading judges...
+            審査員を読み込み中...
           </p>
         ) : judgeScores.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
-            No judges assigned yet.
+            まだ審査員が割り当てられていません。
           </p>
         ) : (
           <div className="space-y-2">
@@ -95,7 +95,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
           onClick={onClose}
           className="mt-6 w-full px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 text-black dark:text-white font-semibold hover:bg-slate-300 dark:hover:bg-slate-500 transition"
         >
-          Close
+          閉じる
         </button>
       </div>
     </div>
@@ -139,11 +139,10 @@ function DeleteParticipantModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          Delete Participant
+          参加者を削除
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-          Are you sure you want to delete <strong>{participantName}</strong> and
-          all their scores? This action cannot be undone.
+          本当に <strong>{participantName}</strong> とそのすべてのスコアを削除しますか？この操作は元に戻せません。
         </p>
         {error && (
           <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 mb-4">
@@ -236,7 +235,7 @@ function ParticipantsTab({ eventId }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Participant name"
+          placeholder="参加者名"
           className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
         />
         <button
@@ -244,7 +243,7 @@ function ParticipantsTab({ eventId }) {
           disabled={adding || !input.trim()}
           className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
         >
-          {adding ? '…' : 'Add'}
+          {adding ? '…' : '追加'}
         </button>
       </form>
 
@@ -256,7 +255,7 @@ function ParticipantsTab({ eventId }) {
 
       {participants.length === 0 ? (
         <p className="text-sm text-zinc-700 text-center py-8">
-          No participants yet. Add one above.
+          まだ参加者がいません。上から追加してください。
         </p>
       ) : (
         <ul className="divide-y divide-zinc-200 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
@@ -271,7 +270,7 @@ function ParticipantsTab({ eventId }) {
               <button
                 onClick={() => setParticipantToDelete(p)}
                 className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded"
-                title="Remove participant"
+                title="参加者を削除"
               >
                 <svg
                   className="w-4 h-4"
@@ -292,7 +291,7 @@ function ParticipantsTab({ eventId }) {
         </ul>
       )}
       <p className="text-xs text-zinc-700">
-        {participants.length} participant{participants.length !== 1 ? 's' : ''}
+        全 {participants.length} 人の参加者
       </p>
     </div>
   );
@@ -396,7 +395,7 @@ function JudgesTab({ eventId }) {
         <>
           <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-700">
             <h3 className="text-sm font-medium text-black dark:text-black">
-              Available Judges ({unassignedJudges.length})
+              利用可能な審査員 ({unassignedJudges.length})
             </h3>
             {unassignedJudges.length > 1 && (
               <button
@@ -404,8 +403,8 @@ function JudgesTab({ eventId }) {
                 className="text-xs text-teal-600 dark:text-teal-400 hover:underline transition"
               >
                 {selectedJudgeIds.size === unassignedJudges.length
-                  ? 'Deselect All'
-                  : 'Select All'}
+                  ? 'すべて選択解除'
+                  : 'すべて選択'}
               </button>
             )}
           </div>
@@ -441,17 +440,17 @@ function JudgesTab({ eventId }) {
               disabled={assigning}
               className="w-full rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
             >
-              {assigning ? '…' : `Assign Selected (${selectedJudgeIds.size})`}
+              {assigning ? '…' : `選択した審査員を割り当てる (${selectedJudgeIds.size})`}
             </button>
           )}
         </>
       ) : allJudges.length === 0 ? (
         <p className="text-xs text-zinc-700">
-          No judges registered yet. Ask judges to sign up first.
+          まだ審査員が登録されていません。審査員に登録を依頼してください。
         </p>
       ) : (
         <p className="text-xs text-zinc-700">
-          All registered judges have been assigned.
+          登録されているすべての審査員が割り当てられています。
         </p>
       )}
 
@@ -462,12 +461,12 @@ function JudgesTab({ eventId }) {
       )}
 
       <h3 className="text-sm font-medium text-black dark:text-black pt-2">
-        Assigned Judges ({assignedJudges.length})
+        割り当てられた審査員 ({assignedJudges.length})
       </h3>
 
       {assignedJudges.length === 0 ? (
         <p className="text-sm text-zinc-700 text-center py-6">
-          No judges assigned yet.
+          まだ審査員が割り当てられていません。
         </p>
       ) : (
         <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
@@ -583,7 +582,7 @@ function ScoreboardTab({ eventId }) {
         <div className="rounded-xl border-2 border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-              🎉 All scores are in!
+              🎉 すべてのスコアが出揃いました！
             </p>
             <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
               {presentUrl}
@@ -594,7 +593,7 @@ function ScoreboardTab({ eventId }) {
               onClick={handleCopyLink}
               className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
             >
-              {copied ? '✓ Copied!' : 'Copy Link'}
+              {copied ? '✓ コピーしました！' : 'リンクをコピー'}
             </button>
             <a
               href={`/present/${eventId}`}
@@ -602,7 +601,7 @@ function ScoreboardTab({ eventId }) {
               rel="noopener noreferrer"
               className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
             >
-              Present →
+              プレゼン画面へ →
             </a>
           </div>
         </div>
@@ -610,21 +609,21 @@ function ScoreboardTab({ eventId }) {
 
       <div className="flex items-center justify-between">
         <p className="text-xs text-slate-800">
-          Auto-refreshes every 15s
+          15秒ごとに自動更新
           {lastRefreshed &&
-            ` · Last updated ${lastRefreshed.toLocaleTimeString()}`}
+            ` · 最終更新 ${lastRefreshed.toLocaleTimeString()}`}
         </p>
         <button
           onClick={fetchScoreboard}
           className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
         >
-          ↻ Refresh
+          ↻ 更新
         </button>
       </div>
 
       {rows.length === 0 ? (
         <p className="text-sm text-zinc-600 text-center py-8">
-          No participants added yet.
+          参加者が追加されていません。
         </p>
       ) : (
         <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
@@ -635,13 +634,13 @@ function ScoreboardTab({ eventId }) {
                   順位
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  Participant
+                  参加者
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
                   合計スコア
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide hidden sm:table-cell">
-                  Judges Scored
+                  採点済み審査員
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
                   アクション
@@ -680,7 +679,7 @@ function ScoreboardTab({ eventId }) {
                       onClick={() => setSelectedParticipant(row)}
                       className="text-xs px-2 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold transition"
                     >
-                      View
+                      表示
                     </button>
                   </td>
                 </tr>
@@ -703,7 +702,7 @@ function ScoreboardTab({ eventId }) {
 }
 
 /* ─── Main Page ────────────────────────────────────────────────────────────── */
-const TABS = ['参加者', 'Judges', 'Scoreboard'];
+const TABS = ['参加者', '審査員', 'スコアボード'];
 
 export default function AdminEventPage() {
   const { id } = useParams();
@@ -758,7 +757,7 @@ export default function AdminEventPage() {
             onClick={() => router.push('/admin')}
             className="text-xs text-zinc-700 hover:text-teal-700 dark:hover:text-teal-400 transition mb-2"
           >
-            ← Back to My Events
+            ← マイイベントに戻る
           </button>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold text-black dark:text-black">
@@ -768,30 +767,30 @@ export default function AdminEventPage() {
               new Date(event.deadline) <
                 new Date(new Date().toDateString()) && (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                  Expired
+                  期限切れ
                 </span>
               )}
           </div>
           {event?.event_date && (
             <div className="mt-2 space-y-1">
               <p className="text-base text-zinc-800">
-                <strong>Start:</strong>{' '}
+                <strong>開始:</strong>{' '}
                 {new Date(event.event_date).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}
-                {event?.start_time && <> at {event.start_time}</>}
+                {event?.start_time && <> {event.start_time}</>}
               </p>
               {event?.deadline && event?.end_time && (
                 <p className="text-base text-zinc-800">
-                  <strong>End:</strong>{' '}
+                  <strong>終了:</strong>{' '}
                   {new Date(event.deadline).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
                   })}{' '}
-                  at {event.end_time}
+                  {event.end_time}
                 </p>
               )}
             </div>
@@ -804,7 +803,7 @@ export default function AdminEventPage() {
                   : 'text-amber-600 dark:text-amber-500'
               }`}
             >
-              Scoring deadline:{' '}
+              採点期限:{' '}
               {new Date(event.deadline).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -819,11 +818,11 @@ export default function AdminEventPage() {
           )}
           {event?.max_score && (
             <p className="text-sm text-zinc-800 mt-1">
-              Max score per judge:{' '}
+              審査員ごとの最大スコア:{' '}
               <strong className="text-green-700 dark:text-green-400">
                 {event.max_score}
               </strong>{' '}
-              pts
+              点
             </p>
           )}
         </div>
@@ -850,8 +849,8 @@ export default function AdminEventPage() {
         {/* Tab content */}
         <div>
           {activeTab === '参加者' && <ParticipantsTab eventId={id} />}
-          {activeTab === 'Judges' && <JudgesTab eventId={id} />}
-          {activeTab === 'Scoreboard' && <ScoreboardTab eventId={id} />}
+          {activeTab === '審査員' && <JudgesTab eventId={id} />}
+          {activeTab === 'スコアボード' && <ScoreboardTab eventId={id} />}
         </div>
       </main>
     </div>
