@@ -189,7 +189,7 @@ function CreateEventModal({ onClose, onCreate }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Maximum Score per Judge *
+              審査員1人あたりの最高得点 *
             </label>
             <input
               type="number"
@@ -202,13 +202,13 @@ function CreateEventModal({ onClose, onCreate }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              The highest score each judge can give
+              各審査員が付けられる最高点
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Description (Optional)
+              説明（任意）
             </label>
             <textarea
               value={description}
@@ -478,13 +478,13 @@ function EditEventModal({ event, onClose, onEdit }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              The highest score each judge can give
+              各審査員が付けられる最高点
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Description (Optional)
+              説明（任意）
             </label>
             <textarea
               value={description}
