@@ -59,7 +59,7 @@ function CreateEventModal({ onClose, onCreate }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to create event.');
+        setError(data.error || 'イベントの作成に失敗しました。');
         return;
       }
       onCreate(data.event);
@@ -73,19 +73,19 @@ function CreateEventModal({ onClose, onCreate }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          Create New Event
+          新規イベント作成
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Event Name *
+              イベント名 *
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Spring Championship 2026"
+              placeholder="春の大会 2026"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
@@ -94,7 +94,7 @@ function CreateEventModal({ onClose, onCreate }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Starting Date *
+                開始日 *
               </label>
               <input
                 type="date"
@@ -105,12 +105,12 @@ function CreateEventModal({ onClose, onCreate }) {
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                The day your event takes place
+                イベントが開催される日
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Scoring Deadline
+                採点締め切り
               </label>
               <input
                 type="date"
@@ -120,14 +120,14 @@ function CreateEventModal({ onClose, onCreate }) {
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Judges cannot submit scores after this date.
+                審査員はこの日付以降スコアを送信できません。
               </p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Starting Time *
+                開始時間 *
               </label>
               <div className="flex gap-2">
                 <input
@@ -152,13 +152,13 @@ function CreateEventModal({ onClose, onCreate }) {
               </div>
               {confirmedStartTime && (
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ Selected
+                  ✓ 選択済み
                 </p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Ending Time
+                終了時間
               </label>
               <div className="flex gap-2">
                 <input
@@ -182,7 +182,7 @@ function CreateEventModal({ onClose, onCreate }) {
               </div>
               {confirmedEndTime && (
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ Selected
+                  ✓ 選択済み
                 </p>
               )}
             </div>
@@ -264,11 +264,11 @@ function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          Delete Event
+          イベントを削除
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-          Are you sure you want to delete <strong>{eventName}</strong> and all
-          its data? This action cannot be undone.
+          <strong>{eventName}</strong>{' '}
+          とそのすべてのデータを削除してもよろしいですか？この操作は元に戻せません。
         </p>
         <div className="flex gap-3">
           <button
@@ -609,16 +609,16 @@ export default function AdminDashboard() {
               マイイベント
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
-              {events.length} total ·{' '}
-              {events.filter((e) => !isExpired(e)).length} active ·{' '}
-              {events.filter((e) => isExpired(e)).length} closed
+              合計: {events.length} · アクティブ:{' '}
+              {events.filter((e) => !isExpired(e)).length} · 終了:{' '}
+              {events.filter((e) => isExpired(e)).length}
             </p>
           </div>
           <button
             onClick={() => setShowModal(true)}
             className="rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
           >
-            + Create New Event
+            + 新規イベント作成
           </button>
         </div>
 
@@ -626,13 +626,13 @@ export default function AdminDashboard() {
         {events.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-teal-200 dark:border-zinc-800 rounded-2xl">
             <p className="text-zinc-700 dark:text-zinc-300 text-sm mb-3">
-              No events yet.
+              イベントはまだありません。
             </p>
             <button
               onClick={() => setShowModal(true)}
               className="rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
             >
-              Create your first event
+              最初のイベントを作成
             </button>
           </div>
         ) : (
@@ -647,7 +647,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-teal-500 dark:bg-teal-400"></div>
                     <h2 className="text-lg font-semibold text-teal-900 dark:text-teal-100">
-                      Active Events (
+                      アクティブなイベント (
                       {events.filter((e) => !isExpired(e)).length})
                     </h2>
                   </div>
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
                               {event.event_date && (
                                 <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide">
-                                    Event Time
+                                    イベント日時
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {new Date(
@@ -709,7 +709,7 @@ export default function AdminDashboard() {
                                   <p
                                     className={`font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs`}
                                   >
-                                    End Time
+                                    終了日時
                                   </p>
                                   <div
                                     className={`text-zinc-800 dark:text-zinc-200 font-medium`}
@@ -739,7 +739,7 @@ export default function AdminDashboard() {
                               {event.max_score && (
                                 <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs">
-                                    Max Score
+                                    最高スコア
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {event.max_score} pts
@@ -795,12 +795,12 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                            Created{' '}
+                            作成日:{' '}
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
                           <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
                             <button className="w-full text-sm font-bold px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 text-white transition">
-                              Manage →
+                              管理する →
                             </button>
                           </div>
                         </div>
@@ -820,8 +820,8 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-red-500 dark:bg-red-400"></div>
                     <h2 className="text-lg font-semibold text-red-900 dark:text-red-100">
-                      Closed Events ({events.filter((e) => isExpired(e)).length}
-                      )
+                      終了したイベント (
+                      {events.filter((e) => isExpired(e)).length})
                     </h2>
                   </div>
                   <svg
@@ -857,13 +857,13 @@ export default function AdminDashboard() {
                                   {event.name}
                                 </h2>
                                 <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 shrink-0">
-                                  Expired
+                                  終了
                                 </span>
                               </div>
                               {event.event_date && (
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="text-red-700 dark:text-red-300 font-semibold uppercase tracking-wide text-xs">
-                                    Event Time
+                                    イベント日時
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {new Date(
@@ -885,7 +885,7 @@ export default function AdminDashboard() {
                                   <p
                                     className={`font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs`}
                                   >
-                                    End Time
+                                    終了日時
                                   </p>
                                   <div
                                     className={`text-zinc-800 dark:text-zinc-200 font-medium`}
@@ -915,7 +915,7 @@ export default function AdminDashboard() {
                               {event.max_score && (
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs">
-                                    Max Score
+                                    最高スコア
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {event.max_score} pts
@@ -971,12 +971,12 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                            Created{' '}
+                            作成日:{' '}
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
                           <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
                             <span className="text-xs text-red-600 dark:text-red-400 font-medium group-hover:text-red-800 dark:group-hover:text-red-300 transition">
-                              View Results →
+                              結果を見る →
                             </span>
                           </div>
                         </div>
