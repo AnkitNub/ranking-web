@@ -350,19 +350,19 @@ function EditEventModal({ event, onClose, onEdit }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          Edit Event
+          イベントを編集
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Event Name *
+              イベント名 *
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Event name"
+              placeholder="イベント名"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
@@ -370,7 +370,7 @@ function EditEventModal({ event, onClose, onEdit }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Event Date *
+                イベント日 *
               </label>
               <input
                 type="date"
@@ -386,7 +386,7 @@ function EditEventModal({ event, onClose, onEdit }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Scoring Deadline
+                得点締め切り
               </label>
               <input
                 type="date"
@@ -403,7 +403,7 @@ function EditEventModal({ event, onClose, onEdit }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Starting Time *
+                開始時間 *
               </label>
               <div className="flex gap-2">
                 <input
@@ -428,13 +428,13 @@ function EditEventModal({ event, onClose, onEdit }) {
               </div>
               {confirmedStartTime && (
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ Selected
+                  ✓ 選択済み
                 </p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Ending Time
+                終焉の時
               </label>
               <div className="flex gap-2">
                 <input
@@ -458,14 +458,14 @@ function EditEventModal({ event, onClose, onEdit }) {
               </div>
               {confirmedEndTime && (
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ Selected
+                  ✓ 選択済み
                 </p>
               )}
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Maximum Score per Judge *
+              審査員1人あたりの最高得点 *
             </label>
             <input
               type="number"
@@ -754,7 +754,7 @@ export default function AdminDashboard() {
                                   setEditingEvent(event);
                                 }}
                                 className="text-zinc-400 dark:text-zinc-500 hover:text-teal-500 dark:hover:text-teal-400 transition p-1 rounded"
-                                title="Edit event"
+                                title="イベントを編集"
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -930,7 +930,7 @@ export default function AdminDashboard() {
                                   setEditingEvent(event);
                                 }}
                                 className="text-zinc-400 dark:text-zinc-500 hover:text-teal-500 dark:hover:text-teal-400 transition p-1 rounded"
-                                title="Edit event"
+                                title="イベントを編集"
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -952,7 +952,7 @@ export default function AdminDashboard() {
                                   handleDelete(event.id);
                                 }}
                                 className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
-                                title="Delete event"
+                                title="イベントを削除"
                               >
                                 <svg
                                   className="w-4 h-4"

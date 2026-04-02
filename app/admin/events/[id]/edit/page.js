@@ -117,7 +117,7 @@ export default function EditEventPage() {
             ← Back to Event
           </button>
           <h1 className="text-3xl font-semibold text-black dark:text-black">
-            Edit Event
+            イベントを編集
           </h1>
           <p className="text-sm text-zinc-600 mt-1">
             Update the event details below
@@ -137,14 +137,14 @@ export default function EditEventPage() {
               onChange={handleChange}
               required
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              placeholder="入力： event name"
+              placeholder="入力： イベント名"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Event Date *
+                イベント日 *
               </label>
               <input
                 type="date"
@@ -158,7 +158,7 @@ export default function EditEventPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Scoring Deadline
+                得点締め切り
               </label>
               <input
                 type="date"
@@ -173,7 +173,7 @@ export default function EditEventPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Starting Time *
+                開始時間 *
               </label>
               <input
                 type="time"
@@ -187,7 +187,7 @@ export default function EditEventPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Ending Time
+                終焉の時
               </label>
               <input
                 type="time"
