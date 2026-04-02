@@ -88,7 +88,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
               >
-                Description
+                説明
               </p>
               <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
                 {event.description}

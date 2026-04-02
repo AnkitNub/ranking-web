@@ -165,7 +165,7 @@ function ScoreCard({
                     ? 'Update'
                     : isScored
                       ? '✓ Done'
-                      : 'Submit'}
+                      : '送信'}
             </button>
           </div>
           {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
@@ -323,7 +323,7 @@ export default function JudgeScoringPage() {
                 {event?.description && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      Description
+                      説明
                     </p>
                     <p className="text-zinc-800 dark:text-zinc-200">
                       {event.description}

@@ -98,7 +98,7 @@ export default function EditEventPage() {
       <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <span className="text-sm text-zinc-400">Loading…</span>
+          <span className="text-sm text-zinc-400">読み込み中…</span>
         </div>
       </div>
     );
@@ -128,7 +128,7 @@ export default function EditEventPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Event Name
+              イベント名
             </label>
             <input
               type="text"
@@ -137,7 +137,7 @@ export default function EditEventPage() {
               onChange={handleChange}
               required
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              placeholder="Enter event name"
+              placeholder="入力： event name"
             />
           </div>
 
@@ -201,7 +201,7 @@ export default function EditEventPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Description
+              説明
             </label>
             <textarea
               name="description"
@@ -209,7 +209,7 @@ export default function EditEventPage() {
               onChange={handleChange}
               rows="4"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              placeholder="Enter event description"
+              placeholder="入力： event description"
             />
           </div>
 
@@ -224,7 +224,7 @@ export default function EditEventPage() {
               onChange={handleChange}
               min="1"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              placeholder="Enter max score"
+              placeholder="入力： max score"
             />
           </div>
 
@@ -248,14 +248,14 @@ export default function EditEventPage() {
               disabled={saving}
               className="flex-1 rounded-lg bg-teal-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Saving…' : 'Save Changes'}
+              {saving ? '保存中…' : '変更を保存'}
             </button>
             <button
               type="button"
               onClick={() => router.push(`/admin/events/${id}`)}
               className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
             >
-              Cancel
+              キャンセル
             </button>
           </div>
         </form>

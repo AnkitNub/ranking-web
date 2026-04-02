@@ -94,7 +94,7 @@ export default function SignUpPage() {
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
-            Create an account
+            アカウントを作成
           </h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
             Get started for free
@@ -117,7 +117,7 @@ export default function SignUpPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Email
+              メールアドレス
             </label>
             <input
               type="email"
@@ -131,7 +131,7 @@ export default function SignUpPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Password
+              パスワード
             </label>
             <div className="relative">
               <input
@@ -204,16 +204,15 @@ export default function SignUpPage() {
           className="w-full flex items-center justify-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
-          Continue with Google
+          Googleで続ける
         </button>
 
         <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-700">
-          Already have an account?{' '}
-          <Link
+          すでにアカウントをお持ちですか？ <Link
             href="/signin"
             className="font-medium text-teal-700 dark:text-teal-400 hover:underline"
           >
-            Sign in
+            ログイン
           </Link>
         </p>
       </div>

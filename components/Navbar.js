@@ -67,11 +67,11 @@ export default function Navbar() {
           <nav className="hidden sm:flex items-center gap-1">
             {role === 'admin' && (
               <>
-                {navLink('/admin', 'My Events')}
-                {navLink('/admin/judges', 'Manage Judges')}
+                {navLink('/admin', 'マイイベント')}
+                {navLink('/admin/judges', '審査員の管理')}
               </>
             )}
-            {role === 'judge' && navLink('/judge', 'My Events')}
+            {role === 'judge' && navLink('/judge', 'マイイベント')}
           </nav>
         </div>
 
@@ -94,7 +94,7 @@ export default function Navbar() {
             onClick={handleLogout}
             className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition"
           >
-            Logout
+            ログアウト
           </button>
         </div>
       </div>
@@ -104,11 +104,11 @@ export default function Navbar() {
         <div className="sm:hidden border-t border-zinc-100 dark:border-zinc-800 px-4 py-2 flex gap-2">
           {role === 'admin' && (
             <>
-              {navLink('/admin', 'My Events')}
-              {navLink('/admin/judges', 'Manage Judges')}
+              {navLink('/admin', 'マイイベント')}
+              {navLink('/admin/judges', '審査員の管理')}
             </>
           )}
-          {role === 'judge' && navLink('/judge', 'My Events')}
+          {role === 'judge' && navLink('/judge', 'マイイベント')}
         </div>
       )}
     </header>

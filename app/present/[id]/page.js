@@ -1210,7 +1210,7 @@ export default function PresentationPage() {
                     className="flex flex-col items-center p-6 bg-zinc-900/60 rounded-3xl border border-zinc-800 shadow-xl min-w-[200px]"
                   >
                     <div className="text-zinc-500 text-sm uppercase tracking-widest font-bold mb-2">
-                      Total Score
+                      合計スコア
                     </div>
                     <motion.div
                       className="text-7xl font-black text-amber-500 drop-shadow-md tabular-nums relative"

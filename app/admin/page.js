@@ -230,14 +230,14 @@ function CreateEventModal({ onClose, onCreate }) {
               onClick={onClose}
               className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
             >
-              Cancel
+              キャンセル
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50"
             >
-              {loading ? 'Creating…' : 'Create Event'}
+              {loading ? 'Creating…' : 'イベントを作成'}
             </button>
           </div>
         </form>
@@ -275,14 +275,14 @@ function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
             onClick={onClose}
             className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
-            Cancel
+            キャンセル
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading ? 'Deleting…' : 'Delete'}
+            {loading ? '削除中…' : '削除'}
           </button>
         </div>
       </div>
@@ -506,14 +506,14 @@ function EditEventModal({ event, onClose, onEdit }) {
               onClick={onClose}
               className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
             >
-              Cancel
+              キャンセル
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50"
             >
-              {loading ? 'Saving…' : 'Save Changes'}
+              {loading ? '保存中…' : '変更を保存'}
             </button>
           </div>
         </form>
@@ -566,7 +566,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <span className="text-sm text-zinc-400">Loading…</span>
+          <span className="text-sm text-zinc-400">読み込み中…</span>
         </div>
       </div>
     );
@@ -606,7 +606,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-900">
-              My Events
+              マイイベント
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
               {events.length} total ·{' '}
@@ -729,7 +729,7 @@ export default function AdminDashboard() {
                               {event.description && (
                                 <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs">
-                                    Description
+                                    説明
                                   </p>
                                   <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
                                     {event.description}
@@ -905,7 +905,7 @@ export default function AdminDashboard() {
                               {event.description && (
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs">
-                                    Description
+                                    説明
                                   </p>
                                   <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
                                     {event.description}

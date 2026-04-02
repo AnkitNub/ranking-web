@@ -155,14 +155,14 @@ function DeleteParticipantModal({
             onClick={onClose}
             className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
-            Cancel
+            キャンセル
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading ? 'Deleting…' : 'Delete'}
+            {loading ? '削除中…' : '削除'}
           </button>
         </div>
       </div>
@@ -217,7 +217,7 @@ function ParticipantsTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-600 py-6 text-center">Loading…</p>;
+    return <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>;
 
   return (
     <div className="space-y-4">
@@ -387,7 +387,7 @@ function JudgesTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-400 py-6 text-center">Loading…</p>;
+    return <p className="text-sm text-zinc-400 py-6 text-center">読み込み中…</p>;
 
   return (
     <div className="space-y-4">
@@ -574,7 +574,7 @@ function ScoreboardTab({ eventId }) {
   }
 
   if (loading)
-    return <p className="text-sm text-zinc-600 py-6 text-center">Loading…</p>;
+    return <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>;
 
   return (
     <div className="space-y-3">
@@ -632,19 +632,19 @@ function ScoreboardTab({ eventId }) {
             <thead>
               <tr className="bg-slate-100 dark:bg-slate-600 border-b border-slate-200 dark:border-slate-700">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide w-12">
-                  Rank
+                  順位
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
                   Participant
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  Total Score
+                  合計スコア
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide hidden sm:table-cell">
                   Judges Scored
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  Action
+                  アクション
                 </th>
               </tr>
             </thead>
@@ -703,14 +703,14 @@ function ScoreboardTab({ eventId }) {
 }
 
 /* ─── Main Page ────────────────────────────────────────────────────────────── */
-const TABS = ['Participants', 'Judges', 'Scoreboard'];
+const TABS = ['参加者', 'Judges', 'Scoreboard'];
 
 export default function AdminEventPage() {
   const { id } = useParams();
   const router = useRouter();
   const { firebaseUser, supabaseUser, loading } = useAuth();
   const [event, setEvent] = useState(null);
-  const [activeTab, setActiveTab] = useState('Participants');
+  const [activeTab, setActiveTab] = useState('参加者');
   const [pageLoading, setPageLoading] = useState(true);
 
   const fetchEvent = useCallback(async () => {
@@ -742,7 +742,7 @@ export default function AdminEventPage() {
       <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <span className="text-sm text-zinc-400">Loading…</span>
+          <span className="text-sm text-zinc-400">読み込み中…</span>
         </div>
       </div>
     );
@@ -849,7 +849,7 @@ export default function AdminEventPage() {
 
         {/* Tab content */}
         <div>
-          {activeTab === 'Participants' && <ParticipantsTab eventId={id} />}
+          {activeTab === '参加者' && <ParticipantsTab eventId={id} />}
           {activeTab === 'Judges' && <JudgesTab eventId={id} />}
           {activeTab === 'Scoreboard' && <ScoreboardTab eventId={id} />}
         </div>
