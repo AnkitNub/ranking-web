@@ -80,8 +80,7 @@ export default function ManageJudgesPage() {
             登録された審査員
           </h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
-            All users who have signed up as a judge. Assign them to events from
-            the event management page.
+            審査員として登録したすべてのユーザー。イベント管理ページから、各イベントに割り当ててください。
           </p>
         </div>
 
