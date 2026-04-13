@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
 
 export async function GET(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { id } = await params;
@@ -18,10 +18,10 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
@@ -32,7 +32,7 @@ export async function POST(request, { params }) {
     .select('admin_id')
     .eq('id', id)
     .single();
-  if (!event || event.admin_id !== user.id) {
+  if (!event || event.admin_id !== authResult.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

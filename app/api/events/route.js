@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
+import { generatePassword } from '@/lib/passwordGenerator';
 
 export async function GET(request) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const user = authResult.user;
 
   if (user.role === 'admin') {
     const { data, error } = await supabaseAdmin
@@ -32,9 +35,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const user = authResult.user;
   if (user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
@@ -79,6 +84,7 @@ export async function POST(request) {
       deadline: deadline || null,
       max_score: max_score ? maxScoreNum : 10,
       admin_id: user.id,
+      judge_password: generatePassword(),
     })
     .select()
     .single();

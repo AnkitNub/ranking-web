@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
 
 export async function DELETE(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id, participantId } = await params;
@@ -21,7 +21,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (
     String(participant.event_id) !== id ||
-    participant.events?.admin_id !== user.id
+    participant.events?.admin_id !== authResult.user.id
   ) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

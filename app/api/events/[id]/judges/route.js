@@ -2,27 +2,51 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
 
 export async function GET(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { id } = await params;
-  const { data, error } = await supabaseAdmin
+
+  // Get account-based judges
+  const { data: accountJudges, error: accountError } = await supabaseAdmin
     .from('event_judges')
     .select('judge_id, users(id, name, email)')
     .eq('event_id', id);
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (accountError)
+    return NextResponse.json({ error: accountError.message }, { status: 500 });
 
-  const judges = data.map((row) => row.users).filter(Boolean);
-  return NextResponse.json({ judges });
+  const judges = accountJudges
+    .map((row) => ({
+      id: row.users.id,
+      name: row.users.name,
+      email: row.users.email,
+      type: 'account',
+    }))
+    .filter(Boolean);
+
+  // Get guest judges
+  const { data: guestJudges, error: guestError } = await supabaseAdmin
+    .from('guest_judges')
+    .select('id, name')
+    .eq('event_id', id);
+  if (guestError)
+    return NextResponse.json({ error: guestError.message }, { status: 500 });
+
+  const guestJudgesFormatted = (guestJudges || []).map((judge) => ({
+    id: judge.id,
+    name: judge.name,
+    type: 'guest',
+  }));
+
+  return NextResponse.json({ judges: [...judges, ...guestJudgesFormatted] });
 }
 
 export async function POST(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
@@ -33,7 +57,7 @@ export async function POST(request, { params }) {
     .select('admin_id')
     .eq('id', id)
     .single();
-  if (!event || event.admin_id !== user.id) {
+  if (!event || event.admin_id !== authResult.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -63,10 +87,10 @@ export async function POST(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
@@ -76,7 +100,7 @@ export async function DELETE(request, { params }) {
     .select('admin_id')
     .eq('id', id)
     .single();
-  if (!event || event.admin_id !== user.id) {
+  if (!event || event.admin_id !== authResult.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

@@ -9,6 +9,21 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [firebaseUser, setFirebaseUser] = useState(undefined); // undefined = loading
   const [supabaseUser, setSupabaseUser] = useState(null);
+  const [guestJudgeSession, setGuestJudgeSessionState] = useState(null);
+
+  useEffect(() => {
+    // Check for existing guest judge session in localStorage (client-side only)
+    if (typeof window !== 'undefined') {
+      const storedSession = localStorage.getItem('guestJudgeSession');
+      if (storedSession) {
+        try {
+          setGuestJudgeSessionState(JSON.parse(storedSession));
+        } catch (err) {
+          console.error('Failed to parse guest judge session:', err);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -41,10 +56,37 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
+  const setGuestJudgeSession = (session) => {
+    if (session) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('guestJudgeSession', JSON.stringify(session));
+      }
+      setGuestJudgeSessionState(session);
+    } else {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('guestJudgeSession');
+      }
+      setGuestJudgeSessionState(null);
+    }
+  };
+
+  const clearGuestJudgeSession = () => {
+    setGuestJudgeSession(null);
+  };
+
   const loading = firebaseUser === undefined;
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, supabaseUser, loading }}>
+    <AuthContext.Provider
+      value={{
+        firebaseUser,
+        supabaseUser,
+        loading,
+        guestJudgeSession,
+        setGuestJudgeSession,
+        clearGuestJudgeSession,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -3,10 +3,10 @@ import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
 import { getAdminAuth } from '@/lib/firebaseAdmin';
 
 export async function GET(request) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { data, error } = await supabaseAdmin
@@ -20,10 +20,10 @@ export async function GET(request) {
 }
 
 export async function DELETE(request) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { judgeId } = await request.json();

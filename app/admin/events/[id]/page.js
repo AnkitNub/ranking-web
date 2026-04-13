@@ -731,6 +731,29 @@ export default function AdminEventPage() {
     setPageLoading(false);
   }, [id, router]);
 
+  const regeneratePassword = async () => {
+    if (
+      !confirm('パスワードを再生成しますか？現在のパスワードは無効になります。')
+    ) {
+      return;
+    }
+    try {
+      const res = await authFetch(`/api/events/${id}/judge-password`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEvent({ ...event, judge_password: data.judge_password });
+        alert('パスワードを再生成しました!');
+      } else {
+        alert('パスワードの再生成に失敗しました。');
+      }
+    } catch (err) {
+      console.error('Failed to regenerate password:', err);
+      alert('エラーが発生しました。');
+    }
+  };
+
   useEffect(() => {
     if (loading) return;
     if (!firebaseUser) {
@@ -832,6 +855,54 @@ export default function AdminEventPage() {
               </strong>{' '}
               点
             </p>
+          )}
+          {event?.judge_password && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                ゲストジャッジパスワード:
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="text-sm font-mono bg-white dark:bg-zinc-800 px-2 py-1 rounded border border-blue-300 dark:border-blue-700">
+                  {event.judge_password}
+                </code>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(event.judge_password);
+                    alert('パスワードをコピーしました!');
+                  }}
+                  className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  コピー
+                </button>
+                <button
+                  onClick={() => regeneratePassword()}
+                  className="text-xs px-2 py-1 bg-amber-600 text-white rounded hover:bg-amber-700 transition"
+                >
+                  再生成
+                </button>
+              </div>
+            </div>
+          )}
+          {event?.id && (
+            <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg">
+              <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">
+                ゲストジャッジイベントID:
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="text-sm font-mono bg-white dark:bg-zinc-800 px-2 py-1 rounded border border-purple-300 dark:border-purple-700">
+                  {event.id}
+                </code>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(event.id.toString());
+                    alert('イベントIDをコピーしました!');
+                  }}
+                  className="text-xs px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                >
+                  コピー
+                </button>
+              </div>
+            </div>
           )}
         </div>
 

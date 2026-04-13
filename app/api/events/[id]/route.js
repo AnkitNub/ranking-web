@@ -11,10 +11,11 @@ async function resolveEvent(id) {
 }
 
 export async function GET(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const user = authResult.user;
   const { id } = await params;
   const event = await resolveEvent(id);
   if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -23,7 +24,7 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  if (user.role === 'judge') {
+  if (authResult.type === 'firebase' && user.role === 'judge') {
     const { data: ej } = await supabaseAdmin
       .from('event_judges')
       .select('event_id')
@@ -37,15 +38,15 @@ export async function GET(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
   const event = await resolveEvent(id);
-  if (!event || event.admin_id !== user.id) {
+  if (!event || event.admin_id !== authResult.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -107,15 +108,15 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const user = await getAuthenticatedUser(request);
-  if (!user)
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
+  if (authResult.user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
   const event = await resolveEvent(id);
-  if (!event || event.admin_id !== user.id) {
+  if (!event || event.admin_id !== authResult.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

@@ -178,7 +178,7 @@ function ScoreCard({
 export default function JudgeScoringPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { firebaseUser, supabaseUser, loading } = useAuth();
+  const { firebaseUser, supabaseUser, guestJudgeSession, loading } = useAuth();
   const [event, setEvent] = useState(null);
   const [participants, setParticipants] = useState([]);
   // Map of participant_id → score object from DB
@@ -214,7 +214,7 @@ export default function JudgeScoringPage() {
 
   useEffect(() => {
     if (loading) return;
-    if (!firebaseUser) {
+    if (!firebaseUser && !guestJudgeSession) {
       router.replace('/signin');
       return;
     }
@@ -222,8 +222,15 @@ export default function JudgeScoringPage() {
       router.replace('/admin');
       return;
     }
-    if (supabaseUser) fetchData();
-  }, [loading, firebaseUser, supabaseUser, fetchData, router]);
+    if (supabaseUser || guestJudgeSession) fetchData();
+  }, [
+    loading,
+    firebaseUser,
+    supabaseUser,
+    guestJudgeSession,
+    fetchData,
+    router,
+  ]);
 
   function handleScored(participantId, scoreObj) {
     setMyScores((prev) => ({ ...prev, [participantId]: scoreObj }));
