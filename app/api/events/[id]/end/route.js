@@ -1,0 +1,40 @@
+import { NextResponse } from 'next/server';
+import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
+
+export async function POST(request, { params }) {
+  const authResult = await getAuthenticatedUser(request);
+  if (!authResult)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authResult.user.role !== 'admin')
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  const { id } = await params;
+
+  // Verify admin owns the event
+  const { data: event } = await supabaseAdmin
+    .from('events')
+    .select('admin_id')
+    .eq('id', id)
+    .single();
+
+  if (!event || event.admin_id !== authResult.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  // Update event to ended status
+  const { data: updatedEvent, error } = await supabaseAdmin
+    .from('events')
+    .update({
+      status: 'ended',
+      current_participant_id: null,
+      current_round_start_time: null,
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error)
+    return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ event: updatedEvent });
+}

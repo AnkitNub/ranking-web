@@ -20,8 +20,13 @@ CREATE TABLE public.events (
   start_time time without time zone,
   end_time time without time zone,
   judge_password character varying,
+  status character varying DEFAULT 'not_started' CHECK (status IN ('not_started', 'active', 'ended')),
+  current_participant_id integer,
+  current_round_start_time timestamp without time zone,
+  started_at timestamp without time zone,
   CONSTRAINT events_pkey PRIMARY KEY (id),
-  CONSTRAINT events_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES public.users(id)
+  CONSTRAINT events_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES public.users(id),
+  CONSTRAINT events_current_participant_fkey FOREIGN KEY (current_participant_id) REFERENCES public.participants(id)
 );
 CREATE TABLE public.participants (
   id integer NOT NULL DEFAULT nextval('participants_id_seq'::regclass),

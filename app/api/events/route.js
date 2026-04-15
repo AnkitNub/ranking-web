@@ -85,6 +85,7 @@ export async function POST(request) {
       max_score: max_score ? maxScoreNum : 10,
       admin_id: user.id,
       judge_password: generatePassword(),
+      status: 'not_started',
     })
     .select()
     .single();

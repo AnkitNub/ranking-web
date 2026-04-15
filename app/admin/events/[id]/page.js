@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
+import { getRemainingRoundTime, formatSeconds } from '@/lib/eventHelpers';
 
 /* ─── Score Details Modal ──────────────────────────────────────────────────── */
 function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
@@ -719,16 +720,30 @@ export default function AdminEventPage() {
   const [event, setEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('参加者');
   const [pageLoading, setPageLoading] = useState(true);
+  const [participants, setParticipants] = useState([]);
 
   const fetchEvent = useCallback(async () => {
-    const res = await authFetch(`/api/events/${id}`);
-    if (!res.ok) {
-      router.replace('/admin');
-      return;
+    try {
+      const [eventRes, participantsRes] = await Promise.all([
+        authFetch(`/api/events/${id}`),
+        authFetch(`/api/events/${id}/participants`),
+      ]);
+
+      if (!eventRes.ok) {
+        router.replace('/admin');
+        return;
+      }
+
+      const eventData = await eventRes.json();
+      const participantsData = await participantsRes.json();
+
+      setEvent(eventData.event);
+      setParticipants(participantsData.participants || []);
+      setPageLoading(false);
+    } catch (err) {
+      console.error('Error fetching event:', err);
+      setPageLoading(false);
     }
-    const data = await res.json();
-    setEvent(data.event);
-    setPageLoading(false);
   }, [id, router]);
 
   const regeneratePassword = async () => {
@@ -754,6 +769,69 @@ export default function AdminEventPage() {
     }
   };
 
+  const startEvent = async () => {
+    if (!confirm('イベントを開始しますか？')) {
+      return;
+    }
+    try {
+      const res = await authFetch(`/api/events/${id}/start`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEvent(data.event);
+        alert('イベントが開始されました!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'イベント開始に失敗しました。');
+      }
+    } catch (err) {
+      console.error('Failed to start event:', err);
+      alert('エラーが発生しました。');
+    }
+  };
+
+  const nextParticipant = async () => {
+    try {
+      const res = await authFetch(`/api/events/${id}/next-participant`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEvent(data.event);
+        alert(data.event.status === 'ended' ? 'イベントが終了しました!' : '次へ進みました!');
+      } else {
+        const data = await res.json();
+        alert(data.error || '次へ進むに失敗しました。');
+      }
+    } catch (err) {
+      console.error('Failed to advance participant:', err);
+      alert('エラーが発生しました。');
+    }
+  };
+
+  const endEvent = async () => {
+    if (!confirm('イベントを終了しますか？')) {
+      return;
+    }
+    try {
+      const res = await authFetch(`/api/events/${id}/end`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEvent(data.event);
+        alert('イベントが終了しました!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'イベント終了に失敗しました。');
+      }
+    } catch (err) {
+      console.error('Failed to end event:', err);
+      alert('エラーが発生しました。');
+    }
+  };
+
   useEffect(() => {
     if (loading) return;
     if (!firebaseUser) {
@@ -766,6 +844,17 @@ export default function AdminEventPage() {
     }
     if (supabaseUser) fetchEvent();
   }, [loading, firebaseUser, supabaseUser, fetchEvent, router]);
+
+  // Poll for event updates when actively running
+  useEffect(() => {
+    if (!event || event.status !== 'active') return;
+
+    const pollInterval = setInterval(() => {
+      fetchEvent();
+    }, 3000); // Poll every 3 seconds for live timer updates
+
+    return () => clearInterval(pollInterval);
+  }, [event?.status, fetchEvent]);
 
   if (loading || pageLoading) {
     return (
@@ -856,51 +945,187 @@ export default function AdminEventPage() {
               点
             </p>
           )}
-          {event?.judge_password && (
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                ゲストジャッジパスワード:
-              </p>
-              <div className="flex items-center gap-2">
-                <code className="text-sm font-mono bg-white dark:bg-zinc-800 px-2 py-1 rounded border border-blue-300 dark:border-blue-700">
-                  {event.judge_password}
-                </code>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(event.judge_password);
-                    alert('パスワードをコピーしました!');
-                  }}
-                  className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                >
-                  コピー
-                </button>
-                <button
-                  onClick={() => regeneratePassword()}
-                  className="text-xs px-2 py-1 bg-amber-600 text-white rounded hover:bg-amber-700 transition"
-                >
-                  再生成
-                </button>
+
+          {/* Event Controls - NEW MODE */}
+          {event?.status && (
+            <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border border-teal-200 dark:border-teal-800 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+                    イベントステータス
+                  </p>
+                  <p className="text-lg font-bold text-zinc-900 dark:text-white">
+                    {event.status === 'not_started' && '未開始'}
+                    {event.status === 'active' && '実施中'}
+                    {event.status === 'ended' && '終了'}
+                  </p>
+                </div>
+              </div>
+
+              {event.status === 'active' && event.current_participant_id && (
+                <div className="mb-4 space-y-2">
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                    <strong>現在の参加者:</strong>{' '}
+                    {/* Find and show current participant name */}
+                    {(() => {
+                      const currentParticipant = participants?.find(
+                        (p) => p.id === event.current_participant_id,
+                      );
+                      return currentParticipant?.name || 'Loading...';
+                    })()}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                      残り時間:
+                    </p>
+                    <div className="font-mono text-lg font-bold text-teal-600 dark:text-teal-400">
+                      {formatSeconds(
+                        getRemainingRoundTime(event.current_round_start_time, 60),
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                {event.status === 'not_started' && (
+                  <button
+                    onClick={() => startEvent()}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition text-sm"
+                  >
+                    イベント開始
+                  </button>
+                )}
+
+                {event.status === 'active' && (
+                  <>
+                    <button
+                      onClick={() => nextParticipant()}
+                      className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition text-sm"
+                    >
+                      次へ
+                    </button>
+                    <button
+                      onClick={() => endEvent()}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm"
+                    >
+                      終了
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
-          {event?.id && (
-            <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg">
-              <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">
-                ゲストジャッジイベントID:
-              </p>
-              <div className="flex items-center gap-2">
-                <code className="text-sm font-mono bg-white dark:bg-zinc-800 px-2 py-1 rounded border border-purple-300 dark:border-purple-700">
-                  {event.id}
-                </code>
+
+          {/* Guest Judge Access - Unified Card */}
+          {event?.judge_password && event?.id && (
+            <div className="mt-6 p-5 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/30 dark:to-violet-900/30 border-2 border-purple-300 dark:border-purple-700 rounded-xl shadow-sm">
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">
+                    🔗 ゲストジャッジアクセス
+                  </span>
+                  <span className="text-xs px-2 py-0.5 bg-purple-200 dark:bg-purple-800 text-purple-900 dark:text-purple-100 rounded-full font-semibold">
+                    共有用
+                  </span>
+                </div>
+                <p className="text-xs text-purple-700 dark:text-purple-300">
+                  ゲストジャッジはこの情報で参加できます
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {/* Event ID */}
+                <div>
+                  <label className="text-xs font-semibold text-purple-800 dark:text-purple-200 block mb-1.5">
+                    イベントID
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={event.id}
+                        readOnly
+                        className="w-full font-mono text-sm font-bold bg-white dark:bg-zinc-800 px-3 py-2 rounded-lg border-2 border-purple-200 dark:border-purple-600 text-purple-900 dark:text-purple-100 cursor-pointer"
+                        onClick={(e) => e.target.select()}
+                      />
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        navigator.clipboard.writeText(event.id.toString());
+                        const btn = e.currentTarget;
+                        btn.textContent = '✓ コピー';
+                        setTimeout(() => {
+                          btn.textContent = 'コピー';
+                        }, 2000);
+                      }}
+                      className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-sm transition"
+                    >
+                      コピー
+                    </button>
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="text-xs font-semibold text-purple-800 dark:text-purple-200 block mb-1.5">
+                    パスワード
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={event.judge_password}
+                        readOnly
+                        className="w-full font-mono text-sm font-bold bg-white dark:bg-zinc-800 px-3 py-2 rounded-lg border-2 border-purple-200 dark:border-purple-600 text-purple-900 dark:text-purple-100 cursor-pointer"
+                        onClick={(e) => e.target.select()}
+                      />
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        navigator.clipboard.writeText(event.judge_password);
+                        const btn = e.currentTarget;
+                        btn.textContent = '✓ コピー';
+                        setTimeout(() => {
+                          btn.textContent = 'コピー';
+                        }, 2000);
+                      }}
+                      className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-sm transition"
+                    >
+                      コピー
+                    </button>
+                    <button
+                      onClick={() => regeneratePassword()}
+                      className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold text-sm transition"
+                      title="パスワードを新しく生成します"
+                    >
+                      🔄 再生成
+                    </button>
+                  </div>
+                </div>
+
+                {/* Copy Both Button */}
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(event.id.toString());
-                    alert('イベントIDをコピーしました!');
+                  onClick={(e) => {
+                    const text = `イベントID: ${event.id}\nパスワード: ${event.judge_password}`;
+                    navigator.clipboard.writeText(text);
+                    const btn = e.currentTarget;
+                    btn.textContent = '✓ コピーしました!';
+                    setTimeout(() => {
+                      btn.textContent = '両方をコピー';
+                    }, 2000);
                   }}
-                  className="text-xs px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                  className="w-full mt-2 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-bold text-sm transition"
                 >
-                  コピー
+                  両方をコピー
                 </button>
+
+                {/* Instructions */}
+                <div className="mt-3 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-purple-200 dark:border-purple-600">
+                  <p className="text-xs text-purple-800 dark:text-purple-200 leading-relaxed">
+                    <strong>📋 共有方法:</strong> この情報をゲストジャッジに伝える。ゲストジャッジがサインインページの「ゲストジャッジ」タブでこの情報を入力してアクセスできます。
+                  </p>
+                </div>
               </div>
             </div>
           )}
