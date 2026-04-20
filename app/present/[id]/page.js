@@ -6,6 +6,7 @@ import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
+import supabase from '@/lib/supabaseClient';
 
 /* ── Animated counter with roll-up + sound trigger ── */
 function CountUp({ end, duration = 1.2 }) {
@@ -611,7 +612,34 @@ export default function PresentationPage() {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+
+    // Optionally set up realtime channel to keep leaderboard fully synced
+    const channel = supabase
+      .channel(`present-scoreboard-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'scores',
+          filter: `event_id=eq.${id}`,
+        },
+        () => fetchData(),
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'participants',
+          filter: `event_id=eq.${id}`,
+        },
+        () => fetchData(),
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [fetchData, id]);
 
   const breakdownOrder = useMemo(
     () =>

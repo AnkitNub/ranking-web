@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 import { getRemainingRoundTime, formatSeconds } from '@/lib/eventHelpers';
+import supabase from '@/lib/supabaseClient';
 
 /* ─── Score Details Modal ──────────────────────────────────────────────────── */
 function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
@@ -540,9 +541,51 @@ function ScoreboardTab({ eventId }) {
 
   useEffect(() => {
     fetchScoreboard();
-    intervalRef.current = setInterval(fetchScoreboard, 15000);
-    return () => clearInterval(intervalRef.current);
-  }, [fetchScoreboard]);
+
+    const channel = supabase
+      .channel(`admin-scoreboard-${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'scores',
+          filter: `event_id=eq.${eventId}`,
+        },
+        () => {
+          fetchScoreboard();
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'participants',
+          filter: `event_id=eq.${eventId}`,
+        },
+        () => {
+          fetchScoreboard();
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_judges',
+          filter: `event_id=eq.${eventId}`,
+        },
+        () => {
+          fetchScoreboard();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchScoreboard, eventId]);
 
   // Compute ranked rows
   const rows = participants.map((p) => {
@@ -618,10 +661,14 @@ function ScoreboardTab({ eventId }) {
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-800">
-          15秒ごとに自動更新
-          {lastRefreshed && ` · 最終更新 ${lastRefreshed.toLocaleTimeString()}`}
-        </p>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <p className="text-xs text-slate-800 font-medium">
+            リアルタイム更新中
+            {lastRefreshed &&
+              ` · 最終更新 ${lastRefreshed.toLocaleTimeString()}`}
+          </p>
+        </div>
         <button
           onClick={fetchScoreboard}
           className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
@@ -799,7 +846,11 @@ export default function AdminEventPage() {
       if (res.ok) {
         const data = await res.json();
         setEvent(data.event);
-        alert(data.event.status === 'ended' ? 'イベントが終了しました!' : '次へ進みました!');
+        alert(
+          data.event.status === 'ended'
+            ? 'イベントが終了しました!'
+            : '次へ進みました!',
+        );
       } else {
         const data = await res.json();
         alert(data.error || '次へ進むに失敗しました。');
@@ -849,12 +900,34 @@ export default function AdminEventPage() {
   useEffect(() => {
     if (!event || event.status !== 'active') return;
 
-    const pollInterval = setInterval(() => {
-      fetchEvent();
-    }, 3000); // Poll every 3 seconds for live timer updates
+    const uiInterval = setInterval(() => {
+      // Just trigger re-render for the timer display, instead of fetching
+      setEvent((prev) => ({ ...prev }));
+    }, 1000);
 
-    return () => clearInterval(pollInterval);
-  }, [event?.status, fetchEvent]);
+    return () => clearInterval(uiInterval);
+  }, [event?.status]);
+
+  // Listen to postgres changes for real-time sync
+  useEffect(() => {
+    const channel = supabase
+      .channel(`admin-event-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${id}`,
+        },
+        () => {
+          fetchEvent();
+        },
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [id, fetchEvent]);
 
   if (loading || pageLoading) {
     return (
@@ -980,7 +1053,10 @@ export default function AdminEventPage() {
                     </p>
                     <div className="font-mono text-lg font-bold text-teal-600 dark:text-teal-400">
                       {formatSeconds(
-                        getRemainingRoundTime(event.current_round_start_time, 60),
+                        getRemainingRoundTime(
+                          event.current_round_start_time,
+                          60,
+                        ),
                       )}
                     </div>
                   </div>
@@ -1123,7 +1199,8 @@ export default function AdminEventPage() {
                 {/* Instructions */}
                 <div className="mt-3 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-purple-200 dark:border-purple-600">
                   <p className="text-xs text-purple-800 dark:text-purple-200 leading-relaxed">
-                    <strong>📋 共有方法:</strong> この情報をゲストジャッジに伝える。ゲストジャッジがサインインページの「ゲストジャッジ」タブでこの情報を入力してアクセスできます。
+                    <strong>📋 共有方法:</strong>{' '}
+                    この情報をゲストジャッジに伝える。ゲストジャッジがサインインページの「ゲストジャッジ」タブでこの情報を入力してアクセスできます。
                   </p>
                 </div>
               </div>

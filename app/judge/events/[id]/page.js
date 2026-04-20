@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
+import supabase from '@/lib/supabaseClient';
 import {
   getRemainingRoundTime,
   formatSeconds,
@@ -148,9 +149,27 @@ function ScoreCard({
         </div>
 
         {/* Score input form */}
-        <form onSubmit={handleSubmit} className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-3">
+          {max <= 20 ? (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {Array.from({ length: max }, (_, i) => i + 1).map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => setValue(num)}
+                  className={`w-12 h-12 flex-shrink-0 rounded-xl font-bold text-lg transition-all focus:outline-none ${
+                    Number(value) === num
+                      ? 'bg-teal-500 text-white shadow-lg ring-2 ring-teal-500 ring-offset-2 dark:ring-offset-zinc-900 transform scale-110'
+                      : 'bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-stone-200 dark:border-zinc-700 hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20'
+                  } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
               <input
                 type="number"
                 min={1}
@@ -160,13 +179,16 @@ function ScoreCard({
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={`1 – ${max}`}
                 disabled={disabled}
-                className="w-full rounded-xl border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 px-3 py-2 text-sm text-center font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-xl border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 px-3 py-3 text-lg text-center font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
+          )}
+
+          <div className="flex justify-end">
             <button
               type="submit"
               disabled={disabled || submitting || value === ''}
-              className={`rounded-xl px-3 py-2 text-xs font-semibold transition whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shadow-sm ${
+              className={`w-full rounded-xl px-4 py-3 text-sm font-bold transition whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shadow-sm ${
                 disabled
                   ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
                   : isScored && isDirty
@@ -181,15 +203,19 @@ function ScoreCard({
                   ? '✓ 採点済み'
                   : '終了'
                 : submitting
-                  ? '…'
+                  ? '送信中...'
                   : isScored && isDirty
-                    ? '更新'
+                    ? 'スコアを更新'
                     : isScored
-                      ? '✓ 完了'
-                      : '送信'}
+                      ? '✓ 採点完了'
+                      : 'スコアを送信'}
             </button>
           </div>
-          {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+          {error && (
+            <p className="text-xs text-red-500 font-medium text-center">
+              {error}
+            </p>
+          )}
         </form>
       </div>
     </li>
@@ -287,11 +313,7 @@ function CountdownTimer({ roundStartTime, roundDurationSeconds = 60 }) {
       {isLocked && (
         <div className="text-center">
           <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-full">
-            <svg
-              className="w-4 h-4"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 1C5.9 1 1 5.9 1 12s4.9 11 11 11 11-4.9 11-11S18.1 1 12 1zm0 20c-4.9 0-9-4.1-9-9s4.1-9 9-9 9 4.1 9 9-4.1 9-9 9zm3.5-9c.3 0 .5.2.5.5s-.2.5-.5.5-.5-.2-.5-.5.2-.5.5-.5zm-7 0c.3 0 .5.2.5.5s-.2.5-.5.5-.5-.2-.5-.5.2-.5.5-.5zm3.5 6.5c2.3 0 4.3-1.4 5.4-3.4-.9.2-1.9.3-3 .3s-2.1-.1-3-.3c1.1 2 3.1 3.4 5.4 3.4z" />
             </svg>
             投票終了
@@ -344,8 +366,7 @@ function CurrentParticipantSection({
             <div
               className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mb-4"
               style={{
-                background:
-                  'linear-gradient(135deg, #10b981 0%, #0d9488 100%)',
+                background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)',
               }}
             >
               {participant.name.charAt(0).toUpperCase()}
@@ -456,8 +477,6 @@ export default function JudgeScoringPage() {
   const [myScores, setMyScores] = useState({});
   const [pageLoading, setPageLoading] = useState(true);
   const [pageError, setPageError] = useState(null);
-  const pollTimerRef = useRef(null);
-  const scorePollTimerRef = useRef(null);
 
   // Determine mode: NEW if status is 'active', OLD otherwise
   const isNewMode = event?.status === 'active';
@@ -505,54 +524,55 @@ export default function JudgeScoringPage() {
     }
   }, [id, router]);
 
-  // Poll event changes every 5s (NEW mode only)
+  // Listen for realtime updates from Supabase
   useEffect(() => {
     if (!isNewMode) return;
 
-    const pollEvent = async () => {
-      try {
-        const res = await authFetch(`/api/events/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setEvent(data.event);
-        }
-      } catch (err) {
-        // Silent fail for polling
-      }
-    };
+    const channel = supabase
+      .channel(`judge-sync-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${id}`,
+        },
+        async (payload) => {
+          // If the event changed state, we might need a full refresh or just update the event object
+          // To be safe and ensure all participants data syncs:
+          if (payload.new) {
+            setEvent(payload.new);
+          }
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'scores',
+          filter: `event_id=eq.${id}`,
+        },
+        async () => {
+          // When ANY score for my event changes, fetch my new scores
+          // (Alternatively we could fetch intelligently but fetching just scores is fine)
+          try {
+            const res = await authFetch(`/api/events/${id}/scores`);
+            if (res.ok) {
+              const data = await res.json();
+              const scoresMap = {};
+              (data.myScores || []).forEach((s) => {
+                scoresMap[s.participant_id] = s;
+              });
+              setMyScores(scoresMap);
+            }
+          } catch (err) {}
+        },
+      )
+      .subscribe();
 
-    // Poll immediately and then every 2 seconds
-    pollEvent();
-    pollTimerRef.current = setInterval(pollEvent, 2000);
-    return () => {
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-    };
-  }, [id, isNewMode]);
-
-  // Poll scores every 5s (NEW mode only, to see other judges' updates)
-  useEffect(() => {
-    if (!isNewMode) return;
-
-    const pollScores = async () => {
-      try {
-        const res = await authFetch(`/api/events/${id}/scores`);
-        if (res.ok) {
-          const data = await res.json();
-          const scoresMap = {};
-          (data.myScores || []).forEach((s) => {
-            scoresMap[s.participant_id] = s;
-          });
-          setMyScores(scoresMap);
-        }
-      } catch (err) {
-        // Silent fail for polling
-      }
-    };
-
-    scorePollTimerRef.current = setInterval(pollScores, 5000);
-    return () => {
-      if (scorePollTimerRef.current) clearInterval(scorePollTimerRef.current);
-    };
+    return () => supabase.removeChannel(channel);
   }, [id, isNewMode]);
 
   // Initial load and auth check
@@ -567,7 +587,14 @@ export default function JudgeScoringPage() {
       return;
     }
     if (supabaseUser || guestJudgeSession) fetchData();
-  }, [loading, firebaseUser, supabaseUser, guestJudgeSession, fetchData, router]);
+  }, [
+    loading,
+    firebaseUser,
+    supabaseUser,
+    guestJudgeSession,
+    fetchData,
+    router,
+  ]);
 
   // Handle score submission
   function handleScored(participantId, scoreObj) {
@@ -637,9 +664,7 @@ export default function JudgeScoringPage() {
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               エラーが発生しました
             </h2>
-            <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              {pageError}
-            </p>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-6">{pageError}</p>
             <button
               onClick={fetchData}
               className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition"
