@@ -50,28 +50,12 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const {
-    name,
-    event_date,
-    start_time,
-    end_time,
-    deadline,
-    description,
-    max_score,
-  } = await request.json();
+  const { name, description, max_score, number_of_judges } =
+    await request.json();
 
   if (name !== undefined && !name?.trim())
     return NextResponse.json(
       { error: 'Name cannot be empty' },
-      { status: 400 },
-    );
-
-  if (event_date !== undefined && !event_date)
-    return NextResponse.json({ error: 'Date is required' }, { status: 400 });
-
-  if (start_time !== undefined && !start_time)
-    return NextResponse.json(
-      { error: 'Start time is required' },
       { status: 400 },
     );
 
@@ -84,16 +68,25 @@ export async function PUT(request, { params }) {
       );
   }
 
+  if (number_of_judges !== undefined && number_of_judges !== null) {
+    const numJudges = Number(number_of_judges);
+    if (isNaN(numJudges) || numJudges < 1 || !Number.isInteger(numJudges))
+      return NextResponse.json(
+        { error: 'Number of judges must be a positive integer' },
+        { status: 400 },
+      );
+  }
+
   const updateData = {};
   if (name !== undefined) updateData.name = name.trim();
-  if (event_date !== undefined) updateData.event_date = event_date || null;
-  if (start_time !== undefined) updateData.start_time = start_time || null;
-  if (end_time !== undefined) updateData.end_time = end_time || null;
-  if (deadline !== undefined) updateData.deadline = deadline || null;
   if (description !== undefined)
     updateData.description = description?.trim() || null;
   if (max_score !== undefined)
     updateData.max_score = max_score ? Number(max_score) : null;
+  if (number_of_judges !== undefined)
+    updateData.number_of_judges = number_of_judges
+      ? Number(number_of_judges)
+      : null;
 
   const { data, error } = await supabaseAdmin
     .from('events')

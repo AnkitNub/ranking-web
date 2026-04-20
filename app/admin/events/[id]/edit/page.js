@@ -13,10 +13,6 @@ export default function EditEventPage() {
   const [event, setEvent] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    event_date: '',
-    start_time: '',
-    end_time: '',
-    deadline: '',
     description: '',
     max_score: '',
   });
@@ -35,14 +31,6 @@ export default function EditEventPage() {
     setEvent(data.event);
     setFormData({
       name: data.event.name || '',
-      event_date: data.event.event_date
-        ? new Date(data.event.event_date).toISOString().split('T')[0]
-        : '',
-      start_time: data.event.start_time || '',
-      end_time: data.event.end_time || '',
-      deadline: data.event.deadline
-        ? new Date(data.event.deadline).toISOString().split('T')[0]
-        : '',
       description: data.event.description || '',
       max_score: data.event.max_score || '',
     });
@@ -76,7 +64,11 @@ export default function EditEventPage() {
     try {
       const res = await authFetch(`/api/events/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          max_score: formData.max_score,
+        }),
       });
 
       const data = await res.json();
@@ -139,64 +131,6 @@ export default function EditEventPage() {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               placeholder="入力： イベント名"
             />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                イベント日 *
-              </label>
-              <input
-                type="date"
-                name="event_date"
-                required
-                value={formData.event_date}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                得点締め切り
-              </label>
-              <input
-                type="date"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                開始時間 *
-              </label>
-              <input
-                type="time"
-                name="start_time"
-                required
-                value={formData.start_time}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                終焉の時
-              </label>
-              <input
-                type="time"
-                name="end_time"
-                value={formData.end_time}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
-            </div>
           </div>
 
           <div>

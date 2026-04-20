@@ -17,6 +17,7 @@ CREATE TABLE public.events (
   description text,
   deadline date,
   max_score integer NOT NULL DEFAULT 10,
+  number_of_judges integer NOT NULL DEFAULT 5,
   start_time time without time zone,
   end_time time without time zone,
   judge_password character varying,

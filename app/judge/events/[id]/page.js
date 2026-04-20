@@ -12,25 +12,24 @@ import {
   isVotingLocked,
 } from '@/lib/eventHelpers';
 
+function parseUTC(dateString) {
+  if (!dateString) return new Date();
+  return new Date(
+    dateString +
+      (dateString.includes('Z') || dateString.includes('+') ? '' : 'Z'),
+  );
+}
+
 /**
- * Check if event deadline (deadline + end_time) has passed
+ * Check if event is passed 24h from creation
  * Used for OLD mode to disable scoring after deadline
  */
 function isExpired(event) {
-  if (!event) return false;
+  if (!event || !event.created_at) return false;
 
-  // Check if scoring deadline (deadline + end_time) has passed
-  if (event.deadline && event.end_time) {
-    const scoringDeadline = new Date(`${event.deadline}T${event.end_time}`);
-    if (new Date() > scoringDeadline) return true;
-  }
-
-  // Fall back to deadline check without time
-  if (event.deadline && !event.end_time) {
-    return new Date(event.deadline) < new Date(new Date().toDateString());
-  }
-
-  return false;
+  const createdTime = parseUTC(event.created_at).getTime();
+  const deadlineTime = createdTime + 24 * 60 * 60 * 1000;
+  return Date.now() > deadlineTime;
 }
 
 // ============================================================================
@@ -923,35 +922,16 @@ export default function JudgeScoringPage() {
                 )}
               </div>
               <div className="mt-4 space-y-2">
-                {event?.event_date && (
+                {event?.created_at && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      イベント日時
+                      得点締め切り
                     </p>
                     <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                      {new Date(event.event_date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                      {' | '}
-                      {event.start_time}
-                    </div>
-                  </div>
-                )}
-                {event?.deadline && event?.end_time && (
-                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
-                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      終了日時
-                    </p>
-                    <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                      {new Date(event.deadline).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                      {' | '}
-                      {event.end_time}
+                      {new Date(
+                        parseUTC(event.created_at).getTime() +
+                          24 * 60 * 60 * 1000,
+                      ).toLocaleString('ja-JP')}
                     </div>
                   </div>
                 )}

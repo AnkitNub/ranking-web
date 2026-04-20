@@ -43,24 +43,10 @@ export async function POST(request) {
   if (user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const {
-    name,
-    event_date,
-    start_time,
-    end_time,
-    description,
-    deadline,
-    max_score,
-  } = await request.json();
+  const { name, description, max_score, number_of_judges } =
+    await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
-  if (!event_date)
-    return NextResponse.json({ error: 'Date is required' }, { status: 400 });
-  if (!start_time)
-    return NextResponse.json(
-      { error: 'Start time is required' },
-      { status: 400 },
-    );
 
   const maxScoreNum = Number(max_score);
   if (
@@ -73,16 +59,15 @@ export async function POST(request) {
       { status: 400 },
     );
 
+  const numJudges = Number(number_of_judges);
+
   const { data, error } = await supabaseAdmin
     .from('events')
     .insert({
       name: name.trim(),
-      event_date: event_date || null,
-      start_time: start_time || null,
-      end_time: end_time || null,
       description: description?.trim() || null,
-      deadline: deadline || null,
       max_score: max_score ? maxScoreNum : 10,
+      number_of_judges: Math.max(1, numJudges || 5),
       admin_id: user.id,
       judge_password: generatePassword(),
       status: 'not_started',

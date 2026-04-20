@@ -6,21 +6,20 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
+function parseUTC(dateString) {
+  if (!dateString) return new Date();
+  return new Date(
+    dateString +
+      (dateString.includes('Z') || dateString.includes('+') ? '' : 'Z'),
+  );
+}
+
 function isExpired(event) {
-  if (!event) return false;
+  if (!event || !event.created_at) return false;
 
-  // Check if event's end time has passed
-  if (event.deadline && event.end_time) {
-    const eventDateTime = new Date(`${event.deadline}T${event.end_time}`);
-    if (new Date() > eventDateTime) return true;
-  }
-
-  // Fall back to deadline check without time
-  if (event.deadline && !event.end_time) {
-    return new Date(event.deadline) < new Date(new Date().toDateString());
-  }
-
-  return false;
+  const createdTime = parseUTC(event.created_at).getTime();
+  const deadlineTime = createdTime + 24 * 60 * 60 * 1000;
+  return Date.now() > deadlineTime;
 }
 
 function EventCard({ event, onClick }) {
@@ -41,43 +40,19 @@ function EventCard({ event, onClick }) {
               {event.name}
             </h2>
           </div>
-          {event.event_date && (
+          {event.created_at && (
             <div
               className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-teal-50 dark:bg-teal-900/20'} rounded-lg p-2.5 space-y-1 text-sm mt-3`}
             >
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide`}
               >
-                イベント日時
+                得点締め切り
               </p>
               <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                {new Date(event.event_date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-                {' | '}
-                {event.start_time}
-              </div>
-            </div>
-          )}
-          {event.deadline && (
-            <div
-              className={`${expired ? 'bg-red-50 dark:bg-red-900/20' : 'bg-teal-50 dark:bg-teal-900/20'} rounded-lg p-2.5 space-y-1 text-sm`}
-            >
-              <p
-                className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
-              >
-                終了日時
-              </p>
-              <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                {new Date(event.deadline).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-                {' | '}
-                {event.end_time}
+                {new Date(
+                  parseUTC(event.created_at).getTime() + 24 * 60 * 60 * 1000,
+                ).toLocaleString('ja-JP')}
               </div>
             </div>
           )}

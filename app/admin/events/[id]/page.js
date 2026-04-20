@@ -8,6 +8,14 @@ import { authFetch } from '@/lib/authFetch';
 import { getRemainingRoundTime, formatSeconds } from '@/lib/eventHelpers';
 import supabase from '@/lib/supabaseClient';
 
+function parseUTC(dateString) {
+  if (!dateString) return new Date();
+  return new Date(
+    dateString +
+      (dateString.includes('Z') || dateString.includes('+') ? '' : 'Z'),
+  );
+}
+
 /* ─── Score Details Modal ──────────────────────────────────────────────────── */
 function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
   const [judges, setJudges] = useState([]);
@@ -956,53 +964,30 @@ export default function AdminEventPage() {
             <h1 className="text-2xl font-semibold text-black dark:text-black">
               {event?.name}
             </h1>
-            {event?.deadline &&
-              new Date(event.deadline) <
-                new Date(new Date().toDateString()) && (
+            {event?.created_at &&
+              Date.now() >
+                parseUTC(event.created_at).getTime() + 24 * 60 * 60 * 1000 && (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
                   期限切れ
                 </span>
               )}
           </div>
-          {event?.event_date && (
+          {event?.created_at && (
             <div className="mt-2 space-y-1">
-              <p className="text-base text-zinc-800">
-                <strong>開始:</strong>{' '}
-                {new Date(event.event_date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-                {event?.start_time && <> {event.start_time}</>}
+              <p
+                className={`text-base font-medium ${
+                  Date.now() >
+                  parseUTC(event.created_at).getTime() + 24 * 60 * 60 * 1000
+                    ? 'text-red-600 dark:text-red-500'
+                    : 'text-amber-600 dark:text-amber-500'
+                }`}
+              >
+                採点期限:{' '}
+                {new Date(
+                  parseUTC(event.created_at).getTime() + 24 * 60 * 60 * 1000,
+                ).toLocaleString('ja-JP')}
               </p>
-              {event?.deadline && event?.end_time && (
-                <p className="text-base text-zinc-800">
-                  <strong>終了:</strong>{' '}
-                  {new Date(event.deadline).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}{' '}
-                  {event.end_time}
-                </p>
-              )}
             </div>
-          )}
-          {event?.deadline && (
-            <p
-              className={`text-base mt-0.5 font-medium ${
-                new Date(event.deadline) < new Date(new Date().toDateString())
-                  ? 'text-red-600 dark:text-red-500'
-                  : 'text-amber-600 dark:text-amber-500'
-              }`}
-            >
-              採点期限:{' '}
-              {new Date(event.deadline).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
           )}
           {event?.description && (
             <p className="text-base text-slate-900 dark:text-zinc-400 mt-1 max-w-2xl">
@@ -1016,6 +1001,15 @@ export default function AdminEventPage() {
                 {event.max_score}
               </strong>{' '}
               点
+            </p>
+          )}
+          {event?.number_of_judges && (
+            <p className="text-sm text-zinc-800 mt-1">
+              予想される審査員の数:{' '}
+              <strong className="text-green-700 dark:text-green-400">
+                {event.number_of_judges}
+              </strong>{' '}
+              人
             </p>
           )}
 
