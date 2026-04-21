@@ -1022,23 +1022,25 @@ export default function AdminEventPage() {
                     イベントステータス
                   </p>
                   <p className="text-lg font-bold text-zinc-900 dark:text-white">
-                    {event.status === 'not_started' && '未開始'}
-                    {event.status === 'active' && '実施中'}
-                    {event.status === 'ended' && '終了'}
+                    {event.status === 'not_started' && <span>未開始</span>}
+                    {event.status === 'active' && <span>実施中</span>}
+                    {event.status === 'ended' && <span>終了</span>}
                   </p>
                 </div>
               </div>
 
               {event.status === 'active' && event.current_participant_id && (
                 <div className="mb-4 space-y-2">
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                    <strong>現在の参加者:</strong>{' '}
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+                    <strong>現在の参加者:</strong>
                     {/* Find and show current participant name */}
                     {(() => {
                       const currentParticipant = participants?.find(
                         (p) => p.id === event.current_participant_id,
                       );
-                      return currentParticipant?.name || 'Loading...';
+                      return (
+                        <span>{currentParticipant?.name || 'Loading...'}</span>
+                      );
                     })()}
                   </p>
                   <div className="flex items-center gap-2">
@@ -1060,6 +1062,7 @@ export default function AdminEventPage() {
               <div className="flex flex-wrap gap-2">
                 {event.status === 'not_started' && (
                   <button
+                    key="start-btn"
                     onClick={() => startEvent()}
                     className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition text-sm"
                   >
@@ -1068,7 +1071,7 @@ export default function AdminEventPage() {
                 )}
 
                 {event.status === 'active' && (
-                  <>
+                  <div key="active-btns" className="flex gap-2">
                     <button
                       onClick={() => nextParticipant()}
                       className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition text-sm"
@@ -1081,7 +1084,7 @@ export default function AdminEventPage() {
                     >
                       終了
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
