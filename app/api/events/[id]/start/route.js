@@ -43,10 +43,43 @@ export async function POST(request, { params }) {
     );
   }
 
+  // Build the judges_order array
+  const { data: regularJudgesData } = await supabaseAdmin
+    .from('event_judges')
+    .select('judge_id, users(name)')
+    .eq('event_id', id);
+
+  const { data: guestJudges } = await supabaseAdmin
+    .from('guest_judges')
+    .select('id, name')
+    .eq('event_id', id);
+
+  const judgesOrder = [];
+
+  if (regularJudgesData) {
+    regularJudgesData.forEach((rj) => {
+      judgesOrder.push({
+        id: rj.judge_id,
+        type: 'user',
+        name: rj.users?.name || 'Judge',
+      });
+    });
+  }
+
+  if (guestJudges) {
+    guestJudges.forEach((gj) => {
+      judgesOrder.push({
+        id: gj.id,
+        type: 'guest',
+        name: gj.name,
+      });
+    });
+  }
+
   const firstParticipantId = participants[0].id;
   const now = new Date().toISOString();
 
-  // Update event: set status='active', set current_participant_id, set times
+  // Update event: set status='active', set current_participant_id, set times, and initialize turn state
   const { data: updatedEvent, error } = await supabaseAdmin
     .from('events')
     .update({
@@ -54,6 +87,9 @@ export async function POST(request, { params }) {
       current_participant_id: firstParticipantId,
       current_round_start_time: now,
       started_at: now,
+      judges_order: judgesOrder,
+      current_judge_index: 0,
+      turn_start_time: now,
     })
     .eq('id', id)
     .select()

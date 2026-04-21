@@ -50,12 +50,16 @@ export async function POST(request, { params }) {
 
   let updateData = {
     current_round_start_time: new Date().toISOString(),
+    current_judge_index: 0,
+    turn_start_time: new Date().toISOString(),
   };
 
   // If no next participant, end the event
   if (nextIndex >= participants.length) {
     updateData.status = 'ended';
     updateData.current_participant_id = null;
+    updateData.current_judge_index = null;
+    updateData.turn_start_time = null;
   } else {
     updateData.current_participant_id = participants[nextIndex].id;
   }

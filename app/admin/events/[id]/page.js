@@ -1043,6 +1043,49 @@ export default function AdminEventPage() {
                       );
                     })()}
                   </p>
+
+                  {/* Current Judge Info */}
+                  <div className="text-sm text-zinc-700 dark:text-zinc-300 flex flex-col gap-1">
+                    <strong>現在の審査員:</strong>
+                    {event.current_judge_index !== null &&
+                    event.judges_order &&
+                    event.judges_order.length > 0 ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-teal-600 dark:text-teal-400 font-semibold bg-teal-50 dark:bg-teal-900/20 px-2 py-0.5 rounded-md inline-block w-fit">
+                          {event.judges_order[event.current_judge_index]
+                            ?.name || 'Unknown'}{' '}
+                          (審査中...)
+                        </span>
+                        <button
+                          onClick={async () => {
+                            if (
+                              confirm(
+                                'この審査員をスキップしてデフォルトスコア(1点)を割り当てますか？',
+                              )
+                            ) {
+                              try {
+                                const res = await authFetch(
+                                  `/api/events/${id}/skip-judge`,
+                                  { method: 'POST' },
+                                );
+                                if (!res.ok) alert('スキップに失敗しました');
+                              } catch (err) {
+                                alert('エラーが発生しました');
+                              }
+                            }
+                          }}
+                          className="px-2 py-1 text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-md font-semibold transition"
+                        >
+                          スキップ ⏭
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-zinc-500">
+                        すべての審査員の採点が完了しました。次へ進んでください。
+                      </span>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                       残り時間:
@@ -1050,8 +1093,9 @@ export default function AdminEventPage() {
                     <div className="font-mono text-lg font-bold text-teal-600 dark:text-teal-400">
                       {formatSeconds(
                         getRemainingRoundTime(
-                          event.current_round_start_time,
-                          60,
+                          event.turn_start_time ||
+                            event.current_round_start_time,
+                          event.turn_duration_seconds || 60,
                         ),
                       )}
                     </div>

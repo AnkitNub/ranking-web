@@ -332,8 +332,11 @@ function CountdownTimer({ roundStartTime, roundDurationSeconds = 60 }) {
  * @param {Object|null} props.existingScore - Existing score
  * @param {string} props.eventId - Event ID
  * @param {Function} props.onScored - Score callback
- * @param {Date} props.roundStartTime - Round start time
+ * @param {Date} props.roundStartTime - Round start time (or turn start time)
  * @param {number} props.maxScore - Max score
+ * @param {boolean} props.isMyTurn - Whether it's this judge's turn
+ * @param {Object} props.currentTurnJudge - The judge whose turn it currently is
+ * @param {number} props.turnDurationSeconds - Turn duration in seconds
  */
 function CurrentParticipantSection({
   participant,
@@ -342,17 +345,48 @@ function CurrentParticipantSection({
   onScored,
   roundStartTime,
   maxScore,
+  isMyTurn,
+  currentTurnJudge,
+  turnDurationSeconds = 60,
 }) {
-  const votingLocked = isVotingLocked(roundStartTime, 60);
+  const votingLocked = isVotingLocked(roundStartTime, turnDurationSeconds);
+
+  useEffect(() => {
+    if (isMyTurn && votingLocked && !existingScore) {
+      // Time is up and no score was submitted. Auto-submit 0 (or 1) to pass turn to next judge.
+      authFetch(`/api/events/${eventId}/scores`, {
+        method: 'POST',
+        body: JSON.stringify({ participant_id: participant.id, score: 1 }),
+      }).then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          onScored(participant.id, data.score);
+        }
+      });
+    }
+  }, [
+    isMyTurn,
+    votingLocked,
+    existingScore,
+    eventId,
+    participant.id,
+    onScored,
+  ]);
 
   return (
-    <div className="mb-8 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-3xl border-2 border-emerald-200 dark:border-emerald-800/50 p-8 shadow-lg">
+    <div
+      className={`mb-8 ${isMyTurn ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 shadow-lg' : 'bg-zinc-50 dark:bg-zinc-900/50 shadow-inner'} rounded-3xl border-2 ${isMyTurn ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-zinc-200 dark:border-zinc-800'} p-8 transition-all duration-300`}
+    >
       {/* Current participant label */}
       <div className="flex items-center gap-2 mb-6">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold text-sm">
+        <div
+          className={`flex items-center justify-center w-8 h-8 rounded-lg ${isMyTurn ? 'bg-emerald-600 text-white' : 'bg-zinc-400 text-white'} font-bold text-sm`}
+        >
           ●
         </div>
-        <span className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-300">
+        <span
+          className={`text-xs font-bold uppercase tracking-widest ${isMyTurn ? 'text-emerald-700 dark:text-emerald-300' : 'text-zinc-500'}`}
+        >
           現在の参加者
         </span>
       </div>
@@ -365,7 +399,9 @@ function CurrentParticipantSection({
             <div
               className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mb-4"
               style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)',
+                background: isMyTurn
+                  ? 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)'
+                  : '#a1a1aa',
               }}
             >
               {participant.name.charAt(0).toUpperCase()}
@@ -388,18 +424,38 @@ function CurrentParticipantSection({
 
         {/* Countdown timer */}
         <div className="flex justify-center">
-          <CountdownTimer roundStartTime={roundStartTime} />
+          {currentTurnJudge && (
+            <CountdownTimer
+              roundStartTime={roundStartTime}
+              roundDurationSeconds={turnDurationSeconds}
+            />
+          )}
         </div>
       </div>
 
       {/* Score input for current participant */}
-      {votingLocked ? (
-        <div className="text-center p-6 bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-red-200 dark:border-red-800">
-          <div className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
-            投票終了
+      {!currentTurnJudge ? (
+        <div className="text-center p-6 bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-teal-200 dark:border-teal-800">
+          <div className="text-lg font-semibold text-teal-600 dark:text-teal-400 mb-2">
+            採点完了
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            この参加者の投票期間は終了しました。次の参加者をお待ちください。
+            すべての審査員の採点が完了しました。次の参加者をお待ちください。
+          </p>
+        </div>
+      ) : !isMyTurn ? (
+        <div className="text-center p-6 bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+          <div className="text-lg font-semibold text-zinc-600 dark:text-zinc-400 mb-2 whitespace-pre-wrap">
+            {`現在、審査員「${currentTurnJudge.name}」の採点待ちです。\nあなたの番までお待ちください。`}
+          </div>
+        </div>
+      ) : votingLocked ? (
+        <div className="text-center p-6 bg-white/60 dark:bg-zinc-900/60 rounded-2xl border border-red-200 dark:border-red-800">
+          <div className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
+            時間切れ
+          </div>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            自動的に次のステップへ進みます...
           </p>
         </div>
       ) : (
@@ -479,6 +535,19 @@ export default function JudgeScoringPage() {
 
   // Determine mode: NEW if status is 'active', OLD otherwise
   const isNewMode = event?.status === 'active';
+
+  // Find if it's currently this judge's turn
+  const myAppId = supabaseUser?.id || guestJudgeSession?.id;
+  const isMyTurn =
+    isNewMode &&
+    event?.current_judge_index !== null &&
+    event?.judges_order &&
+    event.judges_order[event.current_judge_index]?.id === myAppId;
+
+  const currentTurnJudge =
+    isNewMode && event?.current_judge_index !== null && event?.judges_order
+      ? event.judges_order[event.current_judge_index]
+      : null;
 
   // For NEW mode: current participant and previous ones
   const currentParticipant = isNewMode
@@ -862,8 +931,13 @@ export default function JudgeScoringPage() {
             existingScore={myScores[currentParticipant.id] ?? null}
             eventId={id}
             onScored={handleScored}
-            roundStartTime={event?.current_round_start_time}
+            roundStartTime={
+              event?.turn_start_time || event?.current_round_start_time
+            }
             maxScore={event?.max_score ?? 10}
+            isMyTurn={isMyTurn}
+            currentTurnJudge={currentTurnJudge}
+            turnDurationSeconds={event?.turn_duration_seconds || 60}
           />
 
           {/* Previous scores section */}
