@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
+
+function generateRandomString(length) {
+  return crypto
+    .randomBytes(Math.ceil(length / 2))
+    .toString('hex')
+    .slice(0, length)
+    .toUpperCase();
+}
 
 export async function GET(request) {
   const user = await getAuthenticatedUser(request);
@@ -38,24 +47,10 @@ export async function POST(request) {
   if (user.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const {
-    name,
-    event_date,
-    start_time,
-    end_time,
-    description,
-    deadline,
-    max_score,
-  } = await request.json();
+  const { name, description, max_score, event_date, start_time } =
+    await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
-  if (!event_date)
-    return NextResponse.json({ error: 'Date is required' }, { status: 400 });
-  if (!start_time)
-    return NextResponse.json(
-      { error: 'Start time is required' },
-      { status: 400 },
-    );
 
   const maxScoreNum = Number(max_score);
   if (
@@ -68,17 +63,34 @@ export async function POST(request) {
       { status: 400 },
     );
 
+  const event_code = generateRandomString(6);
+  const judge_password = generateRandomString(6);
+
+  // Calculate expiration: 24 hours after start_time if provided, else 24 hours from now
+  let expires_at;
+  if (event_date && start_time) {
+    // Force Japanese Standard Time (JST) parsing by appending +09:00
+    const startDateTime = new Date(`${event_date}T${start_time}+09:00`);
+    expires_at = new Date(
+      startDateTime.getTime() + 24 * 60 * 60 * 1000,
+    ).toISOString();
+  } else {
+    expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  }
+
   const { data, error } = await supabaseAdmin
     .from('events')
     .insert({
       name: name.trim(),
+      description: description?.trim() || null,
+      max_score: max_score ? maxScoreNum : 10,
       event_date: event_date || null,
       start_time: start_time || null,
-      end_time: end_time || null,
-      description: description?.trim() || null,
-      deadline: deadline || null,
-      max_score: max_score ? maxScoreNum : 10,
       admin_id: user.id,
+      event_code,
+      judge_password,
+      turn_duration_seconds: 10,
+      expires_at,
     })
     .select()
     .single();

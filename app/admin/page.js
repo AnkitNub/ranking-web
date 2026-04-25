@@ -7,34 +7,19 @@ import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
 
 function isExpired(event) {
-  if (!event) return false;
-
-  // Check if scoring deadline (deadline + end_time) has passed
-  if (event.deadline && event.end_time) {
-    const scoringDeadline = new Date(`${event.deadline}T${event.end_time}`);
-    if (new Date() > scoringDeadline) return true;
-  }
-
-  // Fall back to deadline check without time
-  if (event.deadline && !event.end_time) {
-    return new Date(event.deadline) < new Date(new Date().toDateString());
-  }
-
-  return false;
+  if (!event || !event.expires_at) return false;
+  return new Date(event.expires_at) < new Date();
 }
 
 function CreateEventModal({ onClose, onCreate }) {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [maxScore, setMaxScore] = useState('10');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [description, setDescription] = useState('');
-  const [deadline, setDeadline] = useState('');
-  const [maxScore, setMaxScore] = useState('10');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [confirmedStartTime, setConfirmedStartTime] = useState('');
-  const [confirmedEndTime, setConfirmedEndTime] = useState('');
+  const [createdEvent, setCreatedEvent] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -49,12 +34,10 @@ function CreateEventModal({ onClose, onCreate }) {
         method: 'POST',
         body: JSON.stringify({
           name: name.trim(),
+          description: description || null,
+          max_score: maxScore ? Number(maxScore) : 10,
           event_date: date || null,
           start_time: startTime || null,
-          end_time: endTime || null,
-          description: description || null,
-          deadline: deadline || null,
-          max_score: maxScore ? Number(maxScore) : 10,
         }),
       });
       const data = await res.json();
@@ -63,10 +46,73 @@ function CreateEventModal({ onClose, onCreate }) {
         return;
       }
       onCreate(data.event);
-      onClose();
+      setCreatedEvent(data.event);
     } finally {
       setLoading(false);
     }
+  }
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  if (createdEvent) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 max-h-[90vh] overflow-y-auto">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 text-emerald-600 dark:text-emerald-400">
+            イベントが作成されました！
+          </h2>
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                イベントコード
+              </label>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={createdEvent.event_code || ''}
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm font-mono text-zinc-900 dark:text-zinc-100"
+                />
+                <button
+                  onClick={() => handleCopy(createdEvent.event_code)}
+                  className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-sm font-medium transition"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                審査員パスワード
+              </label>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={createdEvent.judge_password || ''}
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm font-mono text-zinc-900 dark:text-zinc-100"
+                />
+                <button
+                  onClick={() => handleCopy(createdEvent.judge_password)}
+                  className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-sm font-medium transition"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900">
+              この情報はイベント一覧からも確認できます。
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
+          >
+            閉じる
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -90,11 +136,10 @@ function CreateEventModal({ onClose, onCreate }) {
             />
           </div>
 
-          {/* Event & Scoring Details */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                開始日 *
+                イベント日 *
               </label>
               <input
                 type="date"
@@ -104,89 +149,21 @@ function CreateEventModal({ onClose, onCreate }) {
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                イベントが開催される日
-              </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                採点締め切り
-              </label>
-              <input
-                type="date"
-                min={new Date().toISOString().split('T')[0]}
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                審査員はこの日付以降スコアを送信できません。
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 開始時間 *
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  required
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedStartTime(startTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    startTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!startTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedStartTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                終了時間
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedEndTime(endTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    endTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!endTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedEndTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
+              <input
+                type="time"
+                required
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
             </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
               審査員1人あたりの最高得点 *
@@ -292,26 +269,12 @@ function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
 
 function EditEventModal({ event, onClose, onEdit }) {
   const [name, setName] = useState(event?.name || '');
-  const [date, setDate] = useState(
-    event?.event_date
-      ? new Date(event.event_date).toISOString().split('T')[0]
-      : '',
-  );
-  const [startTime, setStartTime] = useState(event?.start_time || '');
-  const [endTime, setEndTime] = useState(event?.end_time || '');
   const [description, setDescription] = useState(event?.description || '');
-  const [deadline, setDeadline] = useState(
-    event?.deadline ? new Date(event.deadline).toISOString().split('T')[0] : '',
-  );
   const [maxScore, setMaxScore] = useState(event?.max_score || '10');
+  const [date, setDate] = useState(event?.event_date || '');
+  const [startTime, setStartTime] = useState(event?.start_time || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [confirmedStartTime, setConfirmedStartTime] = useState(
-    event?.start_time || '',
-  );
-  const [confirmedEndTime, setConfirmedEndTime] = useState(
-    event?.end_time || '',
-  );
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -326,12 +289,10 @@ function EditEventModal({ event, onClose, onEdit }) {
         method: 'PUT',
         body: JSON.stringify({
           name: name.trim(),
+          description: description || null,
+          max_score: maxScore ? Number(maxScore) : 10,
           event_date: date || null,
           start_time: startTime || null,
-          end_time: endTime || null,
-          description: description || null,
-          deadline: deadline || null,
-          max_score: maxScore ? Number(maxScore) : 10,
         }),
       });
       const data = await res.json();
@@ -367,7 +328,7 @@ function EditEventModal({ event, onClose, onEdit }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 イベント日 *
@@ -380,87 +341,18 @@ function EditEventModal({ event, onClose, onEdit }) {
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                The day your event takes place
-              </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                得点締め切り
-              </label>
-              <input
-                type="date"
-                min={new Date().toISOString().split('T')[0]}
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Deadline for judges
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 開始時間 *
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  required
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedStartTime(startTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    startTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!startTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedStartTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                終焉の時
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedEndTime(endTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    endTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!endTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedEndTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
+              <input
+                type="time"
+                required
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
             </div>
           </div>
           <div>
@@ -702,30 +594,7 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               )}
-                              {event.deadline && event.end_time && (
-                                <div
-                                  className={`rounded-lg p-2.5 space-y-1 text-sm bg-teal-50 dark:bg-teal-900/20`}
-                                >
-                                  <p
-                                    className={`font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs`}
-                                  >
-                                    終了日時
-                                  </p>
-                                  <div
-                                    className={`text-zinc-800 dark:text-zinc-200 font-medium`}
-                                  >
-                                    {new Date(
-                                      event.deadline,
-                                    ).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })}
-                                    {' | '}
-                                    {event.end_time}
-                                  </div>
-                                </div>
-                              )}
+
                               {event.description && (
                                 <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs">
@@ -878,30 +747,7 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               )}
-                              {event.deadline && event.end_time && (
-                                <div
-                                  className={`rounded-lg p-2.5 space-y-1 text-sm bg-red-50 dark:bg-red-900/20`}
-                                >
-                                  <p
-                                    className={`font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs`}
-                                  >
-                                    終了日時
-                                  </p>
-                                  <div
-                                    className={`text-zinc-800 dark:text-zinc-200 font-medium`}
-                                  >
-                                    {new Date(
-                                      event.deadline,
-                                    ).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })}
-                                    {' | '}
-                                    {event.end_time}
-                                  </div>
-                                </div>
-                              )}
+
                               {event.description && (
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs">

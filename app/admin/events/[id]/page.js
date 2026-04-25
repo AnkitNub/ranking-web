@@ -771,13 +771,11 @@ export default function AdminEventPage() {
             <h1 className="text-2xl font-semibold text-black dark:text-black">
               {event?.name}
             </h1>
-            {event?.deadline &&
-              new Date(event.deadline) <
-                new Date(new Date().toDateString()) && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                  期限切れ
-                </span>
-              )}
+            {event?.expires_at && new Date(event.expires_at) < new Date() && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                期限切れ
+              </span>
+            )}
           </div>
           {event?.event_date && (
             <div className="mt-2 space-y-1">
@@ -790,32 +788,24 @@ export default function AdminEventPage() {
                 })}
                 {event?.start_time && <> {event.start_time}</>}
               </p>
-              {event?.deadline && event?.end_time && (
-                <p className="text-base text-zinc-800">
-                  <strong>終了:</strong>{' '}
-                  {new Date(event.deadline).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}{' '}
-                  {event.end_time}
-                </p>
-              )}
             </div>
           )}
-          {event?.deadline && (
+          {event?.expires_at && (
             <p
-              className={`text-base mt-0.5 font-medium ${
-                new Date(event.deadline) < new Date(new Date().toDateString())
+              className={`text-sm mt-0.5 font-medium ${
+                new Date(event.expires_at) < new Date()
                   ? 'text-red-600 dark:text-red-500'
-                  : 'text-amber-600 dark:text-amber-500'
+                  : 'text-zinc-600 dark:text-zinc-500'
               }`}
             >
-              採点期限:{' '}
-              {new Date(event.deadline).toLocaleDateString('en-US', {
+              <strong>有効期限:</strong>{' '}
+              {new Date(event.expires_at).toLocaleString('en-US', {
+                timeZone: 'Asia/Tokyo',
                 year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
               })}
             </p>
           )}
@@ -833,6 +823,76 @@ export default function AdminEventPage() {
               点
             </p>
           )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-6">
+            {event?.event_code && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-zinc-800 font-medium">
+                  Event Code:
+                </span>
+                <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-md overflow-hidden bg-white dark:bg-zinc-800 shadow-sm">
+                  <code className="px-3 py-1.5 text-sm font-mono text-zinc-900 dark:text-zinc-100 select-all bg-zinc-50 dark:bg-zinc-800/50">
+                    {event.event_code}
+                  </code>
+                  <button
+                    onClick={() =>
+                      navigator.clipboard.writeText(event.event_code)
+                    }
+                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    title="Copy Event Code"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {event?.judge_password && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-zinc-800 font-medium">
+                  Judge password:
+                </span>
+                <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-md overflow-hidden bg-white dark:bg-zinc-800 shadow-sm">
+                  <code className="px-3 py-1.5 text-sm font-mono text-zinc-900 dark:text-zinc-100 select-all bg-zinc-50 dark:bg-zinc-800/50">
+                    {event.judge_password}
+                  </code>
+                  <button
+                    onClick={() =>
+                      navigator.clipboard.writeText(event.judge_password)
+                    }
+                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    title="Copy Judge password"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}

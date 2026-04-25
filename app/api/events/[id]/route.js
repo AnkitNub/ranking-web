@@ -49,28 +49,12 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const {
-    name,
-    event_date,
-    start_time,
-    end_time,
-    deadline,
-    description,
-    max_score,
-  } = await request.json();
+  const { name, description, max_score, event_date, start_time } =
+    await request.json();
 
   if (name !== undefined && !name?.trim())
     return NextResponse.json(
       { error: 'Name cannot be empty' },
-      { status: 400 },
-    );
-
-  if (event_date !== undefined && !event_date)
-    return NextResponse.json({ error: 'Date is required' }, { status: 400 });
-
-  if (start_time !== undefined && !start_time)
-    return NextResponse.json(
-      { error: 'Start time is required' },
       { status: 400 },
     );
 
@@ -85,14 +69,28 @@ export async function PUT(request, { params }) {
 
   const updateData = {};
   if (name !== undefined) updateData.name = name.trim();
-  if (event_date !== undefined) updateData.event_date = event_date || null;
-  if (start_time !== undefined) updateData.start_time = start_time || null;
-  if (end_time !== undefined) updateData.end_time = end_time || null;
-  if (deadline !== undefined) updateData.deadline = deadline || null;
   if (description !== undefined)
     updateData.description = description?.trim() || null;
   if (max_score !== undefined)
     updateData.max_score = max_score ? Number(max_score) : null;
+
+  if (event_date !== undefined) updateData.event_date = event_date || null;
+  if (start_time !== undefined) updateData.start_time = start_time || null;
+
+  // Recalculate expires_at if time was explicitly modified
+  if (event_date !== undefined || start_time !== undefined) {
+    const currentDate =
+      event_date !== undefined ? event_date : event.event_date;
+    const currentTime =
+      start_time !== undefined ? start_time : event.start_time;
+    if (currentDate && currentTime) {
+      // Force Japanese Standard Time (JST) parsing by appending +09:00
+      const startDateTime = new Date(`${currentDate}T${currentTime}+09:00`);
+      updateData.expires_at = new Date(
+        startDateTime.getTime() + 24 * 60 * 60 * 1000,
+      ).toISOString();
+    }
+  }
 
   const { data, error } = await supabaseAdmin
     .from('events')
