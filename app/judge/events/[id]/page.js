@@ -192,6 +192,11 @@ export default function JudgeScoringPage() {
       authFetch(`/api/events/${id}/scores`),
     ]);
 
+    if (eventRes.status === 401 || eventRes.status === 403) {
+      router.replace('/signin');
+      return;
+    }
+
     if (!eventRes.ok) {
       router.replace('/judge');
       return;
@@ -214,16 +219,18 @@ export default function JudgeScoringPage() {
 
   useEffect(() => {
     if (loading) return;
-    if (!firebaseUser) {
-      router.replace('/signin');
-      return;
-    }
+
     if (supabaseUser && supabaseUser.role === 'admin') {
       router.replace('/admin');
       return;
     }
-    if (supabaseUser) fetchData();
-  }, [loading, firebaseUser, supabaseUser, fetchData, router]);
+
+    // Attempt to fetch data regardless of firebaseUser
+    // because guest sessions are valid too.
+    // If it fails, fetchData itself redirects to /signin (or we can handle it).
+    // Actually, authFetch returns 401 if unauthenticated.
+    fetchData();
+  }, [loading, supabaseUser, fetchData, router]);
 
   function handleScored(participantId, scoreObj) {
     setMyScores((prev) => ({ ...prev, [participantId]: scoreObj }));

@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
+import {
+  getAuthenticatedUser,
+  getGuestUser,
+  supabaseAdmin,
+} from '@/lib/apiAuth';
 
 async function resolveEvent(id) {
   const { data } = await supabaseAdmin
@@ -12,18 +16,25 @@ async function resolveEvent(id) {
 
 export async function GET(request, { params }) {
   const user = await getAuthenticatedUser(request);
-  if (!user)
+  const guest = getGuestUser(request);
+
+  if (!user && !guest)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { id } = await params;
-  const event = await resolveEvent(id);
-  if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  if (user.role === 'admin' && event.admin_id !== user.id) {
+  if (guest && String(guest.event_id) !== String(id)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  if (user.role === 'judge') {
+  const event = await resolveEvent(id);
+  if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  if (user && user.role === 'admin' && event.admin_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  if (user && user.role === 'judge') {
     const { data: ej } = await supabaseAdmin
       .from('event_judges')
       .select('event_id')

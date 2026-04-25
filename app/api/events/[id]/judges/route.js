@@ -14,8 +14,15 @@ export async function GET(request, { params }) {
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
+  const { data: guestData, error: guestError } = await supabaseAdmin
+    .from('guest_judges')
+    .select('id, name, created_at')
+    .eq('event_id', id);
+  if (guestError)
+    return NextResponse.json({ error: guestError.message }, { status: 500 });
+
   const judges = data.map((row) => row.users).filter(Boolean);
-  return NextResponse.json({ judges });
+  return NextResponse.json({ judges, guestJudges: guestData || [] });
 }
 
 export async function POST(request, { params }) {

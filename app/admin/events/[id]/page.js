@@ -303,6 +303,7 @@ function ParticipantsTab({ eventId }) {
 /* ─── Judges Tab ───────────────────────────────────────────────────────────── */
 function JudgesTab({ eventId }) {
   const [assignedJudges, setAssignedJudges] = useState([]);
+  const [guestJudges, setGuestJudges] = useState([]);
   const [allJudges, setAllJudges] = useState([]);
   const [selectedJudgeIds, setSelectedJudgeIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -317,6 +318,7 @@ function JudgesTab({ eventId }) {
     const assignedData = await assignedRes.json();
     const allData = await allRes.json();
     setAssignedJudges(assignedData.judges || []);
+    setGuestJudges(assignedData.guestJudges || []);
     setAllJudges(allData.judges || []);
     setLoading(false);
   }, [eventId]);
@@ -473,7 +475,7 @@ function JudgesTab({ eventId }) {
 
       {assignedJudges.length === 0 ? (
         <p className="text-sm text-zinc-700 text-center py-6">
-          まだ審査員が割り当てられていません。
+          まだ正審査員が割り当てられていません。
         </p>
       ) : (
         <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
@@ -485,7 +487,7 @@ function JudgesTab({ eventId }) {
             >
               <div>
                 <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                  {j.name}
+                  {j.name} (正審査員)
                 </p>
                 <p className="text-xs text-slate-800 dark:text-slate-200">
                   {j.email}
@@ -507,6 +509,31 @@ function JudgesTab({ eventId }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {guestJudges.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-medium text-black dark:text-black mb-3">
+            ゲスト審査員 ({guestJudges.length})
+          </h3>
+          <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
+            {guestJudges.map((gj) => (
+              <li
+                key={gj.id}
+                className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 transition"
+              >
+                <div>
+                  <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
+                    {gj.name} (ゲスト)
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    参加日時: {new Date(gj.created_at).toLocaleString('ja-JP')}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

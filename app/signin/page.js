@@ -12,11 +12,17 @@ import Link from 'next/link';
 
 export default function SignInPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState('guest'); // 'guest' or 'admin'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Guest specific states
+  const [guestName, setGuestName] = useState('');
+  const [eventCode, setEventCode] = useState('');
+  const [guestPassword, setGuestPassword] = useState('');
 
   async function handleEmailSignIn(e) {
     e.preventDefault();
@@ -46,10 +52,36 @@ export default function SignInPage() {
     }
   }
 
+  async function handleGuestSignIn(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/judges/guest-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_code: eventCode,
+          judge_password: guestPassword,
+          name: guestName,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to sign in as guest.');
+      }
+      router.push(`/judge/events/${data.event_id}`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f9f5ea] dark:bg-[#f9f5ea] px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
             お帰りなさい
           </h1>
@@ -58,77 +90,179 @@ export default function SignInPage() {
           </p>
         </div>
 
-        <form onSubmit={handleEmailSignIn} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              メールアドレス
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              パスワード
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 pr-10 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
-
+        <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg mb-6">
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-teal-600 text-white py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => {
+              setActiveTab('guest');
+              setError('');
+            }}
+            className={`flex-1 text-sm py-2 px-4 rounded-md transition font-medium ${
+              activeTab === 'guest'
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+            }`}
           >
-            {loading ? 'ログイン中…' : 'ログイン'}
+            Guest Judge
           </button>
-        </form>
-
-        <div className="my-5 flex items-center gap-3">
-          <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
-          <span className="text-xs text-zinc-400">or</span>
-          <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
+          <button
+            onClick={() => {
+              setActiveTab('admin');
+              setError('');
+            }}
+            className={`flex-1 text-sm py-2 px-4 rounded-md transition font-medium ${
+              activeTab === 'admin'
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+            }`}
+          >
+            Admin / Host
+          </button>
         </div>
 
-        <button
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <GoogleIcon />
-          Googleで続ける
-        </button>
+        {activeTab === 'guest' ? (
+          <form onSubmit={handleGuestSignIn} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                お名前 (Name)
+              </label>
+              <input
+                type="text"
+                required
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="Taro Yamada"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                イベントコード (Event Code)
+              </label>
+              <input
+                type="text"
+                required
+                value={eventCode}
+                onChange={(e) => setEventCode(e.target.value)}
+                placeholder="ABC-123"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                ジャッジ用パスワード (Judge Password)
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={guestPassword}
+                  onChange={(e) => setGuestPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 pr-10 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-teal-600 text-white py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            >
+              {loading ? '参加中…' : 'イベントに参加 (Join Event)'}
+            </button>
+          </form>
+        ) : (
+          <>
+            <form onSubmit={handleEmailSignIn} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                  メールアドレス
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                  パスワード
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 pr-10 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition"
+                    aria-label={
+                      showPassword ? 'Hide password' : 'Show password'
+                    }
+                  >
+                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-lg bg-teal-600 text-white py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'ログイン中…' : 'ログイン'}
+              </button>
+            </form>
+
+            <div className="my-5 flex items-center gap-3">
+              <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
+              <span className="text-xs text-zinc-400">or</span>
+              <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
+            </div>
+
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <GoogleIcon />
+              Googleで続ける
+            </button>
+          </>
+        )}
 
         <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-700">
-          アカウントをお持ちでないですか？ <Link
+          アカウントをお持ちでないですか？{' '}
+          <Link
             href="/signup"
             className="font-medium text-teal-700 dark:text-teal-400 hover:underline"
           >
