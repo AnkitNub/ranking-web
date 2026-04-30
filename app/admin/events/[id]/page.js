@@ -7,9 +7,11 @@ import Navbar from '@/components/Navbar';
 import LiveTurnBanner from '@/components/LiveTurnBanner';
 import { authFetch } from '@/lib/authFetch';
 import { useEventState } from '@/lib/useEventState';
+import { useTranslation } from 'react-i18next';
 
 /* ─── Score Details Modal ──────────────────────────────────────────────────── */
 function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
+  const { t } = useTranslation('common');
   const [judges, setJudges] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +53,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
       <div className="bg-white dark:bg-slate-700 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black dark:text-white">
-            {participant.name} のスコア
+            {t('scoresFor', { name: participant.name })}
           </h2>
           <button
             onClick={onClose}
@@ -63,11 +65,11 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
 
         {loading ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
-            審査員を読み込み中...
+            {t('loadingJudges')}
           </p>
         ) : judgeScores.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
-            まだ審査員が割り当てられていません。
+            {t('noJudgesAssigned')}
           </p>
         ) : (
           <div className="space-y-2">
@@ -97,7 +99,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
           onClick={onClose}
           className="mt-6 w-full px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 text-black dark:text-white font-semibold hover:bg-slate-300 dark:hover:bg-slate-500 transition"
         >
-          閉じる
+          {t('close')}
         </button>
       </div>
     </div>
@@ -112,6 +114,7 @@ function DeleteParticipantModal({
   onClose,
   onConfirm,
 }) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -128,10 +131,10 @@ function DeleteParticipantModal({
         onClose();
       } else {
         const data = await res.json();
-        setError(data.error || 'Failed to delete participant');
+        setError(data.error || t('failedToDeleteParticipant'));
       }
     } catch (err) {
-      setError('An error occurred while deleting');
+      setError(t('somethingWentWrong'));
     } finally {
       setLoading(false);
     }
@@ -141,11 +144,10 @@ function DeleteParticipantModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          参加者を削除
+          {t('deleteParticipant')}
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-          本当に <strong>{participantName}</strong>{' '}
-          とそのすべてのスコアを削除しますか？この操作は元に戻せません。
+          {t('deleteParticipantConfirm', { name: participantName })}
         </p>
         {error && (
           <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 mb-4">
@@ -157,14 +159,14 @@ function DeleteParticipantModal({
             onClick={onClose}
             className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
-            キャンセル
+            {t('cancel')}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading ? '削除中…' : '削除'}
+            {loading ? t('deletingDot') : t('delete')}
           </button>
         </div>
       </div>
@@ -174,6 +176,7 @@ function DeleteParticipantModal({
 
 /* ─── Participants Tab ─────────────────────────────────────────────────────── */
 function ParticipantsTab({ eventId }) {
+  const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -204,7 +207,7 @@ function ParticipantsTab({ eventId }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to add participant.');
+        setError(data.error || t('failedToAddParticipant'));
         return;
       }
       setParticipants((prev) => [...prev, data.participant]);
@@ -220,7 +223,7 @@ function ParticipantsTab({ eventId }) {
 
   if (loading)
     return (
-      <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>
+      <p className="text-sm text-zinc-600 py-6 text-center">{t('loading')}</p>
     );
 
   return (
@@ -240,7 +243,7 @@ function ParticipantsTab({ eventId }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="参加者名"
+          placeholder={t('participantName')}
           className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
         />
         <button
@@ -248,7 +251,7 @@ function ParticipantsTab({ eventId }) {
           disabled={adding || !input.trim()}
           className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
         >
-          {adding ? '…' : '追加'}
+          {adding ? t('addingDot') : t('addParticipant')}
         </button>
       </form>
 
@@ -260,7 +263,7 @@ function ParticipantsTab({ eventId }) {
 
       {participants.length === 0 ? (
         <p className="text-sm text-zinc-700 text-center py-8">
-          まだ参加者がいません。上から追加してください。
+          {t('noParticipantsYetHelp')}
         </p>
       ) : (
         <ul className="divide-y divide-zinc-200 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
@@ -275,7 +278,7 @@ function ParticipantsTab({ eventId }) {
               <button
                 onClick={() => setParticipantToDelete(p)}
                 className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded"
-                title="参加者を削除"
+                title={t('deleteParticipant')}
               >
                 <svg
                   className="w-4 h-4"
@@ -296,7 +299,7 @@ function ParticipantsTab({ eventId }) {
         </ul>
       )}
       <p className="text-xs text-zinc-700">
-        全 {participants.length} 人の参加者
+        {t('totalParticipantsLabel', { count: participants.length })}
       </p>
     </div>
   );
@@ -304,6 +307,7 @@ function ParticipantsTab({ eventId }) {
 
 /* ─── Judges Tab ───────────────────────────────────────────────────────────── */
 function JudgesTab({ eventId }) {
+  const { t } = useTranslation('common');
   const [assignedJudges, setAssignedJudges] = useState([]);
   const [guestJudges, setGuestJudges] = useState([]);
   const [allJudges, setAllJudges] = useState([]);
@@ -374,7 +378,7 @@ function JudgesTab({ eventId }) {
       }
 
       if (failedAssignments.length > 0) {
-        setError(`Failed to assign ${failedAssignments.length} judge(s).`);
+        setError(t('failedToAssignJudges', { count: failedAssignments.length }));
       }
 
       setSelectedJudgeIds(new Set());
@@ -394,7 +398,7 @@ function JudgesTab({ eventId }) {
 
   if (loading)
     return (
-      <p className="text-sm text-zinc-400 py-6 text-center">読み込み中…</p>
+      <p className="text-sm text-zinc-400 py-6 text-center">{t('loading')}</p>
     );
 
   return (
@@ -404,7 +408,7 @@ function JudgesTab({ eventId }) {
         <>
           <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-700">
             <h3 className="text-sm font-medium text-black dark:text-black">
-              利用可能な審査員 ({unassignedJudges.length})
+              {t('availableJudges', { count: unassignedJudges.length })}
             </h3>
             {unassignedJudges.length > 1 && (
               <button
@@ -412,8 +416,8 @@ function JudgesTab({ eventId }) {
                 className="text-xs text-teal-600 dark:text-teal-400 hover:underline transition"
               >
                 {selectedJudgeIds.size === unassignedJudges.length
-                  ? 'すべて選択解除'
-                  : 'すべて選択'}
+                  ? t('unselectAll')
+                  : t('selectAll')}
               </button>
             )}
           </div>
@@ -450,18 +454,18 @@ function JudgesTab({ eventId }) {
               className="w-full rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
             >
               {assigning
-                ? '…'
-                : `選択した審査員を割り当てる (${selectedJudgeIds.size})`}
+                ? t('assigningDot')
+                : t('assignSelectedJudges', { count: selectedJudgeIds.size })}
             </button>
           )}
         </>
       ) : allJudges.length === 0 ? (
         <p className="text-xs text-zinc-700">
-          まだ審査員が登録されていません。審査員に登録を依頼してください。
+          {t('noJudgesRegistered')}
         </p>
       ) : (
         <p className="text-xs text-zinc-700">
-          登録されているすべての審査員が割り当てられています。
+          {t('allJudgesAssigned')}
         </p>
       )}
 
@@ -472,12 +476,12 @@ function JudgesTab({ eventId }) {
       )}
 
       <h3 className="text-sm font-medium text-black dark:text-black pt-2">
-        割り当てられた審査員 ({assignedJudges.length})
+        {t('assignedJudgesLabel', { count: assignedJudges.length })}
       </h3>
 
       {assignedJudges.length === 0 ? (
         <p className="text-sm text-zinc-700 text-center py-6">
-          まだ正審査員が割り当てられていません。
+          {t('noJudgesAssignedYet')}
         </p>
       ) : (
         <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
@@ -489,7 +493,7 @@ function JudgesTab({ eventId }) {
             >
               <div>
                 <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                  {j.name} (正審査員)
+                  {j.name} ({t('judge')})
                 </p>
                 <p className="text-xs text-slate-800 dark:text-slate-200">
                   {j.email}
@@ -516,7 +520,7 @@ function JudgesTab({ eventId }) {
       {guestJudges.length > 0 && (
         <div className="mt-8">
           <h3 className="text-sm font-medium text-black dark:text-black mb-3">
-            ゲスト審査員 ({guestJudges.length})
+            {t('guestJudgesLabel', { count: guestJudges.length })}
           </h3>
           <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
             {guestJudges.map((gj) => (
@@ -526,10 +530,10 @@ function JudgesTab({ eventId }) {
               >
                 <div>
                   <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                    {gj.name} (ゲスト)
+                    {gj.name} ({t('guestJudge')})
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    参加日時: {new Date(gj.created_at).toLocaleString('ja-JP')}
+                    {t('joinedAt', { date: new Date(gj.created_at).toLocaleString() })}
                   </p>
                 </div>
               </li>
@@ -543,6 +547,7 @@ function JudgesTab({ eventId }) {
 
 /* ─── Scoreboard Tab ───────────────────────────────────────────────────────── */
 function ScoreboardTab({ eventId }) {
+  const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [scores, setScores] = useState([]);
   const [assignedJudgesCount, setAssignedJudgesCount] = useState(0);
@@ -610,7 +615,7 @@ function ScoreboardTab({ eventId }) {
 
   if (loading)
     return (
-      <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>
+      <p className="text-sm text-zinc-600 py-6 text-center">{t('loading')}</p>
     );
 
   return (
@@ -620,7 +625,7 @@ function ScoreboardTab({ eventId }) {
         <div className="rounded-xl border-2 border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-              🎉 すべてのスコアが出揃いました！
+              {t('allScoresReady')}
             </p>
             <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
               {presentUrl}
@@ -631,7 +636,7 @@ function ScoreboardTab({ eventId }) {
               onClick={handleCopyLink}
               className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
             >
-              {copied ? '✓ コピーしました！' : 'リンクをコピー'}
+              {copied ? t('copied') : t('copyLink')}
             </button>
             <a
               href={`/present/${eventId}`}
@@ -639,7 +644,7 @@ function ScoreboardTab({ eventId }) {
               rel="noopener noreferrer"
               className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
             >
-              プレゼン画面へ →
+              {t('goToPresent')}
             </a>
           </div>
         </div>
@@ -647,20 +652,20 @@ function ScoreboardTab({ eventId }) {
 
       <div className="flex items-center justify-between">
         <p className="text-xs text-slate-800">
-          15秒ごとに自動更新
-          {lastRefreshed && ` · 最終更新 ${lastRefreshed.toLocaleTimeString()}`}
+          {t('autoRefreshEvery15s')}
+          {lastRefreshed && ` · ${t('lastRefreshedAt', { time: lastRefreshed.toLocaleTimeString() })}`}
         </p>
         <button
           onClick={fetchScoreboard}
           className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
         >
-          ↻ 更新
+          ↻ {t('refresh')}
         </button>
       </div>
 
       {rows.length === 0 ? (
         <p className="text-sm text-zinc-600 text-center py-8">
-          参加者が追加されていません。
+          {t('noParticipantsAdded')}
         </p>
       ) : (
         <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
@@ -668,19 +673,19 @@ function ScoreboardTab({ eventId }) {
             <thead>
               <tr className="bg-slate-100 dark:bg-slate-600 border-b border-slate-200 dark:border-slate-700">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide w-12">
-                  順位
+                  {t('rankLabel')}
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  参加者
+                  {t('participantLabel')}
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  合計スコア
+                  {t('totalScoreLabel')}
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide hidden sm:table-cell">
-                  採点済み審査員
+                  {t('scoredJudgesLabel')}
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  アクション
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -716,7 +721,7 @@ function ScoreboardTab({ eventId }) {
                       onClick={() => setSelectedParticipant(row)}
                       className="text-xs px-2 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold transition"
                     >
-                      表示
+                      {t('show')}
                     </button>
                   </td>
                 </tr>
@@ -739,14 +744,15 @@ function ScoreboardTab({ eventId }) {
 }
 
 /* ─── Main Page ────────────────────────────────────────────────────────────── */
-const TABS = ['参加者', '審査員', 'スコアボード'];
+const TABS = ['tabParticipants', 'tabJudges', 'tabScoreboard'];
 
 export default function AdminEventPage() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const router = useRouter();
   const { firebaseUser, supabaseUser, loading } = useAuth();
   const [event, setEvent] = useState(null);
-  const [activeTab, setActiveTab] = useState('参加者');
+  const [activeTab, setActiveTab] = useState('tabParticipants');
   const [pageLoading, setPageLoading] = useState(true);
   const [startBusy, setStartBusy] = useState(false);
   const { state: liveState, refetch: refetchLive } = useEventState(id);
@@ -759,7 +765,7 @@ export default function AdminEventPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(`開始に失敗しました: ${data.error ?? res.status}`);
+        alert(t('failedToStart', { error: data.error ?? res.status }));
       }
       refetchLive();
     } finally {
@@ -796,7 +802,7 @@ export default function AdminEventPage() {
       <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <span className="text-sm text-zinc-400">読み込み中…</span>
+          <span className="text-sm text-zinc-400">{t('loading')}</span>
         </div>
       </div>
     );
@@ -812,7 +818,7 @@ export default function AdminEventPage() {
             onClick={() => router.push('/admin')}
             className="text-xs text-zinc-700 hover:text-teal-700 dark:hover:text-teal-400 transition mb-2"
           >
-            ← マイイベントに戻る
+            ← {t('backToMyEvents')}
           </button>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold text-black dark:text-black">
@@ -820,14 +826,14 @@ export default function AdminEventPage() {
             </h1>
             {event?.expires_at && new Date(event.expires_at) < new Date() && (
               <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                期限切れ
+                {t('expired')}
               </span>
             )}
           </div>
           {event?.event_date && (
             <div className="mt-2 space-y-1">
               <p className="text-base text-zinc-800">
-                <strong>開始:</strong>{' '}
+                <strong>{t('start')}:</strong>{' '}
                 {new Date(event.event_date).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -845,7 +851,7 @@ export default function AdminEventPage() {
                   : 'text-zinc-600 dark:text-zinc-500'
               }`}
             >
-              <strong>有効期限:</strong>{' '}
+              <strong>{t('expiration')}:</strong>{' '}
               {new Date(event.expires_at).toLocaleString('en-US', {
                 timeZone: 'Asia/Tokyo',
                 year: 'numeric',
@@ -863,11 +869,11 @@ export default function AdminEventPage() {
           )}
           {event?.max_score && (
             <p className="text-sm text-zinc-800 mt-1">
-              審査員ごとの最大スコア:{' '}
+              {t('maxScorePerJudge')}:{' '}
               <strong className="text-green-700 dark:text-green-400">
                 {event.max_score}
               </strong>{' '}
-              点
+              {t('points')}
             </p>
           )}
 
@@ -875,7 +881,7 @@ export default function AdminEventPage() {
             {event?.event_code && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-zinc-800 font-medium">
-                  Event Code:
+                  {t('eventCode')}:
                 </span>
                 <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-md overflow-hidden bg-white dark:bg-zinc-800 shadow-sm">
                   <code className="px-3 py-1.5 text-sm font-mono text-zinc-900 dark:text-zinc-100 select-all bg-zinc-50 dark:bg-zinc-800/50">
@@ -886,7 +892,7 @@ export default function AdminEventPage() {
                       navigator.clipboard.writeText(event.event_code)
                     }
                     className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
-                    title="Copy Event Code"
+                    title={t('copyEventCode')}
                   >
                     <svg
                       className="w-4 h-4"
@@ -909,7 +915,7 @@ export default function AdminEventPage() {
             {event?.judge_password && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-zinc-800 font-medium">
-                  Judge password:
+                  {t('judgePassword')}:
                 </span>
                 <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-md overflow-hidden bg-white dark:bg-zinc-800 shadow-sm">
                   <code className="px-3 py-1.5 text-sm font-mono text-zinc-900 dark:text-zinc-100 select-all bg-zinc-50 dark:bg-zinc-800/50">
@@ -920,7 +926,7 @@ export default function AdminEventPage() {
                       navigator.clipboard.writeText(event.judge_password)
                     }
                     className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
-                    title="Copy Judge password"
+                    title={t('copyJudgePassword')}
                   >
                     <svg
                       className="w-4 h-4"
@@ -961,11 +967,11 @@ export default function AdminEventPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2.5 text-base font-medium border-b-2 transition -mb-px ${
                   activeTab === tab
-                    ? 'border-teal-600 dark:border-teal-400 text-black dark:text-black'
-                    : 'border-transparent text-black dark:text-black hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'border-teal-600 dark:border-teal-400 text-teal-600 dark:text-teal-400'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-700'
                 }`}
               >
-                {tab}
+                {t(tab)}
               </button>
             ))}
           </div>
@@ -973,9 +979,9 @@ export default function AdminEventPage() {
 
         {/* Tab content */}
         <div>
-          {activeTab === '参加者' && <ParticipantsTab eventId={id} />}
-          {activeTab === '審査員' && <JudgesTab eventId={id} />}
-          {activeTab === 'スコアボード' && <ScoreboardTab eventId={id} />}
+          {activeTab === 'tabParticipants' && <ParticipantsTab eventId={id} />}
+          {activeTab === 'tabJudges' && <JudgesTab eventId={id} />}
+          {activeTab === 'tabScoreboard' && <ScoreboardTab eventId={id} />}
         </div>
       </main>
     </div>

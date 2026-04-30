@@ -70,13 +70,28 @@ export default function SignInPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to sign in as guest.');
+        throw new Error(data.error || t('failedToSignInGuest'));
       }
       router.push(`/judge/events/${data.event_id}`);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function friendlyError(code) {
+    switch (code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return t('incorrectEmailPassword');
+      case 'auth/too-many-requests':
+        return t('tooManyAttempts');
+      case 'auth/user-disabled':
+        return t('accountDisabled');
+      default:
+        return t('somethingWentWrong');
     }
   }
 
@@ -335,17 +350,3 @@ function GoogleIcon() {
   );
 }
 
-function friendlyError(code) {
-  switch (code) {
-    case 'auth/user-not-found':
-    case 'auth/wrong-password':
-    case 'auth/invalid-credential':
-      return 'Incorrect email or password.';
-    case 'auth/too-many-requests':
-      return 'Too many attempts. Please try again later.';
-    case 'auth/user-disabled':
-      return 'This account has been disabled.';
-    default:
-      return 'Something went wrong. Please try again.';
-  }
-}

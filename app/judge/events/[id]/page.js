@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import LiveTurnBanner from '@/components/LiveTurnBanner';
 import { authFetch } from '@/lib/authFetch';
 import { useEventState } from '@/lib/useEventState';
+import { useTranslation } from 'react-i18next';
 
 function isExpired(event) {
   if (!event) return false;
@@ -35,6 +36,7 @@ function ScoreCard({
   isCurrentTurn,
   turnToken,
 }) {
+  const { t } = useTranslation('common');
   const [value, setValue] = useState(existingScore?.score ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -47,16 +49,16 @@ function ScoreCard({
     e.preventDefault();
     if (effectiveDisabled) return;
     if (!turnToken) {
-      setError('ターン情報がありません。再読み込みしてください。');
+      setError(t('noTurnInfo'));
       return;
     }
     if (value === '' || value === null) {
-      setError('スコアを入力してください。');
+      setError(t('pleaseEnterScore'));
       return;
     }
     const num = Number(value);
     if (isNaN(num) || num < 1 || num > max) {
-      setError(`スコアは1から${max}の間で入力してください。`);
+      setError(t('scoreRangeError', { max }));
       return;
     }
     setError('');
@@ -72,7 +74,7 @@ function ScoreCard({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'スコアの保存に失敗しました。');
+        setError(data.error || t('failedToSaveScore'));
         return;
       }
       onScored(participant.id, { participant_id: participant.id, score: num });
@@ -170,17 +172,17 @@ function ScoreCard({
             >
               {effectiveDisabled
                 ? isScored
-                  ? '✓ 採点済み'
+                  ? t('scored')
                   : !isCurrentTurn
-                    ? '待機中'
-                    : '終了'
+                    ? t('waiting')
+                    : t('finished')
                 : submitting
                   ? '…'
                   : isScored && isDirty
-                    ? '更新'
+                    ? t('update')
                     : isScored
-                      ? '✓ 完了'
-                      : '送信'}
+                      ? t('done')
+                      : t('send')}
             </button>
           </div>
           {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
@@ -191,6 +193,7 @@ function ScoreCard({
 }
 
 export default function JudgeScoringPage() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const router = useRouter();
   const { firebaseUser, supabaseUser, loading } = useAuth();
@@ -277,7 +280,7 @@ export default function JudgeScoringPage() {
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 rounded-full border-2 border-teal-200 border-t-teal-600 animate-spin" />
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              読み込み中…
+              {t('loading')}
             </span>
           </div>
         </div>
@@ -307,7 +310,7 @@ export default function JudgeScoringPage() {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          イベント一覧に戻る
+          {t('backToEvents')}
         </button>
 
         {/* Event header */}
@@ -320,7 +323,7 @@ export default function JudgeScoringPage() {
                 </h1>
                 {isExpired(event) && (
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400">
-                    終了
+                    {t('closed')}
                   </span>
                 )}
               </div>
@@ -328,7 +331,7 @@ export default function JudgeScoringPage() {
                 {event?.event_date && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      イベント日時
+                      {t('eventDateTime')}
                     </p>
                     <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                       {new Date(event.event_date).toLocaleDateString('en-US', {
@@ -344,7 +347,7 @@ export default function JudgeScoringPage() {
                 {event?.deadline && event?.end_time && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      終了日時
+                      {t('endTime')}
                     </p>
                     <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                       {new Date(event.deadline).toLocaleDateString('en-US', {
@@ -360,7 +363,7 @@ export default function JudgeScoringPage() {
                 {event?.description && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      説明
+                      {t('description')}
                     </p>
                     <p className="text-zinc-800 dark:text-zinc-200">
                       {event.description}
@@ -370,7 +373,7 @@ export default function JudgeScoringPage() {
                 {event?.max_score && (
                   <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                     <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      最高スコア
+                      {t('maxScore')}
                     </p>
                     <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                       {event.max_score} pts
@@ -393,10 +396,10 @@ export default function JudgeScoringPage() {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-white mb-1">投票終了</p>
-              <p className="text-sm text-red-100">
-                採点の締め切りを過ぎました。スコアを送信または更新することはできなくなりました。
+              <p className="text-sm font-semibold text-white mb-1">
+                {t('votingEnded')}
               </p>
+              <p className="text-sm text-red-100">{t('votingEndedHelp')}</p>
             </div>
           </div>
         )}
@@ -422,7 +425,7 @@ export default function JudgeScoringPage() {
                   </svg>
                 </div>
                 <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                  進捗状況
+                  {t('progress')}
                 </span>
               </div>
               <span className="text-sm font-bold text-teal-700 dark:text-teal-400">
@@ -457,7 +460,7 @@ export default function JudgeScoringPage() {
                   />
                 </svg>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                  すべての参加者を採点しました！
+                  {t('allParticipantsScored')}
                 </p>
               </div>
             )}
@@ -472,7 +475,14 @@ export default function JudgeScoringPage() {
         {/* Debug info (only if needed, but helpful for now) */}
         <div className="mb-6 flex justify-end">
           <span className="text-[10px] text-zinc-400 font-mono">
-            ID: {supabaseUser?.role === 'admin' ? `admin:${supabaseUser.id}` : (supabaseUser?.role === 'judge' ? `user:${supabaseUser.id}` : (liveState?.is_my_turn ? 'Matching Guest' : 'Guest'))}
+            ID:{' '}
+            {supabaseUser?.role === 'admin'
+              ? `admin:${supabaseUser.id}`
+              : supabaseUser?.role === 'judge'
+                ? `user:${supabaseUser.id}`
+                : liveState?.is_my_turn
+                  ? 'Matching Guest'
+                  : 'Guest'}
           </span>
         </div>
 
@@ -481,7 +491,7 @@ export default function JudgeScoringPage() {
           <div className="flex items-center gap-2 mb-4">
             <span className="w-2 h-2 rounded-full bg-teal-500" />
             <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-              参加者一覧 — {participants.length}
+              {t('participantList')} — {participants.length}
             </h2>
           </div>
         )}
@@ -505,7 +515,7 @@ export default function JudgeScoringPage() {
               </svg>
             </div>
             <p className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">
-              このイベントにはまだ参加者がいません。
+              {t('noParticipantsYet')}
             </p>
           </div>
         ) : (

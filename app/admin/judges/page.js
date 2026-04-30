@@ -49,7 +49,7 @@ export default function ManageJudgesPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setDeleteError(data.error || 'Failed to delete judge');
+        setDeleteError(data.error || t('failedToDeleteJudge'));
         setDeleting(null);
         return;
       }
@@ -57,7 +57,7 @@ export default function ManageJudgesPage() {
       setJudges(judges.filter((j) => j.id !== judgeId));
       setConfirmDelete(null);
     } catch (error) {
-      setDeleteError('Error deleting judge: ' + error.message);
+      setDeleteError(t('errorDeletingJudge', { message: error.message }));
       setDeleting(null);
     }
   };

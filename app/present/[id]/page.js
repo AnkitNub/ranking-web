@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
 
@@ -115,6 +116,7 @@ function Top3Card({
   isMuted,
   placementSignal,
 }) {
+  const { t } = useTranslation('common');
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
   const borderColor =
     rank === 1
@@ -314,7 +316,7 @@ function Top3Card({
                 rank === 1 ? '#fbbf24' : rank === 2 ? '#a1a1aa' : '#b45309',
             }}
           >
-            {rank === 1 ? '1位' : rank === 2 ? '2位' : '3位'}
+            {t('rank', { rank })}
           </p>
           <p
             className={`font-black truncate transition-all duration-500 ${nameText} ${
@@ -363,6 +365,7 @@ function RestListCard({
   isMuted,
   placementSignal,
 }) {
+  const { t } = useTranslation('common');
   const isMovingDown = movement?.direction === 'down';
   const isMovingUp = movement?.direction === 'up';
   const moveDistance = movement?.distance || 0;
@@ -565,6 +568,7 @@ function RestListCard({
 
 /* ─── Main presentation page ───────────────────────────────────────────────── */
 export default function PresentationPage() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -598,12 +602,12 @@ export default function PresentationPage() {
       const res = await fetch(`/api/public/events/${id}/results`);
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error || '結果の読み込みに失敗しました。');
+        setError(json.error || t('failedToLoadResults'));
         return;
       }
       setData(json);
     } catch {
-      setError('ネットワークエラー — もう一度お試しください。');
+      setError(t('networkErrorRetry'));
     } finally {
       setLoading(false);
     }
@@ -948,7 +952,7 @@ export default function PresentationPage() {
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-emerald-700 border-t-emerald-400 animate-spin" />
-          <p className="text-zinc-500 text-sm">結果を読み込み中…</p>
+          <p className="text-zinc-500 text-sm">{t('loadingResults')}</p>
         </div>
       </div>
     );
@@ -997,7 +1001,7 @@ export default function PresentationPage() {
               />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-zinc-100 mb-2">採点中</h1>
+          <h1 className="text-xl font-bold text-zinc-100 mb-2">{t('scoringInProgress')}</h1>
           <p className="text-xs text-zinc-600 font-semibold uppercase tracking-widest mb-6">
             {data?.event?.name}
           </p>
@@ -1005,7 +1009,7 @@ export default function PresentationPage() {
           {totalParticipants > 0 && (
             <div className="mb-6 text-left">
               <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
-                <span>進捗状況</span>
+                <span>{t('progress')}</span>
                 <span className="font-mono text-emerald-400">
                   {fullyScored}/{totalParticipants}
                 </span>
@@ -1042,7 +1046,7 @@ export default function PresentationPage() {
               ))}
               {liveRanked.length > 5 && (
                 <p className="text-xs text-zinc-600 text-center py-2">
-                  …他 {liveRanked.length - 5} 人
+                  {t('andOthers', { count: liveRanked.length - 5 })}
                 </p>
               )}
             </div>
@@ -1050,13 +1054,13 @@ export default function PresentationPage() {
 
           <p className="text-[10px] text-zinc-600 uppercase tracking-widest flex items-center justify-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            自動更新中
+            {t('autoUpdating')}
           </p>
           <button
             onClick={fetchData}
             className="mt-3 text-xs text-emerald-500 hover:text-emerald-300 transition"
           >
-            ↻ 今すぐ更新
+            {t('refreshNow')}
           </button>
         </div>
       </div>
@@ -1073,7 +1077,7 @@ export default function PresentationPage() {
         {/* Event name */}
         <div className="min-w-0">
           <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold">
-            結果
+            {t('results')}
           </p>
           <h1 className="text-sm font-bold text-zinc-100 truncate">
             {data.event.name}
@@ -1094,7 +1098,7 @@ export default function PresentationPage() {
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                {m === 'manual' ? '⏸ 手動' : '▶ 自動'}
+                {m === 'manual' ? `⏸ ${t('manual')}` : `▶ ${t('auto')}`}
               </button>
             ))}
           </div>
@@ -1112,10 +1116,10 @@ export default function PresentationPage() {
               }}
               className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              <option value={1000}>早い (1秒)</option>
-              <option value={2000}>普通 (2秒)</option>
-              <option value={3500}>遅い (3.5秒)</option>
-              <option value={5000}>非常に遅い (5秒)</option>
+              <option value={1000}>{t('fast')} (1{t('seconds')})</option>
+              <option value={2000}>{t('normal')} (2{t('seconds')})</option>
+              <option value={3500}>{t('slow')} (3.5{t('seconds')})</option>
+              <option value={5000}>{t('verySlow')} (5{t('seconds')})</option>
             </select>
           )}
         </div>
@@ -1142,26 +1146,26 @@ export default function PresentationPage() {
               </svg>
             </div>
             <h2 className="text-3xl font-black text-zinc-100 mb-2">
-              結果発表の準備完了
+              {t('readyForReveal')}
             </h2>
             <p className="text-zinc-500 text-sm mb-8">
-              {total}組の参加者 ·{' '}
+              {t('participantsCount', { count: total })} ·{' '}
               {mode === 'auto'
-                ? `${autoSpeed / 1000}秒ごとに自動表示`
-                : '手動で表示を制御'}
+                ? t('autoRevealHelp', { speed: autoSpeed / 1000 })
+                : t('manualRevealHelp')}
             </p>
             <div className="flex flex-col gap-3 items-center">
               <button
                 onClick={handleStart}
                 className="px-8 py-3 rounded-xl bg-linear-to-br from-emerald-500 to-emerald-700 text-white font-bold text-lg hover:from-emerald-400 hover:to-emerald-600 transition shadow-xl shadow-emerald-900/40 active:scale-95 w-64"
               >
-                結果発表を開始
+                {t('startReveal')}
               </button>
               <button
                 onClick={handleSkipToLeaderboard}
                 className="px-8 py-3 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-sm hover:bg-zinc-700 transition active:scale-95 w-64 border border-zinc-700"
               >
-                順位表へスキップ
+                {t('skipToLeaderboard')}
               </button>
             </div>
           </div>
@@ -1169,7 +1173,7 @@ export default function PresentationPage() {
           /* Breakdown View */
           <div className="w-full max-w-5xl flex flex-col items-center">
             <p className="text-xs text-zinc-600 uppercase tracking-widest font-semibold mb-8">
-              参加者を評価中: {breakdownPIndex + 1} / {breakdownOrder.length}
+              {t('evaluatingParticipant', { current: breakdownPIndex + 1, total: breakdownOrder.length })}
             </p>
 
             <h2 className="text-4xl md:text-5xl font-black mb-8 md:mb-12 text-emerald-400 text-center drop-shadow-md">
@@ -1277,7 +1281,7 @@ export default function PresentationPage() {
                     className="flex flex-col items-center p-6 bg-zinc-900/60 rounded-3xl border border-zinc-800 shadow-xl min-w-[200px]"
                   >
                     <div className="text-zinc-500 text-sm uppercase tracking-widest font-bold mb-2">
-                      合計スコア
+                      {t('totalScore')}
                     </div>
                     <motion.div
                       className="text-7xl font-black text-amber-500 drop-shadow-md tabular-nums relative"
@@ -1394,7 +1398,7 @@ export default function PresentationPage() {
             <div className="flex-1 flex flex-col gap-4 relative">
               <div className="mb-2 shrink-0">
                 <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                  現在のトップ3
+                  {t('currentTop3')}
                 </h3>
               </div>
 
@@ -1428,12 +1432,12 @@ export default function PresentationPage() {
                 {/* Right side header */}
                 <div className="mb-4 mt-2 flex items-center justify-between shrink-0">
                   <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                    その他の順位
+                    {t('otherRanks')}
                   </h3>
                   <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold text-right">
                     {allRevealed
-                      ? `全${total}組の順位発表完了`
-                      : `${total}組中${currentlyRevealed.length}組を表示済み`}
+                      ? t('allResultsRevealed', { total })
+                      : t('revealedProgress', { current: currentlyRevealed.length, total })}
                   </p>
                 </div>
 
@@ -1467,12 +1471,12 @@ export default function PresentationPage() {
             {total <= 3 && (
               <div className="flex-1 flex flex-col justify-center items-center opacity-50">
                 <p className="text-zinc-600 text-sm italic">
-                  これ以下の順位はありません
+                  {t('noMoreRanks')}
                 </p>
                 <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mt-2">
                   {allRevealed
-                    ? `全${total}組の順位発表完了`
-                    : `${total}組中${currentlyRevealed.length}組を表示済み`}
+                    ? t('allResultsRevealed', { total })
+                    : t('revealedProgress', { current: currentlyRevealed.length, total })}
                 </p>
               </div>
             )}
@@ -1487,14 +1491,14 @@ export default function PresentationPage() {
             onClick={handleReset}
             className="text-xs text-zinc-500 hover:text-zinc-300 transition"
           >
-            ↺ やり直す
+            {t('restart')}
           </button>
 
           {mode === 'manual' && (
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrev}
-                disabled={
+                 disabled={
                   (phase === 'leaderboard' &&
                     breakdownPIndex === 0 &&
                     breakdownOrder.length === 0) ||
@@ -1504,7 +1508,7 @@ export default function PresentationPage() {
                 }
                 className="px-4 py-2 rounded-lg border border-zinc-700 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                ← 前へ
+                {t('prev')}
               </button>
               <button
                 onClick={handleNext}
@@ -1512,8 +1516,8 @@ export default function PresentationPage() {
                 className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/40"
               >
                 {phase === 'leaderboard' && allRevealed
-                  ? 'すべて完了 🎉'
-                  : '次へ →'}
+                  ? t('allCompleted')
+                  : t('next')}
               </button>
             </div>
           )}
@@ -1522,10 +1526,10 @@ export default function PresentationPage() {
             <div className="flex items-center gap-2">
               {!(phase === 'leaderboard' && allRevealed) ? (
                 <span className="text-xs text-emerald-400 animate-pulse">
-                  自動表示中…
+                  {t('autoDisplaying')}
                 </span>
               ) : (
-                <span className="text-xs text-amber-400">結果発表完了 🎉</span>
+                <span className="text-xs text-amber-400">{t('allResultsRevealed', { total })} 🎉</span>
               )}
             </div>
           )}

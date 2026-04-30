@@ -141,7 +141,7 @@ function CreateEventModal({ onClose, onCreate }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                イベント日 *
+                {t('eventDate')} *
               </label>
               <input
                 type="date"
@@ -154,7 +154,7 @@ function CreateEventModal({ onClose, onCreate }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                開始時間 *
+                {t('startTime')} *
               </label>
               <input
                 type="time"
@@ -168,7 +168,7 @@ function CreateEventModal({ onClose, onCreate }) {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              審査員1人あたりの最高得点 *
+              {t('maxScorePerJudge')} *
             </label>
             <input
               type="number"
@@ -181,13 +181,13 @@ function CreateEventModal({ onClose, onCreate }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              各審査員が付けられる最高点
+              {t('maxScoreHelp')}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              説明（任意）
+              {t('descriptionOptional')}
             </label>
             <textarea
               value={description}
@@ -320,7 +320,7 @@ function EditEventModal({ event, onClose, onEdit }) {
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              イベント名 *
+              {t('eventName')} *
             </label>
             <input
               type="text"
@@ -335,7 +335,7 @@ function EditEventModal({ event, onClose, onEdit }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                イベント日 *
+                {t('eventDate')} *
               </label>
               <input
                 type="date"
@@ -348,7 +348,7 @@ function EditEventModal({ event, onClose, onEdit }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                開始時間 *
+                {t('startTime')} *
               </label>
               <input
                 type="time"
@@ -361,7 +361,7 @@ function EditEventModal({ event, onClose, onEdit }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              審査員1人あたりの最高得点 *
+              {t('maxScorePerJudge')} *
             </label>
             <input
               type="number"
@@ -374,13 +374,13 @@ function EditEventModal({ event, onClose, onEdit }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              各審査員が付けられる最高点
+              {t('maxScoreHelp')}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              説明（任意）
+              {t('descriptionOptional')}
             </label>
             <textarea
               value={description}
@@ -798,12 +798,29 @@ export default function AdminDashboard() {
                                 </svg>
                               </button>
                               <button
+                                title={t('editEvent')}
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                              </button>
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(event.id);
                                 }}
                                 className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
-                                title="イベントを削除"
+                                title={t('deleteEvent')}
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -822,12 +839,12 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                            作成日:{' '}
+                            {t('createdAt')}:{' '}
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
                           <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
                             <span className="text-xs text-red-600 dark:text-red-400 font-medium group-hover:text-red-800 dark:group-hover:text-red-300 transition">
-                              結果を見る →
+                              {t('viewResults')} →
                             </span>
                           </div>
                         </div>
