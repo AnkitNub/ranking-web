@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
+import LiveTurnBanner from '@/components/LiveTurnBanner';
 import { authFetch } from '@/lib/authFetch';
+import { useEventState } from '@/lib/useEventState';
 
 /* ─── Score Details Modal ──────────────────────────────────────────────────── */
 function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
@@ -746,6 +748,24 @@ export default function AdminEventPage() {
   const [event, setEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('参加者');
   const [pageLoading, setPageLoading] = useState(true);
+  const [startBusy, setStartBusy] = useState(false);
+  const { state: liveState, refetch: refetchLive } = useEventState(id);
+
+  async function handleStart() {
+    setStartBusy(true);
+    try {
+      const res = await authFetch(`/api/events/${id}/start`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(`開始に失敗しました: ${data.error ?? res.status}`);
+      }
+      refetchLive();
+    } finally {
+      setStartBusy(false);
+    }
+  }
 
   const fetchEvent = useCallback(async () => {
     const res = await authFetch(`/api/events/${id}`);
@@ -920,6 +940,16 @@ export default function AdminEventPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Live turn control */}
+        <div className="mb-6">
+          <LiveTurnBanner
+            eventId={id}
+            state={liveState}
+            onStart={handleStart}
+            startBusy={startBusy}
+          />
         </div>
 
         {/* Tabs */}

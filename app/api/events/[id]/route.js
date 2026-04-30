@@ -60,7 +60,7 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { name, description, max_score, event_date, start_time } =
+  const { name, description, max_score, event_date, start_time, turn_duration_seconds } =
     await request.json();
 
   if (name !== undefined && !name?.trim())
@@ -78,12 +78,23 @@ export async function PUT(request, { params }) {
       );
   }
 
+  if (turn_duration_seconds !== undefined && turn_duration_seconds !== null) {
+    const durationNum = Number(turn_duration_seconds);
+    if (isNaN(durationNum) || durationNum < 1 || !Number.isInteger(durationNum))
+      return NextResponse.json(
+        { error: 'Turn duration must be a positive integer' },
+        { status: 400 },
+      );
+  }
+
   const updateData = {};
   if (name !== undefined) updateData.name = name.trim();
   if (description !== undefined)
     updateData.description = description?.trim() || null;
   if (max_score !== undefined)
     updateData.max_score = max_score ? Number(max_score) : null;
+  if (turn_duration_seconds !== undefined)
+    updateData.turn_duration_seconds = turn_duration_seconds ? Number(turn_duration_seconds) : null;
 
   if (event_date !== undefined) updateData.event_date = event_date || null;
   if (start_time !== undefined) updateData.start_time = start_time || null;

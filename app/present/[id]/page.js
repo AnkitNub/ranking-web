@@ -613,6 +613,17 @@ export default function PresentationPage() {
     fetchData();
   }, [fetchData]);
 
+  // Auto-refresh while not all scores are in. Once the event is fully scored,
+  // the dramatic reveal takes over and we stop polling so the show isn't
+  // disturbed by network jitter.
+  useEffect(() => {
+    if (data?.allScored) return undefined;
+    if (started) return undefined;
+    if (typeof document !== 'undefined' && document.hidden) return undefined;
+    const id = setInterval(fetchData, 2500);
+    return () => clearInterval(id);
+  }, [data?.allScored, started, fetchData]);
+
   const breakdownOrder = useMemo(
     () =>
       data?.ranked
@@ -956,10 +967,22 @@ export default function PresentationPage() {
 
   /* ── Not ready ── */
   if (!data?.allScored) {
+    const totalParticipants = data?.ranked?.length ?? 0;
+    const fullyScored =
+      data?.ranked?.filter(
+        (p) => p.judgesScored === data.assignedJudgesCount,
+      ).length ?? 0;
+    const progressPct = totalParticipants
+      ? Math.round((fullyScored / totalParticipants) * 100)
+      : 0;
+    const liveRanked =
+      data?.ranked?.slice().filter((p) => p.judgesScored > 0) ?? [];
+
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
-        <div className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 py-10">
+        <div className="text-center max-w-md w-full">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
+            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
             <svg
               className="w-8 h-8 text-emerald-500"
               fill="none"
@@ -975,17 +998,65 @@ export default function PresentationPage() {
             </svg>
           </div>
           <h1 className="text-xl font-bold text-zinc-100 mb-2">採点中</h1>
-          <p className="text-sm text-zinc-500 mb-6">
-            まだすべての審査員がスコアを送信していません。採点が完了してからもう一度確認してください。
-          </p>
-          <p className="text-xs text-zinc-600 font-semibold uppercase tracking-widest">
+          <p className="text-xs text-zinc-600 font-semibold uppercase tracking-widest mb-6">
             {data?.event?.name}
+          </p>
+
+          {totalParticipants > 0 && (
+            <div className="mb-6 text-left">
+              <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
+                <span>進捗状況</span>
+                <span className="font-mono text-emerald-400">
+                  {fullyScored}/{totalParticipants}
+                </span>
+              </div>
+              <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-linear-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {liveRanked.length > 0 && (
+            <div className="mb-6 text-left bg-zinc-900/60 border border-zinc-800 rounded-xl divide-y divide-zinc-800 overflow-hidden">
+              {liveRanked.slice(0, 5).map((p, i) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between px-3 py-2 text-sm"
+                >
+                  <span className="text-zinc-300 truncate">
+                    <span className="text-zinc-500 mr-2 font-mono">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {p.name}
+                  </span>
+                  <span className="font-mono tabular-nums text-emerald-300 shrink-0">
+                    {p.totalScore}
+                    <span className="text-zinc-600 text-xs ml-1.5">
+                      ({p.judgesScored}/{data.assignedJudgesCount})
+                    </span>
+                  </span>
+                </div>
+              ))}
+              {liveRanked.length > 5 && (
+                <p className="text-xs text-zinc-600 text-center py-2">
+                  …他 {liveRanked.length - 5} 人
+                </p>
+              )}
+            </div>
+          )}
+
+          <p className="text-[10px] text-zinc-600 uppercase tracking-widest flex items-center justify-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            自動更新中
           </p>
           <button
             onClick={fetchData}
-            className="mt-4 text-xs text-emerald-500 hover:text-emerald-300 transition"
+            className="mt-3 text-xs text-emerald-500 hover:text-emerald-300 transition"
           >
-            ↻ 更新
+            ↻ 今すぐ更新
           </button>
         </div>
       </div>

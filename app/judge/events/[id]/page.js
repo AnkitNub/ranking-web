@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
+import LiveTurnBanner from '@/components/LiveTurnBanner';
 import { authFetch } from '@/lib/authFetch';
+import { useEventState } from '@/lib/useEventState';
 
 function isExpired(event) {
   if (!event) return false;
@@ -30,6 +32,8 @@ function ScoreCard({
   onScored,
   disabled,
   maxScore,
+  isCurrentTurn,
+  turnToken,
 }) {
   const [value, setValue] = useState(existingScore?.score ?? '');
   const [submitting, setSubmitting] = useState(false);
@@ -37,10 +41,15 @@ function ScoreCard({
   const isScored = existingScore != null;
   const isDirty = String(value) !== String(existingScore?.score ?? '');
   const max = maxScore || 10;
+  const effectiveDisabled = disabled || !isCurrentTurn;
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (disabled) return;
+    if (effectiveDisabled) return;
+    if (!turnToken) {
+      setError('ターン情報がありません。再読み込みしてください。');
+      return;
+    }
     if (value === '' || value === null) {
       setError('スコアを入力してください。');
       return;
@@ -55,14 +64,18 @@ function ScoreCard({
     try {
       const res = await authFetch(`/api/events/${eventId}/scores`, {
         method: 'POST',
-        body: JSON.stringify({ participant_id: participant.id, score: num }),
+        body: JSON.stringify({
+          participant_id: participant.id,
+          score: num,
+          turn_token: turnToken,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'スコアの保存に失敗しました。');
         return;
       }
-      onScored(participant.id, data.score);
+      onScored(participant.id, { participant_id: participant.id, score: num });
     } finally {
       setSubmitting(false);
     }
@@ -73,7 +86,7 @@ function ScoreCard({
       className={`relative bg-white dark:bg-zinc-900 rounded-2xl border overflow-hidden transition-all duration-200 shadow-sm ${
         isScored && !isDirty
           ? 'border-emerald-200 dark:border-emerald-800/50 shadow-emerald-50 dark:shadow-none'
-          : disabled
+          : effectiveDisabled
             ? 'border-stone-200 dark:border-zinc-800'
             : 'border-teal-100 dark:border-zinc-700 hover:border-teal-200 dark:hover:border-teal-800/60 hover:shadow-md'
       }`}
@@ -83,7 +96,7 @@ function ScoreCard({
         className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${
           isScored && !isDirty
             ? 'bg-emerald-400'
-            : disabled
+            : effectiveDisabled
               ? 'bg-zinc-300 dark:bg-zinc-700'
               : 'bg-linear-to-b from-teal-400 to-teal-600'
         }`}
@@ -138,15 +151,15 @@ function ScoreCard({
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={`1 – ${max}`}
-                disabled={disabled}
+                disabled={effectiveDisabled}
                 className="w-full rounded-xl border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 px-3 py-2 text-sm text-center font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <button
               type="submit"
-              disabled={disabled || submitting || value === ''}
+              disabled={effectiveDisabled || submitting || value === ''}
               className={`rounded-xl px-3 py-2 text-xs font-semibold transition whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shadow-sm ${
-                disabled
+                effectiveDisabled
                   ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
                   : isScored && isDirty
                     ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200 dark:shadow-none'
@@ -155,10 +168,12 @@ function ScoreCard({
                       : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-200 dark:shadow-none'
               }`}
             >
-              {disabled
+              {effectiveDisabled
                 ? isScored
                   ? '✓ 採点済み'
-                  : '終了'
+                  : !isCurrentTurn
+                    ? '待機中'
+                    : '終了'
                 : submitting
                   ? '…'
                   : isScored && isDirty
@@ -184,12 +199,23 @@ export default function JudgeScoringPage() {
   // Map of participant_id → score object from DB
   const [myScores, setMyScores] = useState({});
   const [pageLoading, setPageLoading] = useState(true);
+  const { state: liveState } = useEventState(id);
+
+  const fetchScores = useCallback(async () => {
+    const res = await authFetch(`/api/events/${id}/scores`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const map = {};
+    (data.myScores || []).forEach((s) => {
+      map[s.participant_id] = s;
+    });
+    setMyScores(map);
+  }, [id]);
 
   const fetchData = useCallback(async () => {
-    const [eventRes, participantsRes, scoresRes] = await Promise.all([
+    const [eventRes, participantsRes] = await Promise.all([
       authFetch(`/api/events/${id}`),
       authFetch(`/api/events/${id}/participants`),
-      authFetch(`/api/events/${id}/scores`),
     ]);
 
     if (eventRes.status === 401 || eventRes.status === 403) {
@@ -204,18 +230,12 @@ export default function JudgeScoringPage() {
 
     const eventData = await eventRes.json();
     const participantsData = await participantsRes.json();
-    const scoresData = await scoresRes.json();
 
     setEvent(eventData.event);
     setParticipants(participantsData.participants || []);
-
-    const scoresMap = {};
-    (scoresData.myScores || []).forEach((s) => {
-      scoresMap[s.participant_id] = s;
-    });
-    setMyScores(scoresMap);
+    await fetchScores();
     setPageLoading(false);
-  }, [id, router]);
+  }, [id, router, fetchScores]);
 
   useEffect(() => {
     if (loading) return;
@@ -232,9 +252,19 @@ export default function JudgeScoringPage() {
     fetchData();
   }, [loading, supabaseUser, fetchData, router]);
 
+  // Refetch scores whenever the live turn moves on, so a judge sees their own
+  // recorded score reflected and the leaderboard underneath stays current.
+  useEffect(() => {
+    if (!liveState?.turn_token) return;
+    fetchScores();
+  }, [liveState?.turn_token, fetchScores]);
+
   function handleScored(participantId, scoreObj) {
     setMyScores((prev) => ({ ...prev, [participantId]: scoreObj }));
   }
+
+  const isMyTurn = liveState?.is_my_turn === true;
+  const currentParticipantId = liveState?.current_participant_id ?? null;
 
   const scoredCount = Object.keys(myScores).length;
   const totalCount = participants.length;
@@ -434,6 +464,18 @@ export default function JudgeScoringPage() {
           </div>
         )}
 
+        {/* Live turn banner */}
+        <div className="mb-2">
+          <LiveTurnBanner eventId={id} state={liveState} />
+        </div>
+
+        {/* Debug info (only if needed, but helpful for now) */}
+        <div className="mb-6 flex justify-end">
+          <span className="text-[10px] text-zinc-400 font-mono">
+            ID: {supabaseUser?.role === 'admin' ? `admin:${supabaseUser.id}` : (supabaseUser?.role === 'judge' ? `user:${supabaseUser.id}` : (liveState?.is_my_turn ? 'Matching Guest' : 'Guest'))}
+          </span>
+        </div>
+
         {/* Participants section header */}
         {participants.length > 0 && (
           <div className="flex items-center gap-2 mb-4">
@@ -477,6 +519,8 @@ export default function JudgeScoringPage() {
                 onScored={handleScored}
                 disabled={isExpired(event)}
                 maxScore={event?.max_score ?? 10}
+                isCurrentTurn={isMyTurn && currentParticipantId === p.id}
+                turnToken={liveState?.turn_token ?? null}
               />
             ))}
           </ul>

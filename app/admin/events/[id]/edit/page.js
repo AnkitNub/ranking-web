@@ -19,6 +19,7 @@ export default function EditEventPage() {
     deadline: '',
     description: '',
     max_score: '',
+    turn_duration_seconds: '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -45,6 +46,7 @@ export default function EditEventPage() {
         : '',
       description: data.event.description || '',
       max_score: data.event.max_score || '',
+      turn_duration_seconds: data.event.turn_duration_seconds || '',
     });
     setPageLoading(false);
   }, [id, router]);
@@ -224,7 +226,22 @@ export default function EditEventPage() {
               onChange={handleChange}
               min="1"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              placeholder="入力： max score"
+              placeholder="10"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              Turn Duration (Seconds)
+            </label>
+            <input
+              type="number"
+              name="turn_duration_seconds"
+              value={formData.turn_duration_seconds}
+              onChange={handleChange}
+              min="1"
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              placeholder="60"
             />
           </div>
 

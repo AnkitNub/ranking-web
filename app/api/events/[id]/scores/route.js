@@ -4,6 +4,7 @@ import {
   getGuestUser,
   supabaseAdmin,
 } from '@/lib/apiAuth';
+import { recordScoreAndAdvance } from '@/lib/turnEngine';
 
 export async function GET(request, { params }) {
   const user = await getAuthenticatedUser(request);
@@ -60,11 +61,9 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
-  if (guest && String(guest.event_id) !== String(id)) {
+  if (guest && String(guest.event_id) !== String(id))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
 
-  // Verify this judge is assigned to the event
   if (user) {
     const { data: ej } = await supabaseAdmin
       .from('event_judges')
@@ -79,73 +78,33 @@ export async function POST(request, { params }) {
       );
   }
 
-  // Fetch event's max_score for validation
-  const { data: eventRow } = await supabaseAdmin
-    .from('events')
-    .select('max_score')
-    .eq('id', id)
-    .maybeSingle();
-  const maxScore = eventRow?.max_score ?? 10;
-
-  const { participant_id, score } = await request.json();
+  const { participant_id, score, turn_token } = await request.json();
   if (!participant_id)
     return NextResponse.json(
       { error: 'participant_id is required' },
       { status: 400 },
     );
-  const numScore = Number(score);
-  if (isNaN(numScore) || numScore < 1 || numScore > maxScore) {
+  if (!turn_token)
     return NextResponse.json(
-      { error: `Score must be between 1 and ${maxScore}` },
+      { error: 'turn_token is required' },
       { status: 400 },
     );
+
+  const result = await recordScoreAndAdvance({
+    eventId: id,
+    judgeId: user?.id ?? null,
+    guestJudgeId: guest?.id ?? null,
+    participantId: participant_id,
+    score,
+    turnToken: turn_token,
+  });
+
+  if (result.error) {
+    const status =
+      result.error === 'not_your_turn' || result.error === 'stale_turn'
+        ? 409
+        : 400;
+    return NextResponse.json({ error: result.error }, { status });
   }
-
-  // Check if this judge already scored this participant in this event
-  let existingQuery = supabaseAdmin
-    .from('scores')
-    .select('id')
-    .eq('event_id', id)
-    .eq('participant_id', participant_id);
-
-  if (guest) {
-    existingQuery = existingQuery.eq('guest_judge_id', guest.id);
-  } else {
-    existingQuery = existingQuery.eq('judge_id', user.id);
-  }
-
-  const { data: existing } = await existingQuery.maybeSingle();
-
-  let result, opError;
-  if (existing) {
-    // Update existing score
-    ({ data: result, error: opError } = await supabaseAdmin
-      .from('scores')
-      .update({ score: numScore })
-      .eq('id', existing.id)
-      .select()
-      .single());
-  } else {
-    // Insert new score
-    const insertData = {
-      event_id: id,
-      participant_id,
-      score: numScore,
-    };
-    if (guest) {
-      insertData.guest_judge_id = guest.id;
-    } else {
-      insertData.judge_id = user.id;
-    }
-
-    ({ data: result, error: opError } = await supabaseAdmin
-      .from('scores')
-      .insert(insertData)
-      .select()
-      .single());
-  }
-
-  if (opError)
-    return NextResponse.json({ error: opError.message }, { status: 500 });
-  return NextResponse.json({ score: result }, { status: 200 });
+  return NextResponse.json({ state: result.state });
 }
