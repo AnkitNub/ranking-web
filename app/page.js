@@ -1,10 +1,12 @@
-﻿'use client';
+'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function Home() {
+  const { t } = useTranslation('common');
   const { firebaseUser, supabaseUser, loading } = useAuth();
   const router = useRouter();
 
@@ -24,7 +26,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f9f5ea] dark:bg-[#f9f5ea]">
-      <span className="text-sm text-zinc-400">読み込み中…</span>
+      <span className="text-sm text-zinc-400">{t('loading')}</span>
     </div>
   );
 }

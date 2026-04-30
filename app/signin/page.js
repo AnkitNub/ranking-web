@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import {
@@ -9,8 +9,10 @@ import {
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 export default function SignInPage() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('guest'); // 'guest' or 'admin'
   const [email, setEmail] = useState('');
@@ -83,10 +85,10 @@ export default function SignInPage() {
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
-            お帰りなさい
+            {t('welcomeBack')}
           </h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-            アカウントにログイン
+            {t('loginToAccount')}
           </p>
         </div>
 
@@ -102,7 +104,7 @@ export default function SignInPage() {
                 : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
             }`}
           >
-            Guest Judge
+            {t('guestJudge')}
           </button>
           <button
             onClick={() => {
@@ -115,7 +117,7 @@ export default function SignInPage() {
                 : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
             }`}
           >
-            Admin / Host
+            {t('adminHost')}
           </button>
         </div>
 
@@ -123,7 +125,7 @@ export default function SignInPage() {
           <form onSubmit={handleGuestSignIn} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                お名前 (Name)
+                {t('name')}
               </label>
               <input
                 type="text"
@@ -136,7 +138,7 @@ export default function SignInPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                イベントコード (Event Code)
+                {t('eventCode')}
               </label>
               <input
                 type="text"
@@ -149,7 +151,7 @@ export default function SignInPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                ジャッジ用パスワード (Judge Password)
+                {t('judgePassword')}
               </label>
               <div className="relative">
                 <input
@@ -164,7 +166,9 @@ export default function SignInPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={
+                    showPassword ? t('hidePassword') : t('showPassword')
+                  }
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
@@ -182,7 +186,7 @@ export default function SignInPage() {
               disabled={loading}
               className="w-full rounded-lg bg-teal-600 text-white py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
-              {loading ? '参加中…' : 'イベントに参加 (Join Event)'}
+              {loading ? t('joining') : t('joinEvent')}
             </button>
           </form>
         ) : (
@@ -190,7 +194,7 @@ export default function SignInPage() {
             <form onSubmit={handleEmailSignIn} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  メールアドレス
+                  {t('email')}
                 </label>
                 <input
                   type="email"
@@ -204,7 +208,7 @@ export default function SignInPage() {
 
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  パスワード
+                  {t('password')}
                 </label>
                 <div className="relative">
                   <input
@@ -220,7 +224,7 @@ export default function SignInPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition"
                     aria-label={
-                      showPassword ? 'Hide password' : 'Show password'
+                      showPassword ? t('hidePassword') : t('showPassword')
                     }
                   >
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -239,13 +243,13 @@ export default function SignInPage() {
                 disabled={loading}
                 className="w-full rounded-lg bg-teal-600 text-white py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'ログイン中…' : 'ログイン'}
+                {loading ? t('loggingIn') : t('login')}
               </button>
             </form>
 
             <div className="my-5 flex items-center gap-3">
               <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
-              <span className="text-xs text-zinc-400">or</span>
+              <span className="text-xs text-zinc-400">{t('or')}</span>
               <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
             </div>
 
@@ -255,18 +259,18 @@ export default function SignInPage() {
               className="w-full flex items-center justify-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <GoogleIcon />
-              Googleで続ける
+              {t('continueWithGoogle')}
             </button>
           </>
         )}
 
         <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-700">
-          アカウントをお持ちでないですか？{' '}
+          {t('noAccount')}{' '}
           <Link
             href="/signup"
             className="font-medium text-teal-700 dark:text-teal-400 hover:underline"
           >
-            新規登録
+            {t('signup')}
           </Link>
         </p>
       </div>
