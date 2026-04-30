@@ -223,6 +223,13 @@
     "incorrectEmailPassword": "Incorrect email or password.",
     "tooManyAttempts": "Too many attempts. Please try again later.",
     "accountDisabled": "This account has been disabled.",
-    "somethingWentWrong": "Something went wrong. Please try again."
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "currentlyOnStage": "Currently on Stage",
+    "otherParticipants": "Other Participants",
+    "liveOnStage": "LIVE / ON STAGE",
+    "currentStandings": "Current Standings",
+    "nowScoring": "Now Scoring",
+    "judgeScores": "Judge Scores",
+    "yourTurn": "Your Turn"
   }
 }

@@ -225,6 +225,13 @@
     "incorrectEmailPassword": "メールアドレスまたはパスワードが正しくありません。",
     "tooManyAttempts": "試行回数が多すぎます。後でもう一度お試しください。",
     "accountDisabled": "このアカウントは無効化されています。",
-    "somethingWentWrong": "問題が発生しました。もう一度お試しください。"
+    "somethingWentWrong": "問題が発生しました。もう一度お試しください。",
+    "currentlyOnStage": "現在ステージ上",
+    "otherParticipants": "その他の参加者",
+    "liveOnStage": "LIVE / ステージ上",
+    "currentStandings": "現在の順位",
+    "nowScoring": "採点中",
+    "judgeScores": "審査員のスコア",
+    "yourTurn": "あなたの番です"
   }
 }

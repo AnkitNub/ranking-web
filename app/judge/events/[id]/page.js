@@ -85,12 +85,12 @@ function ScoreCard({
 
   return (
     <li
-      className={`relative bg-white dark:bg-zinc-900 rounded-2xl border overflow-hidden transition-all duration-200 shadow-sm ${
+      className={`relative bg-white dark:bg-zinc-900 rounded-2xl border overflow-hidden transition-all duration-300 shadow-sm ${
         isScored && !isDirty
           ? 'border-emerald-200 dark:border-emerald-800/50 shadow-emerald-50 dark:shadow-none'
-          : effectiveDisabled
-            ? 'border-stone-200 dark:border-zinc-800'
-            : 'border-teal-100 dark:border-zinc-700 hover:border-teal-200 dark:hover:border-teal-800/60 hover:shadow-md'
+          : !effectiveDisabled
+            ? 'border-teal-500 dark:border-teal-500 shadow-lg shadow-teal-500/10 scale-[1.02] z-10'
+            : 'border-stone-200 dark:border-zinc-800'
       }`}
     >
       {/* Side accent */}
@@ -98,11 +98,17 @@ function ScoreCard({
         className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${
           isScored && !isDirty
             ? 'bg-emerald-400'
-            : effectiveDisabled
-              ? 'bg-zinc-300 dark:bg-zinc-700'
-              : 'bg-linear-to-b from-teal-400 to-teal-600'
+            : !effectiveDisabled
+              ? 'bg-teal-500'
+              : 'bg-zinc-300 dark:bg-zinc-700'
         }`}
       />
+
+      {!effectiveDisabled && (
+        <div className="absolute top-0 right-0 px-2 py-0.5 bg-teal-500 text-[9px] font-black text-white uppercase tracking-tighter rounded-bl-lg animate-pulse">
+          {t('nowScoring')}
+        </div>
+      )}
 
       <div className="pl-4 pr-4 pt-4 pb-4 ml-1">
         {/* Participant name + scored badge */}
@@ -112,12 +118,14 @@ function ScoreCard({
               className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold ${
                 isScored && !isDirty
                   ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                  : 'bg-teal-100 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
+                  : !effectiveDisabled
+                    ? 'bg-teal-500 text-white shadow-sm'
+                    : 'bg-teal-100 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
               }`}
             >
               {participant.name.charAt(0).toUpperCase()}
             </div>
-            <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate text-sm">
+            <p className={`font-semibold truncate text-sm ${!effectiveDisabled ? 'text-teal-900 dark:text-teal-100' : 'text-zinc-900 dark:text-zinc-100'}`}>
               {participant.name}
             </p>
           </div>
@@ -271,6 +279,9 @@ export default function JudgeScoringPage() {
 
   const scoredCount = Object.keys(myScores).length;
   const totalCount = participants.length;
+
+  const currentParticipant = participants.find((p) => p.id === currentParticipantId);
+  const otherParticipants = participants.filter((p) => p.id !== currentParticipantId);
 
   if (loading || pageLoading) {
     return (
@@ -486,12 +497,41 @@ export default function JudgeScoringPage() {
           </span>
         </div>
 
+        {/* Active Participant / On Stage Section */}
+        {currentParticipant && (
+          <div className="mb-12 relative">
+            <div className="absolute inset-0 bg-teal-500/5 blur-3xl rounded-full pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex flex-col items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800/50">
+                  <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                  <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-teal-700 dark:text-teal-400">
+                    {t('currentlyOnStage')}
+                  </h2>
+                </div>
+              </div>
+              <div className="max-w-md mx-auto">
+                <ScoreCard
+                  participant={currentParticipant}
+                  existingScore={myScores[currentParticipant.id] ?? null}
+                  eventId={id}
+                  onScored={handleScored}
+                  disabled={isExpired(event)}
+                  maxScore={event?.max_score ?? 10}
+                  isCurrentTurn={isMyTurn}
+                  turnToken={liveState?.turn_token ?? null}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Participants section header */}
-        {participants.length > 0 && (
+        {otherParticipants.length > 0 && (
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-2 h-2 rounded-full bg-teal-500" />
-            <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-              {t('participantList')} — {participants.length}
+            <span className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+            <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+              {currentParticipant ? t('otherParticipants') : t('participantList')} — {otherParticipants.length}
             </h2>
           </div>
         )}
@@ -520,7 +560,7 @@ export default function JudgeScoringPage() {
           </div>
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {participants.map((p) => (
+            {otherParticipants.map((p) => (
               <ScoreCard
                 key={p.id}
                 participant={p}
@@ -529,8 +569,8 @@ export default function JudgeScoringPage() {
                 onScored={handleScored}
                 disabled={isExpired(event)}
                 maxScore={event?.max_score ?? 10}
-                isCurrentTurn={isMyTurn && currentParticipantId === p.id}
-                turnToken={liveState?.turn_token ?? null}
+                isCurrentTurn={false}
+                turnToken={null}
               />
             ))}
           </ul>

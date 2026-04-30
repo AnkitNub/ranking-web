@@ -7,6 +7,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
+import { useEventState, useCountdown } from '@/lib/useEventState';
+
+function LiveCountdown({ expiresAt, serverNow }) {
+  const seconds = useCountdown(expiresAt, serverNow);
+  return (
+    <span className="text-7xl font-mono font-black tabular-nums">
+      {seconds}s
+    </span>
+  );
+}
 
 /* ── Animated counter with roll-up + sound trigger ── */
 function CountUp({ end, duration = 1.2 }) {
@@ -588,6 +598,7 @@ export default function PresentationPage() {
     useState(0);
   const [leaderboardPlacementFlash, setLeaderboardPlacementFlash] =
     useState(false);
+  const { state: liveState } = useEventState(id);
   const [placementFocus, setPlacementFocus] = useState({ id: null, signal: 0 });
   const previousRanksRef = useRef(new Map());
   const previousPhaseRef = useRef('intro');
@@ -982,86 +993,181 @@ export default function PresentationPage() {
     const liveRanked =
       data?.ranked?.slice().filter((p) => p.judgesScored > 0) ?? [];
 
+    const currentParticipant = data?.ranked?.find(p => p.id === liveState?.current_participant_id);
+    const liveScores = currentParticipant?.scores || [];
+    const isTurnActive = liveState?.status === 'active';
+
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 py-10">
-        <div className="text-center max-w-md w-full">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
-            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
-            <svg
-              className="w-8 h-8 text-emerald-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-4 py-10 overflow-hidden relative">
+        {/* Background glow effects */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-600/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-600/10 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="text-center w-full max-w-6xl relative z-10">
+          {isTurnActive ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 6v6l4 2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-xl font-bold text-zinc-100 mb-2">{t('scoringInProgress')}</h1>
-          <p className="text-xs text-zinc-600 font-semibold uppercase tracking-widest mb-6">
-            {data?.event?.name}
-          </p>
-
-          {totalParticipants > 0 && (
-            <div className="mb-6 text-left">
-              <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
-                <span>{t('progress')}</span>
-                <span className="font-mono text-emerald-400">
-                  {fullyScored}/{totalParticipants}
-                </span>
+              {/* Live Status Badge */}
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                {t('liveOnStage')}
               </div>
-              <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-linear-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-            </div>
-          )}
 
-          {liveRanked.length > 0 && (
-            <div className="mb-6 text-left bg-zinc-900/60 border border-zinc-800 rounded-xl divide-y divide-zinc-800 overflow-hidden">
-              {liveRanked.slice(0, 5).map((p, i) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between px-3 py-2 text-sm"
-                >
-                  <span className="text-zinc-300 truncate">
-                    <span className="text-zinc-500 mr-2 font-mono">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    {p.name}
-                  </span>
-                  <span className="font-mono tabular-nums text-emerald-300 shrink-0">
-                    {p.totalScore}
-                    <span className="text-zinc-600 text-xs ml-1.5">
-                      ({p.judgesScored}/{data.assignedJudgesCount})
-                    </span>
-                  </span>
+              {/* Participant Name */}
+              <h2 className="text-7xl md:text-9xl font-black text-white tracking-tighter mb-4 drop-shadow-2xl">
+                {currentParticipant?.name}
+              </h2>
+              
+              <div className="h-1 w-24 bg-linear-to-r from-transparent via-emerald-500 to-transparent mb-12 opacity-50" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-4">
+                {/* Countdown Card */}
+                <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800/50 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-2 relative z-10">{t('remainingTime')}</span>
+                  <div className="relative z-10">
+                    <LiveCountdown expiresAt={liveState?.turn_expires_at_ms} serverNow={liveState?.server_now_ms} />
+                  </div>
                 </div>
-              ))}
-              {liveRanked.length > 5 && (
-                <p className="text-xs text-zinc-600 text-center py-2">
-                  {t('andOthers', { count: liveRanked.length - 5 })}
-                </p>
-              )}
-            </div>
-          )}
 
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest flex items-center justify-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {t('autoUpdating')}
-          </p>
-          <button
-            onClick={fetchData}
-            className="mt-3 text-xs text-emerald-500 hover:text-emerald-300 transition"
-          >
-            {t('refreshNow')}
-          </button>
+                {/* Score Counter Card */}
+                <div className="md:col-span-2 bg-zinc-900/40 backdrop-blur-md border border-zinc-800/50 rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-linear-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center justify-between mb-6 relative z-10">
+                    <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">{t('judgeScores')}</span>
+                    <div className="px-3 py-1 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-mono">
+                      {liveScores.length} / {data.assignedJudgesCount}
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-3 relative z-10">
+                    <AnimatePresence mode="popLayout">
+                      {liveScores.map((s, i) => (
+                        <motion.div
+                          key={`score-${i}`}
+                          initial={{ scale: 0, opacity: 0, y: 10 }}
+                          animate={{ scale: 1, opacity: 1, y: 0 }}
+                          className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-5 py-3 flex flex-col items-center min-w-[100px] shadow-lg shadow-emerald-900/10"
+                        >
+                          <span className="text-2xl font-black text-emerald-400 tabular-nums">{s.score}</span>
+                          <span className="text-[9px] text-zinc-500 uppercase font-bold mt-1 truncate max-w-[80px]">{s.judgeName}</span>
+                        </motion.div>
+                      ))}
+                      {Array.from({ length: Math.max(0, data.assignedJudgesCount - liveScores.length) }).map((_, i) => (
+                        <div key={`waiting-${i}`} className="bg-zinc-800/20 border border-zinc-700/30 border-dashed rounded-2xl px-5 py-3 flex flex-col items-center min-w-[100px] opacity-40">
+                          <span className="text-2xl font-black text-zinc-700">?</span>
+                          <span className="text-[9px] text-zinc-600 uppercase font-bold mt-1">{t('waiting')}</span>
+                        </div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+
+              {/* Show mini leaderboard below */}
+              {liveRanked.length > 0 && (
+                <div className="mt-16 w-full max-w-4xl opacity-50 hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-px flex-1 bg-zinc-800" />
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{t('currentStandings')}</span>
+                    <div className="h-px flex-1 bg-zinc-800" />
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {liveRanked.slice(0, 5).map((p, i) => (
+                      <div key={p.id} className="flex items-center gap-2 bg-zinc-900/30 px-3 py-1.5 rounded-full border border-zinc-800/50 text-xs">
+                        <span className="text-zinc-600 font-mono">{i + 1}</span>
+                        <span className="text-zinc-300 font-medium">{p.name}</span>
+                        <span className="text-emerald-500 font-bold ml-1">{p.totalScore}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <>
+              <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                <svg
+                  className="w-8 h-8 text-emerald-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 6v6l4 2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold text-zinc-100 mb-2">{t('scoringInProgress')}</h1>
+              <p className="text-xs text-zinc-600 font-semibold uppercase tracking-widest mb-6">
+                {data?.event?.name}
+              </p>
+
+              {totalParticipants > 0 && (
+                <div className="mb-6 text-left max-w-sm mx-auto">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
+                    <span>{t('progress')}</span>
+                    <span className="font-mono text-emerald-400">
+                      {fullyScored}/{totalParticipants}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-linear-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {liveRanked.length > 0 && (
+                <div className="mb-6 text-left bg-zinc-900/60 border border-zinc-800 rounded-xl divide-y divide-zinc-800 overflow-hidden max-w-sm mx-auto">
+                  {liveRanked.slice(0, 5).map((p, i) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between px-3 py-2 text-sm"
+                    >
+                      <span className="text-zinc-300 truncate">
+                        <span className="text-zinc-500 mr-2 font-mono">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        {p.name}
+                      </span>
+                      <span className="font-mono tabular-nums text-emerald-300 shrink-0">
+                        {p.totalScore}
+                        <span className="text-zinc-600 text-xs ml-1.5">
+                          ({p.judgesScored}/{data.assignedJudgesCount})
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                  {liveRanked.length > 5 && (
+                    <p className="text-xs text-zinc-600 text-center py-2">
+                      {t('andOthers', { count: liveRanked.length - 5 })}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {t('autoUpdating')}
+              </p>
+              <button
+                onClick={fetchData}
+                className="mt-3 text-xs text-emerald-500 hover:text-emerald-300 transition"
+              >
+                {t('refreshNow')}
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
