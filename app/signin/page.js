@@ -10,6 +10,7 @@ import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import Navbar from '@/components/Navbar';
 
 export default function SignInPage() {
   const { t } = useTranslation('common');
@@ -96,8 +97,10 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f5ea] dark:bg-[#f9f5ea] px-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
+    <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
+      <Navbar />
+      <div className="flex items-center justify-center px-4 py-12 sm:py-20">
+        <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
             {t('welcomeBack')}
@@ -289,6 +292,7 @@ export default function SignInPage() {
           </Link>
         </p>
       </div>
+    </div>
     </div>
   );
 }

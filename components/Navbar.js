@@ -10,7 +10,7 @@ import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
   const { t } = useTranslation('common');
-  const { supabaseUser, firebaseUser } = useAuth();
+  const { supabaseUser, firebaseUser, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const role = supabaseUser?.role;
@@ -65,46 +65,73 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-1">
-            {role === 'admin' && (
-              <>
-                {navLink('/admin', t('myEvents'))}
-                {navLink('/admin/judges', t('manageJudges'))}
-              </>
-            )}
-            {role === 'judge' && navLink('/judge', t('myEvents'))}
-          </nav>
+          {!loading && firebaseUser && (
+            <nav className="hidden sm:flex items-center gap-1">
+              {role === 'admin' && (
+                <>
+                  {navLink('/admin', t('myEvents'))}
+                  {navLink('/admin/judges', t('manageJudges'))}
+                </>
+              )}
+              {role === 'judge' && navLink('/judge', t('myEvents'))}
+            </nav>
+          )}
         </div>
 
         {/* User info + Logout + Language Toggle */}
         <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-2.5 mr-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-linear-to-br from-teal-500 to-teal-700">
-              {initials}
+          {!loading && firebaseUser && (
+            <>
+              <div className="hidden md:flex items-center gap-2.5 mr-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-linear-to-br from-teal-500 to-teal-700">
+                  {initials}
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
+                    {displayName}
+                  </p>
+                  <p className="text-xs capitalize leading-tight font-medium text-teal-700 dark:text-teal-400">
+                    {role ?? '…'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition order-last sm:order-none"
+              >
+                {t('logout')}
+              </button>
+            </>
+          )}
+
+          {!loading && !firebaseUser && (
+            <div className="flex items-center gap-2">
+              {pathname !== '/signin' && (
+                <Link
+                  href="/signin"
+                  className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition"
+                >
+                  {t('login')}
+                </Link>
+              )}
+              {pathname !== '/signup' && (
+                <Link
+                  href="/signup"
+                  className="rounded-lg bg-teal-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-teal-700 transition"
+                >
+                  {t('signup')}
+                </Link>
+              )}
             </div>
-            <div className="text-right">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
-                {displayName}
-              </p>
-              <p className="text-xs capitalize leading-tight font-medium text-teal-700 dark:text-teal-400">
-                {role ?? '…'}
-              </p>
-            </div>
-          </div>
+          )}
 
           <LanguageToggle />
-
-          <button
-            onClick={handleLogout}
-            className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition"
-          >
-            {t('logout')}
-          </button>
         </div>
       </div>
 
       {/* Mobile nav */}
-      {role && (
+      {!loading && firebaseUser && role && (
         <div className="sm:hidden border-t border-zinc-100 dark:border-zinc-800 px-4 py-2 flex gap-2">
           {role === 'admin' && (
             <>
