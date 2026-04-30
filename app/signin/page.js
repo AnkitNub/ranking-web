@@ -147,7 +147,7 @@ export default function SignInPage() {
                 required
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Taro Yamada"
+                placeholder={t('fullNamePlaceholder')}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
             </div>
@@ -160,7 +160,7 @@ export default function SignInPage() {
                 required
                 value={eventCode}
                 onChange={(e) => setEventCode(e.target.value)}
-                placeholder="ABC-123"
+                placeholder={t('eventCodePlaceholder')}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
             </div>

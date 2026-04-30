@@ -765,7 +765,8 @@ export default function AdminEventPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(t('failedToStart', { error: data.error ?? res.status }));
+        const errMsg = data.message ? t(data.message) : (data.error || res.status);
+        alert(t('failedToStart', { error: errMsg }));
       }
       refetchLive();
     } finally {

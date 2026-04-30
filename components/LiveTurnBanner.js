@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { authFetch } from '@/lib/authFetch';
 import { useCountdown } from '@/lib/useEventState';
+import { useTranslation } from 'react-i18next';
 
 // Resolves participant + judge ids to display names. Caches per eventId so
 // repeat renders during a turn don't refetch.
 function useRoster(eventId) {
+  const { t } = useTranslation('common');
   const [roster, setRoster] = useState({ participants: {}, judges: {} });
   useEffect(() => {
     if (!eventId) return;
@@ -30,14 +32,14 @@ function useRoster(eventId) {
         judges[`user:${j.id}`] = j.name;
       });
       (jJson.guestJudges || []).forEach((g) => {
-        judges[`guest:${g.id}`] = `${g.name} (ゲスト)`;
+        judges[`guest:${g.id}`] = `${g.name} (${t('guest')})`;
       });
       setRoster({ participants, judges });
     })();
     return () => {
       cancelled = true;
     };
-  }, [eventId]);
+  }, [eventId, t]);
   return roster;
 }
 
@@ -47,13 +49,14 @@ export default function LiveTurnBanner({
   onStart,
   startBusy,
 }) {
+  const { t } = useTranslation('common');
   const roster = useRoster(eventId);
   const seconds = useCountdown(state?.turn_expires_at_ms, state?.server_now_ms);
 
   if (!state) {
     return (
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
-        ライブ状態を読み込み中…
+        {t('loadingLiveStatus')}
       </div>
     );
   }
@@ -63,10 +66,10 @@ export default function LiveTurnBanner({
       <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex-1">
           <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
-            イベント未開始
+            {t('eventNotStarted')}
           </p>
           <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
-            管理者がイベントを開始すると、審査員のターンが順番に進行します。
+            {t('eventStartHelp')}
           </p>
         </div>
         {onStart && (
@@ -75,7 +78,7 @@ export default function LiveTurnBanner({
             disabled={startBusy}
             className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
           >
-            {startBusy ? '開始中…' : 'イベントを開始'}
+            {startBusy ? t('startingDot') : t('startEvent')}
           </button>
         )}
       </div>
@@ -86,10 +89,10 @@ export default function LiveTurnBanner({
     return (
       <div className="rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 px-4 py-3 text-sm">
         <p className="font-semibold text-zinc-800 dark:text-zinc-100">
-          🏁 イベント終了
+          {t('eventEnded')}
         </p>
         <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-          すべての参加者の採点が完了しました。
+          {t('allParticipantsScored')}
         </p>
       </div>
     );
@@ -113,7 +116,7 @@ export default function LiveTurnBanner({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="min-w-0 flex-1">
           <p className="text-xs uppercase tracking-wide font-semibold text-zinc-500 dark:text-zinc-400">
-            ステージ上の参加者
+            {t('participantOnStage')}
           </p>
           <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
             {participantName}
@@ -121,7 +124,7 @@ export default function LiveTurnBanner({
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs uppercase tracking-wide font-semibold text-zinc-500 dark:text-zinc-400">
-            採点中
+            {t('scoringInProgress')}
           </p>
           <p
             className={`text-lg font-bold truncate ${
@@ -130,12 +133,12 @@ export default function LiveTurnBanner({
                 : 'text-zinc-900 dark:text-zinc-100'
             }`}
           >
-            {isMine ? `あなた (${judgeName})` : judgeName}
+            {isMine ? t('youWithName', { name: judgeName }) : judgeName}
           </p>
         </div>
         <div className="shrink-0 text-center">
           <p className="text-xs uppercase tracking-wide font-semibold text-zinc-500 dark:text-zinc-400">
-            残り時間
+            {t('remainingTime')}
           </p>
           <p
             className={`text-3xl font-mono font-bold tabular-nums ${

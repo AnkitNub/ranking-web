@@ -26,12 +26,12 @@ export async function POST(request, { params }) {
           ? 404
           : 400;
     const messages = {
-      no_judges: '審査員が割り当てられていません。',
-      no_participants: '参加者がいません。',
-      bad_status: 'このイベントは既に開始されています。',
-      forbidden: '権限がありません。',
-      not_found: 'イベントが見つかりません。',
-      race_lost: 'もう一度お試しください。',
+      no_judges: 'noJudgesAssigned',
+      no_participants: 'noParticipantsYet',
+      bad_status: 'eventAlreadyStarted',
+      forbidden: 'forbidden',
+      not_found: 'notFound',
+      race_lost: 'pleaseTryAgain',
     };
     return NextResponse.json(
       { error: result.error, message: messages[result.error] ?? result.error },

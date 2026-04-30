@@ -5,8 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
+import { useTranslation } from 'react-i18next';
 
 export default function EditEventPage() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const router = useRouter();
   const { firebaseUser, supabaseUser, loading: authLoading } = useAuth();
@@ -84,11 +86,11 @@ export default function EditEventPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to update event.');
+        setError(data.error || t('failedToUpdateEvent'));
         return;
       }
 
-      setSuccess('Event updated successfully!');
+      setSuccess(t('eventUpdatedSuccessfully'));
       setTimeout(() => router.push(`/admin/events/${id}`), 1500);
     } finally {
       setSaving(false);
@@ -100,7 +102,7 @@ export default function EditEventPage() {
       <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <span className="text-sm text-zinc-400">読み込み中…</span>
+          <span className="text-sm text-zinc-400">{t('loading')}</span>
         </div>
       </div>
     );
@@ -116,13 +118,13 @@ export default function EditEventPage() {
             onClick={() => router.push(`/admin/events/${id}`)}
             className="text-xs text-zinc-700 hover:text-teal-700 dark:hover:text-teal-400 transition mb-3"
           >
-            ← Back to Event
+            ← {t('backToEvent')}
           </button>
           <h1 className="text-3xl font-semibold text-black dark:text-black">
-            イベントを編集
+            {t('editEvent')}
           </h1>
           <p className="text-sm text-zinc-600 mt-1">
-            Update the event details below
+            {t('updateEventDetails')}
           </p>
         </div>
 
@@ -130,7 +132,7 @@ export default function EditEventPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              イベント名
+              {t('eventName')}
             </label>
             <input
               type="text"
@@ -139,14 +141,14 @@ export default function EditEventPage() {
               onChange={handleChange}
               required
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              placeholder="入力： イベント名"
+              placeholder={t('eventNamePlaceholder')}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                イベント日 *
+                {t('eventDate')} *
               </label>
               <input
                 type="date"
@@ -160,7 +162,7 @@ export default function EditEventPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                得点締め切り
+                {t('deadline')}
               </label>
               <input
                 type="date"
@@ -175,7 +177,7 @@ export default function EditEventPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                開始時間 *
+                {t('startTime')} *
               </label>
               <input
                 type="time"
@@ -189,7 +191,7 @@ export default function EditEventPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                終焉の時
+                {t('endTime')}
               </label>
               <input
                 type="time"
@@ -203,7 +205,7 @@ export default function EditEventPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              説明
+              {t('description')}
             </label>
             <textarea
               name="description"
@@ -211,13 +213,13 @@ export default function EditEventPage() {
               onChange={handleChange}
               rows="4"
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-              placeholder="入力： event description"
+              placeholder={t('descriptionPlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Max Score Per Judge
+              {t('maxScorePerJudge')}
             </label>
             <input
               type="number"
@@ -232,7 +234,7 @@ export default function EditEventPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Turn Duration (Seconds)
+              {t('turnDurationSeconds')}
             </label>
             <input
               type="number"
@@ -265,14 +267,14 @@ export default function EditEventPage() {
               disabled={saving}
               className="flex-1 rounded-lg bg-teal-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? '保存中…' : '変更を保存'}
+              {saving ? t('saving') : t('saveChanges')}
             </button>
             <button
               type="button"
               onClick={() => router.push(`/admin/events/${id}`)}
               className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
             >
-              キャンセル
+              {t('cancel')}
             </button>
           </div>
         </form>
