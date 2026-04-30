@@ -512,6 +512,7 @@ export default function JudgeScoringPage() {
               </div>
               <div className="max-w-md mx-auto">
                 <ScoreCard
+                  key={currentParticipant.id}
                   participant={currentParticipant}
                   existingScore={myScores[currentParticipant.id] ?? null}
                   eventId={id}
