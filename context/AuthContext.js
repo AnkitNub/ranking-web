@@ -9,6 +9,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [firebaseUser, setFirebaseUser] = useState(undefined); // undefined = loading
   const [supabaseUser, setSupabaseUser] = useState(null);
+  const [guestUser, setGuestUser] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -35,6 +36,17 @@ export function AuthProvider({ children }) {
         }
       } else {
         setSupabaseUser(null);
+        // If not a Firebase user, check if they are a guest
+        fetch('/api/auth/me')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.type === 'guest') {
+              setGuestUser(data.user);
+            } else {
+              setGuestUser(null);
+            }
+          })
+          .catch(() => setGuestUser(null));
       }
     });
 
@@ -44,7 +56,9 @@ export function AuthProvider({ children }) {
   const loading = firebaseUser === undefined;
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, supabaseUser, loading }}>
+    <AuthContext.Provider
+      value={{ firebaseUser, supabaseUser, guestUser, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

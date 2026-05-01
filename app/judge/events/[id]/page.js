@@ -202,9 +202,17 @@ function ScoreCard({
 }
 
 /* ─── Participants Panel ─────────────────────────────────────────────────── */
-function ParticipantsPanel({ participants, myScores, currentParticipantId, t }) {
+function ParticipantsPanel({
+  participants,
+  myScores,
+  currentParticipantId,
+  t,
+  className = '',
+}) {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm mb-8">
+    <div
+      className={`bg-white dark:bg-zinc-900 rounded-2xl border border-teal-200 dark:border-teal-800/50 overflow-hidden shadow-sm flex flex-col ${className}`}
+    >
       <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
         <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
           {t('participantList')}
@@ -213,7 +221,7 @@ function ParticipantsPanel({ participants, myScores, currentParticipantId, t }) 
           {participants.length} {t('total')}
         </span>
       </div>
-      <div className={`p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto custom-scrollbar ${participants.length > 10 ? 'max-h-[300px]' : ''}`}>
+      <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto flex-1 custom-scrollbar">
         {participants.map((p) => {
           const isCurrent = p.id === currentParticipantId;
           const score = myScores[p.id]?.score;
@@ -274,7 +282,7 @@ export default function JudgeScoringPage() {
   const { t } = useTranslation('common');
   const { id } = useParams();
   const router = useRouter();
-  const { firebaseUser, supabaseUser, loading } = useAuth();
+  const { firebaseUser, supabaseUser, guestUser, loading } = useAuth();
   const [event, setEvent] = useState(null);
   const [participants, setParticipants] = useState([]);
   // Map of participant_id → score object from DB
@@ -381,115 +389,26 @@ export default function JudgeScoringPage() {
       <Navbar />
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         {/* Back button */}
-        <button
-          onClick={() => router.push('/judge')}
-          className="flex items-center gap-1.5 text-xs font-medium text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 transition mb-6 group"
-        >
-          <svg
-            className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {!guestUser && (
+          <button
+            onClick={() => router.push('/judge')}
+            className="flex items-center gap-1.5 text-xs font-medium text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 transition mb-6 group"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          {t('backToEvents')}
-        </button>
-
-        {/* Event header */}
-        <div className="mb-6 bg-white dark:bg-zinc-900 rounded-xl border border-teal-200 dark:border-teal-800/50 p-5 flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-100">
-                  {event?.name}
-                </h1>
-                {isExpired(event) && (
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400">
-                    {t('closed')}
-                  </span>
-                )}
-              </div>
-              <div className="mt-4 space-y-2">
-                {event?.event_date && (
-                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
-                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      {t('eventDateTime')}
-                    </p>
-                    <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                      {new Date(event.event_date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                      {' | '}
-                      {event.start_time}
-                    </div>
-                  </div>
-                )}
-                {event?.deadline && event?.end_time && (
-                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
-                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      {t('endTime')}
-                    </p>
-                    <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                      {new Date(event.deadline).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                      {' | '}
-                      {event.end_time}
-                    </div>
-                  </div>
-                )}
-                {event?.description && (
-                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
-                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      {t('description')}
-                    </p>
-                    <p className="text-zinc-800 dark:text-zinc-200">
-                      {event.description}
-                    </p>
-                  </div>
-                )}
-                {event?.max_score && (
-                  <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
-                    <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
-                      {t('maxScore')}
-                    </p>
-                    <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                      {event.max_score} pts
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Expired banner */}
-        {isExpired(event) && (
-          <div className="mb-6 bg-red-600 dark:bg-red-700 rounded-xl px-6 py-4 flex items-start gap-4 shadow-md">
             <svg
-              className="w-5 h-5 text-white mt-0.5 shrink-0"
-              fill="currentColor"
+              className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
-            <div>
-              <p className="text-sm font-semibold text-white mb-1">
-                {t('votingEnded')}
-              </p>
-              <p className="text-sm text-red-100">{t('votingEndedHelp')}</p>
-            </div>
-          </div>
+            {t('backToEvents')}
+          </button>
         )}
 
         {/* Progress card */}
@@ -555,17 +474,107 @@ export default function JudgeScoringPage() {
           </div>
         )}
 
-        {/* Participants Panel */}
-        {participants.length > 0 && (
-          <div className="mb-6">
-            <ParticipantsPanel
-              participants={participants}
-              myScores={myScores}
-              currentParticipantId={currentParticipantId}
-              t={t}
-            />
+        {/* Expired banner */}
+        {isExpired(event) && (
+          <div className="mb-6 bg-red-600 dark:bg-red-700 rounded-xl px-6 py-4 flex items-start gap-4 shadow-md">
+            <svg
+              className="w-5 h-5 text-white mt-0.5 shrink-0"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-white mb-1">
+                {t('votingEnded')}
+              </p>
+              <p className="text-sm text-red-100">{t('votingEndedHelp')}</p>
+            </div>
           </div>
         )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Event header */}
+          <div className="h-full bg-white dark:bg-zinc-900 rounded-xl border border-teal-200 dark:border-teal-800/50 p-5 flex flex-col">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-100">
+                    {event?.name}
+                  </h1>
+                  {isExpired(event) && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400">
+                      {t('closed')}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-4 space-y-2">
+                  {event?.event_date && (
+                    <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                      <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                        {t('eventDateTime')}
+                      </p>
+                      <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                        {new Date(event.event_date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                        {' | '}
+                        {event.start_time}
+                      </div>
+                    </div>
+                  )}
+                  {event?.deadline && event?.end_time && (
+                    <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                      <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                        {t('endTime')}
+                      </p>
+                      <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                        {new Date(event.deadline).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                        {' | '}
+                        {event.end_time}
+                      </div>
+                    </div>
+                  )}
+                  {event?.description && (
+                    <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                      <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                        {t('description')}
+                      </p>
+                      <p className="text-zinc-800 dark:text-zinc-200">
+                        {event.description}
+                      </p>
+                    </div>
+                  )}
+                  {event?.max_score && (
+                    <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
+                      <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide text-xs">
+                        {t('maxScore')}
+                      </p>
+                      <div className="text-zinc-800 dark:text-zinc-200 font-medium">
+                        {event.max_score} pts
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Participants Panel */}
+          <ParticipantsPanel
+            participants={participants}
+            myScores={myScores}
+            currentParticipantId={currentParticipantId}
+            t={t}
+            className="h-full"
+          />
+        </div>
 
         {/* Live turn banner */}
         <div className="mb-2">
