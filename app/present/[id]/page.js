@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
+import { useAuth } from '@/context/AuthContext';
+import { authFetch } from '@/lib/authFetch';
 
 /* ─── Animated counter with roll-up + sound trigger ───────────────────────── */
 function CountUp({ end, duration = 1.2 }) {
@@ -881,80 +883,111 @@ function LiveScoringView({ data }) {
     (p) => p.id === data?.event?.current_participant_id,
   );
   const liveScores = currentParticipant?.scores ?? [];
-  const ranked = (data?.ranked ?? []).filter((p) => p.judgesScored > 0);
+  const totalScore = liveScores.reduce((sum, s) => sum + s.score, 0);
+  const assignedJudgesCount = data?.assignedJudgesCount ?? 0;
+  const votedCount = liveScores.length;
+  const waitingCount = Math.max(0, assignedJudgesCount - votedCount);
+
+  // Participant progress (e.g. "2 of 5")
+  const participantsOrder = data?.event?.participants_order ?? [];
+  const currentIndex =
+    participantsOrder.indexOf(data?.event?.current_participant_id) + 1;
+  const totalParticipants = participantsOrder.length;
+
+  // Only show leaderboard for already-scored participants
+  const ranked = (data?.ranked ?? []).filter(
+    (p) => p.judgesScored > 0 && p.id !== data?.event?.current_participant_id,
+  );
   const movementById = useRankMovement(ranked);
 
-  return (
-    <div className="w-full max-w-7xl flex flex-col items-center gap-8">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center"
+  const hasLeaderboard = ranked.length > 0;
+
+  /* ── Participant info panel (reused in both layouts) ── */
+  const participantPanel = (compact = false) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className={`flex flex-col ${compact ? 'items-start' : 'items-center'}`}
+    >
+      {/* Progress label */}
+      {totalParticipants > 0 && (
+        <p className={`text-zinc-600 text-[10px] font-black uppercase tracking-[0.28em] ${compact ? 'mb-3' : 'mb-5'}`}>
+          {t('evaluatingParticipant', { current: currentIndex, total: totalParticipants })}
+        </p>
+      )}
+
+      {/* Live badge */}
+      <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] ${compact ? 'mb-4' : 'mb-6'}`}>
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+        {t('liveOnStage')}
+      </div>
+
+      {/* Participant name */}
+      <h2
+        className={`font-black tracking-tighter ${compact ? 'text-4xl sm:text-5xl mb-2 text-left' : 'text-5xl sm:text-7xl md:text-8xl mb-3 text-center'} drop-shadow-2xl`}
+        style={{ color: '#00e676' }}
       >
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          {t('liveOnStage')}
-        </div>
-        <h2 className="text-6xl md:text-8xl font-black text-white tracking-tighter mb-3 drop-shadow-2xl text-center">
-          {currentParticipant?.name ?? '—'}
-        </h2>
-        <div className="h-1 w-24 bg-linear-to-r from-transparent via-emerald-500 to-transparent mb-8 opacity-50" />
+        {currentParticipant?.name ?? '—'}
+      </h2>
+      <div className={`h-0.5 rounded-full bg-emerald-500/30 ${compact ? 'w-20 mb-6 self-start' : 'w-28 mb-10'}`} />
 
-        {/* Live judge scores */}
-        <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800/50 rounded-3xl p-6 shadow-2xl mb-8 w-full max-w-3xl">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
-              {t('judgeScores')}
-            </span>
-            <div className="px-3 py-1 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-mono">
-              {liveScores.length} / {data.assignedJudgesCount}
-            </div>
+      {/* Vote counter */}
+      <div className={`flex flex-col ${compact ? 'items-start' : 'items-center'} gap-3`}>
+        <div className="flex items-baseline gap-2">
+          <span className={`font-black tabular-nums text-white leading-none ${compact ? 'text-5xl' : 'text-6xl sm:text-7xl'}`}>
+            {votedCount}
+          </span>
+          <span className="text-2xl font-black text-zinc-600 leading-none">/</span>
+          <span className={`font-black text-zinc-500 tabular-nums leading-none ${compact ? 'text-2xl' : 'text-3xl'}`}>
+            {assignedJudgesCount}
+          </span>
+        </div>
+        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+          {t('judgesVoted')}
+        </p>
+        {assignedJudgesCount > 0 && (
+          <div className="flex gap-3 mt-1">
+            {Array.from({ length: assignedJudgesCount }).map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-full transition-all duration-500 ${compact ? 'w-3 h-3' : 'w-4 h-4'} ${
+                  i < votedCount
+                    ? 'bg-emerald-400 shadow-lg shadow-emerald-500/50 scale-110'
+                    : 'bg-zinc-700'
+                }`}
+              />
+            ))}
           </div>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <AnimatePresence mode="popLayout">
-              {liveScores.map((s, i) => (
-                <motion.div
-                  key={`score-${currentParticipant?.id}-${i}`}
-                  initial={{ scale: 0, opacity: 0, y: 10 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-5 py-3 flex flex-col items-center min-w-[100px] shadow-lg shadow-emerald-900/10"
-                >
-                  <span className="text-2xl font-black text-emerald-400 tabular-nums">
-                    {s.score}
-                  </span>
-                  <span className="text-[9px] text-zinc-500 uppercase font-bold mt-1 truncate max-w-[80px]">
-                    {s.judgeName}
-                  </span>
-                </motion.div>
-              ))}
-              {Array.from({
-                length: Math.max(
-                  0,
-                  data.assignedJudgesCount - liveScores.length,
-                ),
-              }).map((_, i) => (
-                <div
-                  key={`waiting-${i}`}
-                  className="bg-zinc-800/20 border border-zinc-700/30 border-dashed rounded-2xl px-5 py-3 flex flex-col items-center min-w-[100px] opacity-40"
-                >
-                  <span className="text-2xl font-black text-zinc-700">?</span>
-                  <span className="text-[9px] text-zinc-600 uppercase font-bold mt-1">
-                    {t('waiting')}
-                  </span>
-                </div>
-              ))}
-            </AnimatePresence>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="w-full max-w-6xl">
+      {hasLeaderboard ? (
+        /* ── Two-column layout when leaderboard is present ── */
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start justify-center w-full">
+          {/* Left: participant info */}
+          <div className="lg:flex-1 lg:sticky lg:top-8">
+            {participantPanel(true)}
+          </div>
+          {/* Right: leaderboard */}
+          <div className="lg:flex-1 w-full">
+            <LeaderboardSplit
+              ranked={ranked}
+              highlightId={null}
+              movementById={movementById}
+              placementFocus={null}
+            />
           </div>
         </div>
-      </motion.div>
-
-      {ranked.length > 0 && (
-        <LeaderboardSplit
-          ranked={ranked}
-          highlightId={null}
-          movementById={movementById}
-          placementFocus={null}
-        />
+      ) : (
+        /* ── Full centered layout when no leaderboard yet ── */
+        <div className="flex flex-col items-center">
+          {participantPanel(false)}
+        </div>
       )}
     </div>
   );
@@ -991,13 +1024,68 @@ function FinalLeaderboardView({ data }) {
   );
 }
 
+/* ─── Host Controller Overlay ────────────────────────────────────────────── */
+function HostController({ eventId, status, onRefresh }) {
+  const { t } = useTranslation('common');
+  const [busy, setBusy] = useState(false);
+
+  async function handleNext() {
+    setBusy(true);
+    try {
+      const res = await authFetch(`/api/events/${eventId}/next-participant`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d.message || d.error || 'Error');
+      } else {
+        onRefresh();
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed bottom-8 right-8 z-50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-zinc-900/90 backdrop-blur-xl border border-zinc-700 shadow-2xl rounded-2xl p-4 flex items-center gap-4">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-0.5">
+            {t('hostControls')}
+          </span>
+          <span className="text-xs font-bold text-zinc-300">
+            {status === 'active' ? t('votingInProgress') : t('resultsReveal')}
+          </span>
+        </div>
+        <button
+          onClick={handleNext}
+          disabled={busy}
+          className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-900/20 flex items-center gap-2"
+        >
+          {busy ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+          )}
+          {t('nextStep')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main presentation page ───────────────────────────────────────────── */
 export default function PresentationPage() {
   const { t } = useTranslation('common');
   const { id } = useParams();
+  const { supabaseUser } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const isHost = supabaseUser?.id === data?.event?.admin_id;
 
   const fetchData = useCallback(async () => {
     try {
@@ -1106,46 +1194,90 @@ export default function PresentationPage() {
 
       {/* Stage */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 py-6 relative z-0">
-        {status === 'not_started' && (
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
-              <svg
-                className="w-8 h-8 text-emerald-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 6v6l4 2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-zinc-100 mb-1">
-              {t('eventNotStarted')}
-            </h1>
-            <p className="text-xs text-zinc-600 uppercase tracking-widest mt-3 flex items-center justify-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {t('autoUpdating')}
-            </p>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {status === 'not_started' && (
+            <motion.div
+              key="not_started"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                <svg
+                  className="w-8 h-8 text-emerald-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 6v6l4 2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold text-zinc-100 mb-1">
+                {t('eventNotStarted')}
+              </h1>
+              <p className="text-xs text-zinc-600 uppercase tracking-widest mt-3 flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {t('autoUpdating')}
+              </p>
+            </motion.div>
+          )}
 
-        {status === 'active' && <LiveScoringView data={data} />}
+          {status === 'active' && (
+            <motion.div
+              key="active"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
+            >
+              <LiveScoringView data={data} />
+            </motion.div>
+          )}
 
-        {status === 'interlude' && interludeParticipant && (
-          <InterludeReveal
-            key={interludeParticipant.id}
-            participant={interludeParticipant}
-            ranked={interludeRanked}
-          />
-        )}
+          {status === 'interlude' && interludeParticipant && (
+            <motion.div
+              key={`interlude-${interludeParticipant.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
+            >
+              <InterludeReveal
+                participant={interludeParticipant}
+                ranked={interludeRanked}
+              />
+            </motion.div>
+          )}
 
-        {status === 'ended' && <FinalLeaderboardView data={data} />}
+          {status === 'ended' && (
+            <motion.div
+              key="ended"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
+            >
+              <FinalLeaderboardView data={data} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {isHost && (status === 'active' || status === 'interlude') && (
+        <HostController
+          key="host-controller"
+          eventId={id}
+          status={status}
+          onRefresh={fetchData}
+        />
+      )}
     </div>
   );
 }

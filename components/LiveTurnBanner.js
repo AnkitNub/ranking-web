@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { authFetch } from '@/lib/authFetch';
-import { useCountdown } from '@/lib/useEventState';
 import { useTranslation } from 'react-i18next';
 
 // Resolves participant + judge ids to display names. Caches per eventId so
@@ -32,7 +31,7 @@ function useRoster(eventId) {
         judges[`user:${j.id}`] = j.name;
       });
       (jJson.guestJudges || []).forEach((g) => {
-        judges[`guest:${g.id}`] = `${g.name} (${t('guest')})`;
+        judges[`guest:${g.id}`] = g.name;
       });
       setRoster({ participants, judges });
     })();
@@ -53,7 +52,6 @@ export default function LiveTurnBanner({
 }) {
   const { t } = useTranslation('common');
   const roster = useRoster(eventId);
-  const seconds = useCountdown(state?.turn_expires_at_ms, state?.server_now_ms);
 
   if (!state) {
     return (
@@ -130,19 +128,6 @@ export default function LiveTurnBanner({
               {t('interludeHelp')}
             </p>
           </div>
-          {onNext && (
-            <button
-              onClick={onNext}
-              disabled={nextBusy}
-              className="rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
-            >
-              {nextBusy
-                ? t('advancingDot')
-                : isLastParticipant
-                  ? t('endEvent')
-                  : t('nextParticipant')}
-            </button>
-          )}
         </div>
       </div>
     );
@@ -196,24 +181,9 @@ export default function LiveTurnBanner({
                   : 'text-zinc-600 dark:text-zinc-400 font-medium'
               }`}
             >
-              {isMine ? t('yourTurn') : judgeName}
+              {isMine ? t('allJudgesVoting') || 'Concurrent Voting' : judgeName}
             </p>
           </div>
-        </div>
-
-        <div className="shrink-0 text-center bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl px-6 py-3 border border-zinc-100 dark:border-zinc-800/50">
-          <p className="text-[10px] uppercase tracking-[0.15em] font-black text-zinc-400 dark:text-zinc-500 mb-0.5">
-            {t('remainingTime')}
-          </p>
-          <p
-            className={`text-4xl font-mono font-black tabular-nums ${
-              seconds <= 10
-                ? 'text-red-500 animate-pulse'
-                : isMine ? 'text-teal-600 dark:text-teal-400' : 'text-zinc-900 dark:text-zinc-100'
-            }`}
-          >
-            {seconds}s
-          </p>
         </div>
       </div>
     </div>

@@ -85,12 +85,22 @@ export async function DELETE(request, { params }) {
   }
 
   const { judge_id } = await request.json();
+
+  // Delete the judge's scores for this event first.
+  await supabaseAdmin
+    .from('scores')
+    .delete()
+    .eq('event_id', id)
+    .eq('judge_id', judge_id);
+
   const { error } = await supabaseAdmin
     .from('event_judges')
     .delete()
     .eq('event_id', id)
     .eq('judge_id', judge_id);
+
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
   return NextResponse.json({ success: true });
 }

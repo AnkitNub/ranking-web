@@ -10,7 +10,7 @@ import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
   const { t } = useTranslation('common');
-  const { supabaseUser, firebaseUser, loading } = useAuth();
+  const { supabaseUser, firebaseUser, guestUser, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   async function handleLogout() {
@@ -35,7 +35,10 @@ export default function Navbar() {
   }
 
   const displayName =
-    supabaseUser?.name || firebaseUser?.displayName || firebaseUser?.email;
+    supabaseUser?.name ||
+    firebaseUser?.displayName ||
+    firebaseUser?.email ||
+    guestUser?.name;
   const initials = displayName
     ? displayName
         .split(' ')
@@ -70,9 +73,9 @@ export default function Navbar() {
 
         {/* User info + Logout + Language Toggle */}
         <div className="flex items-center gap-3">
-          {!loading && firebaseUser && (
+          {!loading && (firebaseUser || guestUser) && (
             <>
-              <div className="hidden md:flex items-center gap-2.5 mr-2">
+              <div className="flex items-center gap-2.5 mr-2">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-linear-to-br from-teal-500 to-teal-700">
                   {initials}
                 </div>
@@ -83,16 +86,18 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <button
-                onClick={handleLogout}
-                className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition order-last sm:order-none"
-              >
-                {t('logout')}
-              </button>
+              {firebaseUser && (
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition order-last sm:order-none"
+                >
+                  {t('logout')}
+                </button>
+              )}
             </>
           )}
 
-          {!loading && !firebaseUser && (
+          {!loading && !firebaseUser && !guestUser && (
             <div className="flex items-center gap-2">
               {pathname !== '/signin' && (
                 <Link

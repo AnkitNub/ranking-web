@@ -4,7 +4,7 @@ import {
   getGuestUser,
   supabaseAdmin,
 } from '@/lib/apiAuth';
-import { recordScoreAndAdvance } from '@/lib/turnEngine';
+import { recordScore } from '@/lib/turnEngine';
 
 export async function GET(request, { params }) {
   const user = await getAuthenticatedUser(request);
@@ -90,7 +90,7 @@ export async function POST(request, { params }) {
       { status: 400 },
     );
 
-  const result = await recordScoreAndAdvance({
+  const result = await recordScore({
     eventId: id,
     judgeId: user?.id ?? null,
     guestJudgeId: guest?.id ?? null,

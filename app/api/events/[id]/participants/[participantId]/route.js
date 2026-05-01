@@ -11,7 +11,7 @@ export async function DELETE(request, { params }) {
   // Verify the requester owns the event that this participant belongs to.
   const { data: participant } = await supabaseAdmin
     .from('participants')
-    .select('event_id, events(admin_id)')
+    .select('event_id, events(admin_id, status)')
     .eq('id', participantId)
     .single();
 
@@ -22,6 +22,13 @@ export async function DELETE(request, { params }) {
     participant.events?.admin_id !== user.id
   ) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  if (participant.events?.status !== 'not_started') {
+    return NextResponse.json(
+      { error: 'Cannot delete participants after event has started' },
+      { status: 400 },
+    );
   }
 
   // Delete associated scores first to avoid foreign key constraints
