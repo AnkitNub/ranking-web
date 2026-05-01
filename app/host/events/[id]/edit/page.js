@@ -31,7 +31,7 @@ export default function EditEventPage() {
   const fetchEvent = useCallback(async () => {
     const res = await authFetch(`/api/events/${id}`);
     if (!res.ok) {
-      router.replace('/admin');
+      router.replace('/host');
       return;
     }
     const data = await res.json();
@@ -57,10 +57,6 @@ export default function EditEventPage() {
     if (authLoading) return;
     if (!firebaseUser) {
       router.replace('/signin');
-      return;
-    }
-    if (supabaseUser && supabaseUser.role !== 'admin') {
-      router.replace('/judge');
       return;
     }
     if (supabaseUser) fetchEvent();
@@ -91,7 +87,7 @@ export default function EditEventPage() {
       }
 
       setSuccess(t('eventUpdatedSuccessfully'));
-      setTimeout(() => router.push(`/admin/events/${id}`), 1500);
+      setTimeout(() => router.push(`/host/events/${id}`), 1500);
     } finally {
       setSaving(false);
     }
@@ -115,7 +111,7 @@ export default function EditEventPage() {
         {/* Breadcrumb + title */}
         <div className="mb-8">
           <button
-            onClick={() => router.push(`/admin/events/${id}`)}
+            onClick={() => router.push(`/host/events/${id}`)}
             className="text-xs text-zinc-700 hover:text-teal-700 dark:hover:text-teal-400 transition mb-3"
           >
             ← {t('backToEvent')}
@@ -271,7 +267,7 @@ export default function EditEventPage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push(`/admin/events/${id}`)}
+              onClick={() => router.push(`/host/events/${id}`)}
               className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
             >
               {t('cancel')}

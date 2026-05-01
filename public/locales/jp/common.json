@@ -252,6 +252,9 @@
     "presentationReady": "📺 プレゼンテーション準備完了",
     "presentationLiveHelp": "プロジェクター画面を今すぐ開いてください — 採点中にリアルタイムで更新されます。",
     "downloadCsv": "CSVダウンロード",
-    "downloadCsvHelp": "スコアボードをCSVファイルとしてダウンロード（Excel対応）"
+    "downloadCsvHelp": "スコアボードをCSVファイルとしてダウンロード（Excel対応）",
+    "hostedEvents": "主催イベント",
+    "judgingEvents": "審査するイベント",
+    "eventCreateRateLimit": "1日に{{limit}}件までイベントを作成できます。明日もう一度お試しください。"
   }
 }

@@ -250,6 +250,9 @@
     "presentationReady": "📺 Presentation ready",
     "presentationLiveHelp": "Open the projector view now — it updates live as judges score.",
     "downloadCsv": "Download CSV",
-    "downloadCsvHelp": "Download the scoreboard as a CSV file (Excel-compatible)"
+    "downloadCsvHelp": "Download the scoreboard as a CSV file (Excel-compatible)",
+    "hostedEvents": "Hosted Events",
+    "judgingEvents": "Judging",
+    "eventCreateRateLimit": "You can create up to {{limit}} events per day. Please try again tomorrow."
   }
 }

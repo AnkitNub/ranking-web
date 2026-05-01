@@ -169,7 +169,8 @@ export default function JudgeDashboard() {
   const fetchEvents = useCallback(async () => {
     const res = await authFetch('/api/events');
     const data = await res.json();
-    setEvents(data.events || []);
+    // Show only events the user is assigned to judge — not events they host.
+    setEvents(data.judging || data.events || []);
     setPageLoading(false);
   }, []);
 
@@ -177,10 +178,6 @@ export default function JudgeDashboard() {
     if (loading) return;
     if (!firebaseUser) {
       router.replace('/signin');
-      return;
-    }
-    if (supabaseUser && supabaseUser.role === 'admin') {
-      router.replace('/admin');
       return;
     }
     if (supabaseUser) fetchEvents();

@@ -915,7 +915,7 @@ export default function AdminEventPage() {
   const fetchEvent = useCallback(async () => {
     const res = await authFetch(`/api/events/${id}`);
     if (!res.ok) {
-      router.replace('/admin');
+      router.replace('/host');
       return;
     }
     const data = await res.json();
@@ -927,10 +927,6 @@ export default function AdminEventPage() {
     if (loading) return;
     if (!firebaseUser) {
       router.replace('/signin');
-      return;
-    }
-    if (supabaseUser && supabaseUser.role !== 'admin') {
-      router.replace('/judge');
       return;
     }
     if (supabaseUser) fetchEvent();
@@ -954,7 +950,7 @@ export default function AdminEventPage() {
         {/* Breadcrumb + title */}
         <div className="mb-6">
           <button
-            onClick={() => router.push('/admin')}
+            onClick={() => router.push('/host')}
             className="text-xs text-zinc-700 hover:text-teal-700 dark:hover:text-teal-400 transition mb-2"
           >
             ← {t('backToMyEvents')}

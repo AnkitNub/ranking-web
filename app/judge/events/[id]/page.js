@@ -252,15 +252,9 @@ export default function JudgeScoringPage() {
   useEffect(() => {
     if (loading) return;
 
-    if (supabaseUser && supabaseUser.role === 'admin') {
-      router.replace('/admin');
-      return;
-    }
-
-    // Attempt to fetch data regardless of firebaseUser
-    // because guest sessions are valid too.
-    // If it fails, fetchData itself redirects to /signin (or we can handle it).
-    // Actually, authFetch returns 401 if unauthenticated.
+    // Attempt to fetch data regardless of firebaseUser because guest sessions
+    // are valid too. The server returns 403 if the requester isn't an
+    // assigned judge for this event, in which case fetchData redirects.
     fetchData();
   }, [loading, supabaseUser, fetchData, router]);
 
@@ -501,13 +495,11 @@ export default function JudgeScoringPage() {
         <div className="mb-6 flex justify-end">
           <span className="text-[10px] text-zinc-400 font-mono">
             ID:{' '}
-            {supabaseUser?.role === 'admin'
-              ? `admin:${supabaseUser.id}`
-              : supabaseUser?.role === 'judge'
-                ? `user:${supabaseUser.id}`
-                : liveState?.is_my_turn
-                  ? 'Matching Guest'
-                  : 'Guest'}
+            {supabaseUser
+              ? `user:${supabaseUser.id}`
+              : liveState?.is_my_turn
+                ? 'Matching Guest'
+                : 'Guest'}
           </span>
         </div>
 
