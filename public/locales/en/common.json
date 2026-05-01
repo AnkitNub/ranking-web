@@ -230,6 +230,22 @@
     "currentStandings": "Current Standings",
     "nowScoring": "Now Scoring",
     "judgeScores": "Judge Scores",
-    "yourTurn": "Your Turn"
+    "yourTurn": "Your Turn",
+    "interlude": "Scoreboard Update",
+    "interludeHelp": "Updating the leaderboard before the next participant.",
+    "scoreboardUpdating": "Scoreboard updating",
+    "nextParticipant": "Next Participant →",
+    "advancingDot": "Advancing...",
+    "notInInterlude": "Event is not in interlude.",
+    "liveScoreboard": "Live Scoreboard",
+    "scoresSoFar": "Scores so far",
+    "awaitingNextParticipant": "Awaiting next participant",
+    "justScored": "Just scored",
+    "newTotal": "New Total",
+    "scoringComplete": "Scoring Complete",
+    "scoringCompleteHelp": "All participants have been scored.",
+    "watchTheReveal": "Watch the leaderboard update on the projector.",
+    "betweenParticipants": "Between Participants",
+    "endEvent": "End Event"
   }
 }

@@ -755,6 +755,7 @@ export default function AdminEventPage() {
   const [activeTab, setActiveTab] = useState('tabParticipants');
   const [pageLoading, setPageLoading] = useState(true);
   const [startBusy, setStartBusy] = useState(false);
+  const [nextBusy, setNextBusy] = useState(false);
   const { state: liveState, refetch: refetchLive } = useEventState(id);
 
   async function handleStart() {
@@ -771,6 +772,23 @@ export default function AdminEventPage() {
       refetchLive();
     } finally {
       setStartBusy(false);
+    }
+  }
+
+  async function handleNext() {
+    setNextBusy(true);
+    try {
+      const res = await authFetch(`/api/events/${id}/next-participant`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const errMsg = data.message ? t(data.message) : (data.error || res.status);
+        alert(errMsg);
+      }
+      refetchLive();
+    } finally {
+      setNextBusy(false);
     }
   }
 
@@ -956,6 +974,8 @@ export default function AdminEventPage() {
             state={liveState}
             onStart={handleStart}
             startBusy={startBusy}
+            onNext={handleNext}
+            nextBusy={nextBusy}
           />
         </div>
 
