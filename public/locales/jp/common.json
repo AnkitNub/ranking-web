@@ -91,6 +91,7 @@
     "scored": "✓ 採点済み",
     "waiting": "待機中",
     "finished": "終了",
+    "pending": "未完了",
     "update": "更新",
     "done": "✓ 完了",
     "send": "送信",

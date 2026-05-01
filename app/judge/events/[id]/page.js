@@ -201,6 +201,75 @@ function ScoreCard({
   );
 }
 
+/* ─── Participants Panel ─────────────────────────────────────────────────── */
+function ParticipantsPanel({ participants, myScores, currentParticipantId, t }) {
+  return (
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+      <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
+        <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
+          {t('participantList')}
+        </h3>
+        <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded-full border border-teal-100 dark:border-teal-900/30">
+          {participants.length} {t('total')}
+        </span>
+      </div>
+      <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+        {participants.map((p) => {
+          const isCurrent = p.id === currentParticipantId;
+          const score = myScores[p.id]?.score;
+          return (
+            <div
+              key={p.id}
+              className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+                isCurrent
+                  ? 'border-teal-500 bg-teal-500/5 ring-1 ring-teal-500/20'
+                  : 'border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[11px] shrink-0 ${
+                    isCurrent
+                      ? 'bg-teal-500 text-white shadow-sm shadow-teal-500/20'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
+                  }`}
+                >
+                  {p.name.charAt(0).toUpperCase()}
+                </div>
+                <span
+                  className={`text-sm font-semibold truncate ${
+                    isCurrent
+                      ? 'text-teal-900 dark:text-teal-100'
+                      : 'text-zinc-700 dark:text-zinc-300'
+                  }`}
+                >
+                  {p.name}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {isCurrent && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                )}
+                {score != null ? (
+                  <div className="flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-900/20 px-2 py-0.5 rounded-lg">
+                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                      {score}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                    {t('pending')}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function JudgeScoringPage() {
   const { t } = useTranslation('common');
   const { id } = useParams();
@@ -483,6 +552,18 @@ export default function JudgeScoringPage() {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Participants Panel */}
+        {participants.length > 0 && (
+          <div className="mb-6">
+            <ParticipantsPanel
+              participants={participants}
+              myScores={myScores}
+              currentParticipantId={currentParticipantId}
+              t={t}
+            />
           </div>
         )}
 
