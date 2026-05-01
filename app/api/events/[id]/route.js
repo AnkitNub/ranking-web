@@ -140,8 +140,25 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  // Delete all associated records in order to satisfy foreign key constraints.
+  // 1. Scores (which depend on event_id)
+  await supabaseAdmin.from('scores').delete().eq('event_id', id);
+
+  // 2. Participants
+  await supabaseAdmin.from('participants').delete().eq('event_id', id);
+
+  // 3. Event Judges (assigned judges)
+  await supabaseAdmin.from('event_judges').delete().eq('event_id', id);
+
+  // 4. Guest Judges
+  await supabaseAdmin.from('guest_judges').delete().eq('event_id', id);
+
+  // 5. Finally, the event itself.
   const { error } = await supabaseAdmin.from('events').delete().eq('id', id);
+
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
   return NextResponse.json({ success: true });
 }
+
