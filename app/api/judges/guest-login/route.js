@@ -1,9 +1,12 @@
 import { cookies } from 'next/headers';
-import supabase from '@/lib/supabaseClient';
+import { supabaseAdmin as supabase } from '@/lib/apiAuth';
 
 export async function POST(req) {
   try {
-    const { event_code, judge_password, name } = await req.json();
+    const { event_code: raw_event_code, judge_password: raw_judge_password, name } = await req.json();
+
+    const event_code = raw_event_code?.trim()?.toUpperCase();
+    const judge_password = raw_judge_password?.trim()?.toUpperCase();
 
     if (!event_code || !judge_password || !name) {
       return new Response(
@@ -24,6 +27,9 @@ export async function POST(req) {
       .single();
 
     if (eventError || !event) {
+      if (eventError) {
+        console.error('Event verification error:', eventError);
+      }
       return new Response(
         JSON.stringify({ error: 'Invalid event code or password.' }),
         {
