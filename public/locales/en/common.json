@@ -246,6 +246,10 @@
     "scoringCompleteHelp": "All participants have been scored.",
     "watchTheReveal": "Watch the leaderboard update on the projector.",
     "betweenParticipants": "Between Participants",
-    "endEvent": "End Event"
+    "endEvent": "End Event",
+    "presentationReady": "📺 Presentation ready",
+    "presentationLiveHelp": "Open the projector view now — it updates live as judges score.",
+    "downloadCsv": "Download CSV",
+    "downloadCsvHelp": "Download the scoreboard as a CSV file (Excel-compatible)"
   }
 }

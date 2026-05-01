@@ -248,6 +248,10 @@
     "scoringCompleteHelp": "すべての参加者の採点が完了しました。",
     "watchTheReveal": "スクリーンでリーダーボードの更新をご覧ください。",
     "betweenParticipants": "参加者の間",
-    "endEvent": "イベント終了"
+    "endEvent": "イベント終了",
+    "presentationReady": "📺 プレゼンテーション準備完了",
+    "presentationLiveHelp": "プロジェクター画面を今すぐ開いてください — 採点中にリアルタイムで更新されます。",
+    "downloadCsv": "CSVダウンロード",
+    "downloadCsvHelp": "スコアボードをCSVファイルとしてダウンロード（Excel対応）"
   }
 }

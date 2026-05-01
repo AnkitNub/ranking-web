@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
   const { t } = useTranslation('common');
   const [judges, setJudges] = useState([]);
+  const [guestJudges, setGuestJudges] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
         const res = await authFetch(`/api/events/${eventId}/judges`);
         const data = await res.json();
         setJudges(data.judges || []);
+        setGuestJudges(data.guestJudges || []);
       } catch (error) {
         console.error('Failed to fetch judges:', error);
       } finally {
@@ -34,19 +36,29 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
     (s) => s.participant_id === participant.id,
   );
 
-  const judgeScores = judges
-    .map((judge) => {
-      const score = participantScores.find((s) => s.judge_id === judge.id);
-      return {
-        judge_name: judge.name || 'Unknown Judge',
-        score: score ? score.score : '-',
-      };
-    })
-    .sort((a, b) => {
-      const scoreA = a.score === '-' ? -Infinity : a.score;
-      const scoreB = b.score === '-' ? -Infinity : b.score;
-      return scoreB - scoreA;
-    });
+  const regularRows = judges.map((judge) => {
+    const score = participantScores.find((s) => s.judge_id === judge.id);
+    return {
+      key: `user-${judge.id}`,
+      judge_name: judge.name || 'Unknown Judge',
+      kind: 'judge',
+      score: score ? score.score : '-',
+    };
+  });
+  const guestRows = guestJudges.map((g) => {
+    const score = participantScores.find((s) => s.guest_judge_id === g.id);
+    return {
+      key: `guest-${g.id}`,
+      judge_name: g.name || 'Guest',
+      kind: 'guest',
+      score: score ? score.score : '-',
+    };
+  });
+  const judgeScores = [...regularRows, ...guestRows].sort((a, b) => {
+    const scoreA = a.score === '-' ? -Infinity : a.score;
+    const scoreB = b.score === '-' ? -Infinity : b.score;
+    return scoreB - scoreA;
+  });
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -73,13 +85,18 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
           </p>
         ) : (
           <div className="space-y-2">
-            {judgeScores.map((item, idx) => (
+            {judgeScores.map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 className="flex items-center justify-between bg-slate-100 dark:bg-slate-600 px-3 py-2 rounded-lg"
               >
-                <span className="text-sm font-medium text-black dark:text-white">
+                <span className="text-sm font-medium text-black dark:text-white flex items-center gap-2">
                   {item.judge_name}
+                  {item.kind === 'guest' && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                      {t('guest')}
+                    </span>
+                  )}
                 </span>
                 <span
                   className={`text-sm font-bold ${
@@ -546,10 +563,12 @@ function JudgesTab({ eventId }) {
 }
 
 /* ─── Scoreboard Tab ───────────────────────────────────────────────────────── */
-function ScoreboardTab({ eventId }) {
+function ScoreboardTab({ eventId, eventName }) {
   const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [scores, setScores] = useState([]);
+  const [judges, setJudges] = useState([]);
+  const [guestJudges, setGuestJudges] = useState([]);
   const [assignedJudgesCount, setAssignedJudgesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
@@ -558,14 +577,18 @@ function ScoreboardTab({ eventId }) {
   const intervalRef = useRef(null);
 
   const fetchScoreboard = useCallback(async () => {
-    const [participantsRes, scoresRes] = await Promise.all([
+    const [participantsRes, scoresRes, judgesRes] = await Promise.all([
       authFetch(`/api/events/${eventId}/participants`),
       authFetch(`/api/events/${eventId}/scores`),
+      authFetch(`/api/events/${eventId}/judges`),
     ]);
     const participantsData = await participantsRes.json();
     const scoresData = await scoresRes.json();
+    const judgesData = await judgesRes.json();
     setParticipants(participantsData.participants || []);
     setScores(scoresData.scores || []);
+    setJudges(judgesData.judges || []);
+    setGuestJudges(judgesData.guestJudges || []);
     setAssignedJudgesCount(scoresData.assignedJudgesCount || 0);
     setLastRefreshed(new Date());
     setLoading(false);
@@ -606,6 +629,67 @@ function ScoreboardTab({ eventId }) {
     }
   }
 
+  function handleDownloadCsv() {
+    const escape = (val) => {
+      if (val == null) return '';
+      const s = String(val);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    const judgeColumns = [
+      ...judges.map((j) => ({ kind: 'user', id: j.id, label: j.name })),
+      ...guestJudges.map((g) => ({
+        kind: 'guest',
+        id: g.id,
+        label: `${g.name} (${t('guest')})`,
+      })),
+    ];
+
+    const header = [
+      t('rankLabel'),
+      t('participantLabel'),
+      t('totalScoreLabel'),
+      t('scoredJudgesLabel'),
+      ...judgeColumns.map((c) => c.label),
+    ];
+
+    const lines = [header.map(escape).join(',')];
+    rows.forEach((row, idx) => {
+      const cells = [
+        idx + 1,
+        row.name,
+        row.totalScore,
+        `${row.judgesScored}/${assignedJudgesCount}`,
+        ...judgeColumns.map((col) => {
+          const score = scores.find(
+            (s) =>
+              s.participant_id === row.id &&
+              (col.kind === 'user'
+                ? s.judge_id === col.id
+                : s.guest_judge_id === col.id),
+          );
+          return score ? score.score : '';
+        }),
+      ];
+      lines.push(cells.map(escape).join(','));
+    });
+
+    const csv = '﻿' + lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const safeName = (eventName || `event-${eventId}`)
+      .replace(/[^\w　-鿿\-]+/g, '_')
+      .slice(0, 60);
+    const stamp = new Date().toISOString().slice(0, 10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeName}-scoreboard-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function medalEmoji(index) {
     if (index === 0) return '🥇';
     if (index === 1) return '🥈';
@@ -618,49 +702,85 @@ function ScoreboardTab({ eventId }) {
       <p className="text-sm text-zinc-600 py-6 text-center">{t('loading')}</p>
     );
 
+  const hasAnyScore = scores.length > 0;
+  const bannerColor = allScored
+    ? 'border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60'
+    : 'border-teal-500 dark:border-teal-500 bg-teal-50 dark:bg-teal-950/40';
+  const bannerHeading = allScored
+    ? t('allScoresReady')
+    : t('presentationReady');
+
   return (
     <div className="space-y-3">
-      {/* Present Results banner */}
-      {allScored && (
-        <div className="rounded-xl border-2 border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-              {t('allScoresReady')}
+      {/* Present Results banner — always available, even mid-event */}
+      <div
+        className={`rounded-xl border-2 ${bannerColor} px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md`}
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
+            {bannerHeading}
+          </p>
+          <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
+            {presentUrl}
+          </p>
+          {!allScored && (
+            <p className="text-[11px] text-zinc-700 dark:text-zinc-300 mt-1">
+              {t('presentationLiveHelp')}
             </p>
-            <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
-              {presentUrl}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleCopyLink}
-              className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
-            >
-              {copied ? t('copied') : t('copyLink')}
-            </button>
-            <a
-              href={`/present/${eventId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
-            >
-              {t('goToPresent')}
-            </a>
-          </div>
+          )}
         </div>
-      )}
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <button
+            onClick={handleCopyLink}
+            className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
+          >
+            {copied ? t('copied') : t('copyLink')}
+          </button>
+          <a
+            href={`/present/${eventId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
+          >
+            {t('goToPresent')}
+          </a>
+        </div>
+      </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs text-slate-800">
           {t('autoRefreshEvery15s')}
           {lastRefreshed && ` · ${t('lastRefreshedAt', { time: lastRefreshed.toLocaleTimeString() })}`}
         </p>
-        <button
-          onClick={fetchScoreboard}
-          className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
-        >
-          ↻ {t('refresh')}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleDownloadCsv}
+            disabled={!hasAnyScore}
+            className="text-xs px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+            title={t('downloadCsvHelp')}
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"
+              />
+            </svg>
+            {t('downloadCsv')}
+          </button>
+          <button
+            onClick={fetchScoreboard}
+            className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
+          >
+            ↻ {t('refresh')}
+          </button>
+        </div>
       </div>
 
       {rows.length === 0 ? (
@@ -1002,7 +1122,9 @@ export default function AdminEventPage() {
         <div>
           {activeTab === 'tabParticipants' && <ParticipantsTab eventId={id} />}
           {activeTab === 'tabJudges' && <JudgesTab eventId={id} />}
-          {activeTab === 'tabScoreboard' && <ScoreboardTab eventId={id} />}
+          {activeTab === 'tabScoreboard' && (
+            <ScoreboardTab eventId={id} eventName={event?.name} />
+          )}
         </div>
       </main>
     </div>
