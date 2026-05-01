@@ -192,7 +192,7 @@ function DeleteParticipantModal({
 }
 
 /* ─── Participants Tab ─────────────────────────────────────────────────────── */
-function ParticipantsTab({ eventId }) {
+function ParticipantsTab({ eventId, canAddParticipants }) {
   const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [input, setInput] = useState('');
@@ -255,22 +255,31 @@ function ParticipantsTab({ eventId }) {
         />
       )}
 
-      <form onSubmit={handleAdd} className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={t('participantName')}
-          className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-        />
-        <button
-          type="submit"
-          disabled={adding || !input.trim()}
-          className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
-        >
-          {adding ? t('addingDot') : t('addParticipant')}
-        </button>
-      </form>
+      {canAddParticipants ? (
+        <form onSubmit={handleAdd} className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={t('participantName')}
+            className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+          />
+          <button
+            type="submit"
+            disabled={adding || !input.trim()}
+            className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
+          >
+            {adding ? t('addingDot') : t('addParticipant')}
+          </button>
+        </form>
+      ) : (
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          {t('cannotAddParticipantsAfterStart')}
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
@@ -292,25 +301,27 @@ function ParticipantsTab({ eventId }) {
               <span className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
                 {p.name}
               </span>
-              <button
-                onClick={() => setParticipantToDelete(p)}
-                className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded"
-                title={t('deleteParticipant')}
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {canAddParticipants && (
+                <button
+                  onClick={() => setParticipantToDelete(p)}
+                  className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded"
+                  title={t('deleteParticipant')}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -916,7 +927,14 @@ export default function AdminEventPage() {
 
         {/* Tab content */}
         <div>
-          {activeTab === 'tabParticipants' && <ParticipantsTab eventId={id} />}
+          {activeTab === 'tabParticipants' && (
+            <ParticipantsTab
+              eventId={id}
+              canAddParticipants={
+                (liveState?.status || event?.status) === 'not_started'
+              }
+            />
+          )}
           {activeTab === 'tabJudges' && <JudgesTab eventId={id} />}
           {activeTab === 'tabScoreboard' && (
             <ScoreboardTab eventId={id} eventName={event?.name} />

@@ -279,6 +279,7 @@
     "endedEvents": "終了したイベント",
     "noEventsFound": "イベントが見つかりませんでした。",
     "not_started": "未開始",
-    "date": "日付"
+    "date": "日付",
+    "cannotAddParticipantsAfterStart": "イベント開始後は参加者の追加や削除はできません。"
   }
 }

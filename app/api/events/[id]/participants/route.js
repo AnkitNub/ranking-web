@@ -33,14 +33,21 @@ export async function POST(request, { params }) {
 
   const { id } = await params;
 
-  // Verify the requester owns this event.
+  // Verify the requester owns this event and it hasn't started.
   const { data: event } = await supabaseAdmin
     .from('events')
-    .select('admin_id')
+    .select('admin_id, status')
     .eq('id', id)
     .single();
   if (!event || event.admin_id !== user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  if (event.status !== 'not_started') {
+    return NextResponse.json(
+      { error: 'Cannot add participants after event has started' },
+      { status: 400 },
+    );
   }
 
   const { name } = await request.json();

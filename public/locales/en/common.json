@@ -278,6 +278,7 @@
     "endedEvents": "Ended Events",
     "noEventsFound": "No events found.",
     "not_started": "Not Started",
-    "date": "Date"
+    "date": "Date",
+    "cannotAddParticipantsAfterStart": "Participants cannot be added or removed after the event has started."
   }
 }
