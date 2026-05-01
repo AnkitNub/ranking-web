@@ -13,19 +13,13 @@ export default function Navbar() {
   const { supabaseUser, firebaseUser, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const role = supabaseUser?.role;
-
   async function handleLogout() {
     await signOut(auth);
     router.push('/signin');
   }
 
   function navLink(href, label) {
-    let active = pathname === href || pathname.startsWith(href + '/');
-    // Exclude more specific routes from parent path matching
-    if (href === '/admin' && pathname.startsWith('/admin/judges')) {
-      active = false;
-    }
+    const active = pathname === href || pathname.startsWith(href + '/');
     return (
       <Link
         href={href}
@@ -67,13 +61,8 @@ export default function Navbar() {
 
           {!loading && firebaseUser && (
             <nav className="hidden sm:flex items-center gap-1">
-              {role === 'admin' && (
-                <>
-                  {navLink('/admin', t('myEvents'))}
-                  {navLink('/admin/judges', t('manageJudges'))}
-                </>
-              )}
-              {role === 'judge' && navLink('/judge', t('myEvents'))}
+              {navLink('/host', t('hostedEvents'))}
+              {navLink('/judge', t('judgingEvents'))}
             </nav>
           )}
         </div>
@@ -89,9 +78,6 @@ export default function Navbar() {
                 <div className="text-right">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                     {displayName}
-                  </p>
-                  <p className="text-xs capitalize leading-tight font-medium text-teal-700 dark:text-teal-400">
-                    {role ?? '…'}
                   </p>
                 </div>
               </div>
@@ -131,15 +117,10 @@ export default function Navbar() {
       </div>
 
       {/* Mobile nav */}
-      {!loading && firebaseUser && role && (
+      {!loading && firebaseUser && (
         <div className="sm:hidden border-t border-zinc-100 dark:border-zinc-800 px-4 py-2 flex gap-2">
-          {role === 'admin' && (
-            <>
-              {navLink('/admin', t('myEvents'))}
-              {navLink('/admin/judges', t('manageJudges'))}
-            </>
-          )}
-          {role === 'judge' && navLink('/judge', t('myEvents'))}
+          {navLink('/host', t('hostedEvents'))}
+          {navLink('/judge', t('judgingEvents'))}
         </div>
       )}
     </header>

@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/apiAuth';
-import { startEvent } from '@/lib/turnEngine';
+import { leaveInterlude } from '@/lib/turnEngine';
 
-// POST /api/events/[id]/start
-// Admin-only. Snapshots judges_order + participants_order, marks the event
-// active, and starts the first turn.
+// POST /api/events/[id]/next-participant
+// Admin-only. Leaves the per-participant interlude phase and starts the next
+// participant's first judge turn, or ends the event if there are no more
+// participants.
 export async function POST(request, { params }) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { id } = await params;
-  // startEvent verifies ownership (admin_id === requesterUserId).
-  const result = await startEvent({
+  // leaveInterlude verifies ownership (admin_id === requesterUserId).
+  const result = await leaveInterlude({
     eventId: id,
     requesterUserId: user.id,
   });
@@ -25,9 +26,7 @@ export async function POST(request, { params }) {
           ? 404
           : 400;
     const messages = {
-      no_judges: 'noJudgesAssigned',
-      no_participants: 'noParticipantsYet',
-      bad_status: 'eventAlreadyStarted',
+      bad_status: 'notInInterlude',
       forbidden: 'forbidden',
       not_found: 'notFound',
       race_lost: 'pleaseTryAgain',

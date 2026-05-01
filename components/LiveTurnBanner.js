@@ -48,6 +48,8 @@ export default function LiveTurnBanner({
   state,
   onStart,
   startBusy,
+  onNext,
+  nextBusy,
 }) {
   const { t } = useTranslation('common');
   const roster = useRoster(eventId);
@@ -94,6 +96,54 @@ export default function LiveTurnBanner({
         <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
           {t('allParticipantsScored')}
         </p>
+      </div>
+    );
+  }
+
+  if (state.status === 'interlude') {
+    const justScoredName =
+      roster.participants[state.current_participant_id] ??
+      `#${state.current_participant_id}`;
+    const isLastParticipant =
+      state.participants_total != null &&
+      state.current_participant_index >= state.participants_total - 1;
+    return (
+      <div className="rounded-2xl border-2 border-cyan-400 dark:border-cyan-500/70 bg-linear-to-br from-cyan-50 to-white dark:from-cyan-900/30 dark:to-zinc-900 px-6 py-5 shadow-lg shadow-cyan-500/10">
+        <div className="flex items-center justify-between gap-6 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] uppercase tracking-[0.15em] font-black text-cyan-600 dark:text-cyan-400 mb-1 flex items-center gap-2">
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+              </span>
+              {t('scoreboardUpdating')}
+            </p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-xs font-semibold text-zinc-500">
+                {t('justScored')}:
+              </span>
+              <p className="text-xl font-black text-zinc-950 dark:text-zinc-50 truncate">
+                {justScoredName}
+              </p>
+            </div>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+              {t('interludeHelp')}
+            </p>
+          </div>
+          {onNext && (
+            <button
+              onClick={onNext}
+              disabled={nextBusy}
+              className="rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
+            >
+              {nextBusy
+                ? t('advancingDot')
+                : isLastParticipant
+                  ? t('endEvent')
+                  : t('nextParticipant')}
+            </button>
+          )}
+        </div>
       </div>
     );
   }

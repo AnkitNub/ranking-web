@@ -30,12 +30,10 @@ export async function POST(request, { params }) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
 
-  // Verify admin owns this event
+  // Verify the requester owns this event.
   const { data: event } = await supabaseAdmin
     .from('events')
     .select('admin_id')

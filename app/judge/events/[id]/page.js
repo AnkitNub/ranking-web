@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import LiveTurnBanner from '@/components/LiveTurnBanner';
+import LiveScoreboard from '@/components/LiveScoreboard';
 import { authFetch } from '@/lib/authFetch';
 import { useEventState } from '@/lib/useEventState';
 import { useTranslation } from 'react-i18next';
@@ -251,15 +252,9 @@ export default function JudgeScoringPage() {
   useEffect(() => {
     if (loading) return;
 
-    if (supabaseUser && supabaseUser.role === 'admin') {
-      router.replace('/admin');
-      return;
-    }
-
-    // Attempt to fetch data regardless of firebaseUser
-    // because guest sessions are valid too.
-    // If it fails, fetchData itself redirects to /signin (or we can handle it).
-    // Actually, authFetch returns 401 if unauthenticated.
+    // Attempt to fetch data regardless of firebaseUser because guest sessions
+    // are valid too. The server returns 403 if the requester isn't an
+    // assigned judge for this event, in which case fetchData redirects.
     fetchData();
   }, [loading, supabaseUser, fetchData, router]);
 
@@ -275,6 +270,8 @@ export default function JudgeScoringPage() {
   }
 
   const isMyTurn = liveState?.is_my_turn === true;
+  const isInterlude = liveState?.status === 'interlude';
+  const isActive = liveState?.status === 'active';
   const currentParticipantId = liveState?.current_participant_id ?? null;
 
   const scoredCount = Object.keys(myScores).length;
@@ -282,6 +279,17 @@ export default function JudgeScoringPage() {
 
   const currentParticipant = participants.find((p) => p.id === currentParticipantId);
   const otherParticipants = participants.filter((p) => p.id !== currentParticipantId);
+
+  // Pulse the scoreboard right after the interlude ends, so judges notice the
+  // standings have just shuffled.
+  const [scoreboardPulse, setScoreboardPulse] = useState(0);
+  const wasInterludeRef = useRef(false);
+  useEffect(() => {
+    if (wasInterludeRef.current && !isInterlude) {
+      setScoreboardPulse((n) => n + 1);
+    }
+    wasInterludeRef.current = isInterlude;
+  }, [isInterlude]);
 
   if (loading || pageLoading) {
     return (
@@ -487,19 +495,17 @@ export default function JudgeScoringPage() {
         <div className="mb-6 flex justify-end">
           <span className="text-[10px] text-zinc-400 font-mono">
             ID:{' '}
-            {supabaseUser?.role === 'admin'
-              ? `admin:${supabaseUser.id}`
-              : supabaseUser?.role === 'judge'
-                ? `user:${supabaseUser.id}`
-                : liveState?.is_my_turn
-                  ? 'Matching Guest'
-                  : 'Guest'}
+            {supabaseUser
+              ? `user:${supabaseUser.id}`
+              : liveState?.is_my_turn
+                ? 'Matching Guest'
+                : 'Guest'}
           </span>
         </div>
 
         {/* Active Participant / On Stage Section */}
-        {currentParticipant && (
-          <div className="mb-12 relative">
+        {isActive && currentParticipant && (
+          <div className="mb-10 relative">
             <div className="absolute inset-0 bg-teal-500/5 blur-3xl rounded-full pointer-events-none" />
             <div className="relative z-10">
               <div className="flex flex-col items-center gap-2 mb-6">
@@ -527,17 +533,52 @@ export default function JudgeScoringPage() {
           </div>
         )}
 
-        {/* Participants section header */}
-        {otherParticipants.length > 0 && (
-          <div className="flex items-center gap-2 mb-4">
-            <span className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-            <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-              {currentParticipant ? t('otherParticipants') : t('participantList')} — {otherParticipants.length}
-            </h2>
+        {/* Interlude — scoreboard is updating between participants */}
+        {isInterlude && (
+          <div className="mb-10 relative">
+            <div className="absolute inset-0 bg-cyan-400/10 blur-3xl rounded-full pointer-events-none" />
+            <div className="relative z-10 max-w-md mx-auto rounded-3xl border-2 border-cyan-300 dark:border-cyan-500/60 bg-white dark:bg-zinc-900 px-6 py-8 text-center shadow-xl shadow-cyan-500/10">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-7 h-7 text-cyan-500 animate-pulse"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-1">
+                {t('scoreboardUpdating')}
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                {t('watchTheReveal')}
+              </p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-cyan-600 dark:text-cyan-400 flex items-center justify-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                {t('awaitingNextParticipant')}
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Participant list */}
+        {/* Live scoreboard — visible during active + interlude */}
+        {(isActive || isInterlude || liveState?.status === 'ended') && (
+          <div className="mb-8">
+            <LiveScoreboard
+              eventId={id}
+              pulseSignal={scoreboardPulse}
+              highlightParticipantId={isInterlude ? currentParticipantId : null}
+            />
+          </div>
+        )}
+
+        {/* Participant list (other participants only shown when scoring is active) */}
         {participants.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-teal-200 dark:border-zinc-800 rounded-2xl bg-white/60 dark:bg-zinc-900/40">
             <div className="w-12 h-12 rounded-2xl bg-teal-100 dark:bg-teal-900/20 flex items-center justify-center mx-auto mb-3">
@@ -559,23 +600,31 @@ export default function JudgeScoringPage() {
               {t('noParticipantsYet')}
             </p>
           </div>
-        ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {otherParticipants.map((p) => (
-              <ScoreCard
-                key={p.id}
-                participant={p}
-                existingScore={myScores[p.id] ?? null}
-                eventId={id}
-                onScored={handleScored}
-                disabled={isExpired(event)}
-                maxScore={event?.max_score ?? 10}
-                isCurrentTurn={false}
-                turnToken={null}
-              />
-            ))}
-          </ul>
-        )}
+        ) : isActive && otherParticipants.length > 0 ? (
+          <>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+              <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                {currentParticipant ? t('otherParticipants') : t('participantList')} — {otherParticipants.length}
+              </h2>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {otherParticipants.map((p) => (
+                <ScoreCard
+                  key={p.id}
+                  participant={p}
+                  existingScore={myScores[p.id] ?? null}
+                  eventId={id}
+                  onScored={handleScored}
+                  disabled={isExpired(event)}
+                  maxScore={event?.max_score ?? 10}
+                  isCurrentTurn={false}
+                  turnToken={null}
+                />
+              ))}
+            </ul>
+          </>
+        ) : null}
       </main>
     </div>
   );

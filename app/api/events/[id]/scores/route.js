@@ -40,8 +40,8 @@ export async function GET(request, { params }) {
   let myScores = [];
   if (guest) {
     myScores = scores.filter((s) => s.guest_judge_id === guest.id);
-  } else if (user && user.role === 'judge') {
-    // For judges: surface their own scores separately for easy lookup
+  } else if (user) {
+    // For signed-in users acting as judges: surface their own scores.
     myScores = scores.filter((s) => s.judge_id === user.id);
   }
 
@@ -57,13 +57,13 @@ export async function POST(request, { params }) {
   const guest = getGuestUser(request);
   if (!user && !guest)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user && user.role !== 'judge')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
   if (guest && String(guest.event_id) !== String(id))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
+  // Authorization for signed-in users: must be assigned as a judge for this
+  // event. Hosts can't score their own events unless they're also assigned.
   if (user) {
     const { data: ej } = await supabaseAdmin
       .from('event_judges')

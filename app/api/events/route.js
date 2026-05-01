@@ -10,42 +10,64 @@ function generateRandomString(length) {
     .toUpperCase();
 }
 
+// GET /api/events
+// Returns events the requester hosts. The judge page fetches events they're
+// assigned to via /api/events directly too, so we include those when present.
 export async function GET(request) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  if (user.role === 'admin') {
-    const { data, error } = await supabaseAdmin
+  const [hostedRes, judgingRes] = await Promise.all([
+    supabaseAdmin
       .from('events')
       .select('*')
       .eq('admin_id', user.id)
-      .order('created_at', { ascending: false });
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ events: data });
-  }
-
-  if (user.role === 'judge') {
-    const { data, error } = await supabaseAdmin
+      .order('created_at', { ascending: false }),
+    supabaseAdmin
       .from('event_judges')
       .select('event_id, events(*)')
-      .eq('judge_id', user.id);
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    const events = data.map((d) => d.events).filter(Boolean);
-    return NextResponse.json({ events });
-  }
+      .eq('judge_id', user.id),
+  ]);
 
-  return NextResponse.json({ events: [] });
+  if (hostedRes.error)
+    return NextResponse.json({ error: hostedRes.error.message }, { status: 500 });
+  if (judgingRes.error)
+    return NextResponse.json({ error: judgingRes.error.message }, { status: 500 });
+
+  const hosted = hostedRes.data ?? [];
+  const judging = (judgingRes.data ?? []).map((d) => d.events).filter(Boolean);
+
+  // Caller chooses which list to display; expose both.
+  return NextResponse.json({ events: hosted, hosted, judging });
 }
+
+// Daily cap on event creation per user. Prevents abuse now that any signed-in
+// user (not just admins) can create events. Tune the constant if needed.
+const DAILY_EVENT_CREATE_LIMIT = 5;
 
 export async function POST(request) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  // Per-user daily rate limit.
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count: recentCount } = await supabaseAdmin
+    .from('events')
+    .select('id', { count: 'exact', head: true })
+    .eq('admin_id', user.id)
+    .gte('created_at', since);
+  if ((recentCount ?? 0) >= DAILY_EVENT_CREATE_LIMIT) {
+    return NextResponse.json(
+      {
+        error: 'rate_limit',
+        message: 'eventCreateRateLimit',
+        limit: DAILY_EVENT_CREATE_LIMIT,
+      },
+      { status: 429 },
+    );
+  }
 
   const { name, description, max_score, event_date, start_time } =
     await request.json();

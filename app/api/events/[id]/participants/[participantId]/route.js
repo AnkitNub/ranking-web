@@ -5,12 +5,10 @@ export async function DELETE(request, { params }) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id, participantId } = await params;
 
-  // Verify admin owns the event that this participant belongs to
+  // Verify the requester owns the event that this participant belongs to.
   const { data: participant } = await supabaseAdmin
     .from('participants')
     .select('event_id, events(admin_id)')

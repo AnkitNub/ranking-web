@@ -44,7 +44,11 @@ function CreateEventModal({ onClose, onCreate }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || t('failedToCreateEvent'));
+        if (data.message === 'eventCreateRateLimit') {
+          setError(t('eventCreateRateLimit', { limit: data.limit ?? 5 }));
+        } else {
+          setError(data.error || t('failedToCreateEvent'));
+        }
         return;
       }
       onCreate(data.event);
@@ -443,10 +447,6 @@ export default function AdminDashboard() {
       router.replace('/signin');
       return;
     }
-    if (supabaseUser && supabaseUser.role !== 'admin') {
-      router.replace('/judge');
-      return;
-    }
     if (supabaseUser) fetchEvents();
   }, [loading, firebaseUser, supabaseUser, fetchEvents, router]);
 
@@ -571,7 +571,7 @@ export default function AdminDashboard() {
                           key={event.id}
                           className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group border-teal-200 dark:border-teal-800/50 hover:border-teal-400 dark:hover:border-teal-700 hover:shadow-md`}
                           onClick={() =>
-                            router.push(`/admin/events/${event.id}`)
+                            router.push(`/host/events/${event.id}`)
                           }
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -721,7 +721,7 @@ export default function AdminDashboard() {
                           key={event.id}
                           className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group border-red-200 dark:border-red-800/50 hover:border-red-400 dark:hover:border-red-700`}
                           onClick={() =>
-                            router.push(`/admin/events/${event.id}`)
+                            router.push(`/host/events/${event.id}`)
                           }
                         >
                           <div className="flex items-start justify-between gap-2">

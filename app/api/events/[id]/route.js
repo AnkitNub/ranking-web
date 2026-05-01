@@ -30,18 +30,23 @@ export async function GET(request, { params }) {
   const event = await resolveEvent(id);
   if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  if (user && user.role === 'admin' && event.admin_id !== user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  if (user && user.role === 'judge') {
-    const { data: ej } = await supabaseAdmin
-      .from('event_judges')
-      .select('event_id')
-      .eq('event_id', id)
-      .eq('judge_id', user.id)
-      .maybeSingle();
-    if (!ej) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  // Authorize as either the event's host, an assigned judge, or a guest judge
+  // for this event.
+  if (user) {
+    const isHost = event.admin_id === user.id;
+    let isAssignedJudge = false;
+    if (!isHost) {
+      const { data: ej } = await supabaseAdmin
+        .from('event_judges')
+        .select('event_id')
+        .eq('event_id', id)
+        .eq('judge_id', user.id)
+        .maybeSingle();
+      isAssignedJudge = !!ej;
+    }
+    if (!isHost && !isAssignedJudge) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
   }
 
   return NextResponse.json({ event });
@@ -51,8 +56,6 @@ export async function PUT(request, { params }) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
   const event = await resolveEvent(id);
@@ -130,8 +133,6 @@ export async function DELETE(request, { params }) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
   const event = await resolveEvent(id);

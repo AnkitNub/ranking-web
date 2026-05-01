@@ -19,29 +19,33 @@ export async function GET(request, { params }) {
   if (guest && String(guest.event_id) !== String(id))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  if (user && user.role === 'admin') {
+  let isHost = false;
+  let isAssignedJudge = false;
+  if (user) {
     const { data: ev } = await supabaseAdmin
       .from('events')
       .select('admin_id')
       .eq('id', id)
       .maybeSingle();
     if (!ev) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (ev.admin_id !== user.id)
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-  if (user && user.role === 'judge') {
-    const { data: ej } = await supabaseAdmin
-      .from('event_judges')
-      .select('event_id')
-      .eq('event_id', id)
-      .eq('judge_id', user.id)
-      .maybeSingle();
-    if (!ej)
+    isHost = ev.admin_id === user.id;
+    if (!isHost) {
+      const { data: ej } = await supabaseAdmin
+        .from('event_judges')
+        .select('event_id')
+        .eq('event_id', id)
+        .eq('judge_id', user.id)
+        .maybeSingle();
+      isAssignedJudge = !!ej;
+    }
+    if (!isHost && !isAssignedJudge)
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  // Only treat the requester as a judge for is_my_turn purposes when they are
+  // actually assigned to score (not when they're just hosting).
   const requester = user
-    ? { judgeId: user.role === 'judge' ? user.id : null }
+    ? { judgeId: isAssignedJudge ? user.id : null }
     : { guestJudgeId: guest.id };
   const state = await getStateWithLazyAdvance(id, requester);
   if (!state)
