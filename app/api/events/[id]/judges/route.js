@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser, supabaseAdmin } from '@/lib/apiAuth';
+import { getAuthenticatedUser, getGuestUser, supabaseAdmin } from '@/lib/apiAuth';
 
 export async function GET(request, { params }) {
   const user = await getAuthenticatedUser(request);
-  if (!user)
+  const guest = getGuestUser(request);
+  if (!user && !guest)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { id } = await params;
@@ -14,16 +15,21 @@ export async function GET(request, { params }) {
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
+  const { data: guestData, error: guestError } = await supabaseAdmin
+    .from('guest_judges')
+    .select('id, name, created_at')
+    .eq('event_id', id);
+  if (guestError)
+    return NextResponse.json({ error: guestError.message }, { status: 500 });
+
   const judges = data.map((row) => row.users).filter(Boolean);
-  return NextResponse.json({ judges });
+  return NextResponse.json({ judges, guestJudges: guestData || [] });
 }
 
 export async function POST(request, { params }) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
 
@@ -66,8 +72,6 @@ export async function DELETE(request, { params }) {
   const user = await getAuthenticatedUser(request);
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { id } = await params;
 

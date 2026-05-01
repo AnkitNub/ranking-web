@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
+import { useTranslation } from 'react-i18next';
 
 function isExpired(event) {
   if (!event) return false;
@@ -24,6 +25,7 @@ function isExpired(event) {
 }
 
 function EventCard({ event, onClick }) {
+  const { t } = useTranslation('common');
   const expired = isExpired(event);
   return (
     <button
@@ -48,7 +50,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide`}
               >
-                イベント日時
+                {t('eventDateTime')}
               </p>
               <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                 {new Date(event.event_date).toLocaleDateString('en-US', {
@@ -68,7 +70,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
               >
-                終了日時
+                {t('endTime')}
               </p>
               <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                 {new Date(event.deadline).toLocaleDateString('en-US', {
@@ -88,7 +90,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
               >
-                説明
+                {t('description')}
               </p>
               <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
                 {event.description}
@@ -102,7 +104,7 @@ function EventCard({ event, onClick }) {
               <p
                 className={`${expired ? 'text-red-700 dark:text-red-300' : 'text-teal-700 dark:text-teal-300'} font-semibold uppercase tracking-wide text-xs`}
               >
-                最高スコア
+                {t('maxScore')}
               </p>
               <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                 {event.max_score} pts
@@ -120,7 +122,7 @@ function EventCard({ event, onClick }) {
               : 'text-teal-700 dark:text-teal-300 group-hover:gap-3'
           }`}
         >
-          {expired ? 'スコアを見る' : '採点を開始'}
+          {expired ? t('viewScore') : t('startScoring')}
           <svg
             className="w-4 h-4"
             fill="none"
@@ -158,6 +160,7 @@ function EventCard({ event, onClick }) {
 }
 
 export default function JudgeDashboard() {
+  const { t } = useTranslation('common');
   const { firebaseUser, supabaseUser, loading } = useAuth();
   const router = useRouter();
   const [events, setEvents] = useState([]);
@@ -166,7 +169,8 @@ export default function JudgeDashboard() {
   const fetchEvents = useCallback(async () => {
     const res = await authFetch('/api/events');
     const data = await res.json();
-    setEvents(data.events || []);
+    // Show only events the user is assigned to judge — not events they host.
+    setEvents(data.judging || data.events || []);
     setPageLoading(false);
   }, []);
 
@@ -174,10 +178,6 @@ export default function JudgeDashboard() {
     if (loading) return;
     if (!firebaseUser) {
       router.replace('/signin');
-      return;
-    }
-    if (supabaseUser && supabaseUser.role === 'admin') {
-      router.replace('/admin');
       return;
     }
     if (supabaseUser) fetchEvents();
@@ -191,7 +191,7 @@ export default function JudgeDashboard() {
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 rounded-full border-2 border-teal-200 border-t-teal-600 animate-spin" />
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              読み込み中…
+              {t('loading')}
             </span>
           </div>
         </div>
@@ -225,10 +225,10 @@ export default function JudgeDashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 leading-tight">
-              担当イベント
+              {t('assignedEvents')}
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
-              イベントを選択して参加者の採点を開始してください。
+              {t('selectEventToStartScoring')}
             </p>
           </div>
         </div>
@@ -251,10 +251,10 @@ export default function JudgeDashboard() {
               </svg>
             </div>
             <p className="text-zinc-700 dark:text-zinc-200 font-semibold">
-              担当しているイベントはまだありません
+              {t('noAssignedEvents')}
             </p>
             <p className="text-xs text-zinc-600 dark:text-zinc-700 mt-1.5 max-w-xs mx-auto">
-              イベントが作成されると管理者から割り当てられます。
+              {t('willBeAssignedByAdmin')}
             </p>
           </div>
         ) : (
@@ -264,7 +264,7 @@ export default function JudgeDashboard() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
                   <h2 className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                    アクティブ — {activeEvents.length}
+                    {t('active')} — {activeEvents.length}
                   </h2>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
@@ -284,7 +284,7 @@ export default function JudgeDashboard() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600" />
                   <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-700">
-                    終了 — {expiredEvents.length}
+                    {t('closed')} — {expiredEvents.length}
                   </h2>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">

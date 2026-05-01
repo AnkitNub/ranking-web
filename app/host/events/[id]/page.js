@@ -4,11 +4,16 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
+import LiveTurnBanner from '@/components/LiveTurnBanner';
 import { authFetch } from '@/lib/authFetch';
+import { useEventState } from '@/lib/useEventState';
+import { useTranslation } from 'react-i18next';
 
 /* ─── Score Details Modal ──────────────────────────────────────────────────── */
 function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
+  const { t } = useTranslation('common');
   const [judges, setJudges] = useState([]);
+  const [guestJudges, setGuestJudges] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,6 +22,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
         const res = await authFetch(`/api/events/${eventId}/judges`);
         const data = await res.json();
         setJudges(data.judges || []);
+        setGuestJudges(data.guestJudges || []);
       } catch (error) {
         console.error('Failed to fetch judges:', error);
       } finally {
@@ -30,26 +36,36 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
     (s) => s.participant_id === participant.id,
   );
 
-  const judgeScores = judges
-    .map((judge) => {
-      const score = participantScores.find((s) => s.judge_id === judge.id);
-      return {
-        judge_name: judge.name || 'Unknown Judge',
-        score: score ? score.score : '-',
-      };
-    })
-    .sort((a, b) => {
-      const scoreA = a.score === '-' ? -Infinity : a.score;
-      const scoreB = b.score === '-' ? -Infinity : b.score;
-      return scoreB - scoreA;
-    });
+  const regularRows = judges.map((judge) => {
+    const score = participantScores.find((s) => s.judge_id === judge.id);
+    return {
+      key: `user-${judge.id}`,
+      judge_name: judge.name || 'Unknown Judge',
+      kind: 'judge',
+      score: score ? score.score : '-',
+    };
+  });
+  const guestRows = guestJudges.map((g) => {
+    const score = participantScores.find((s) => s.guest_judge_id === g.id);
+    return {
+      key: `guest-${g.id}`,
+      judge_name: g.name || 'Guest',
+      kind: 'guest',
+      score: score ? score.score : '-',
+    };
+  });
+  const judgeScores = [...regularRows, ...guestRows].sort((a, b) => {
+    const scoreA = a.score === '-' ? -Infinity : a.score;
+    const scoreB = b.score === '-' ? -Infinity : b.score;
+    return scoreB - scoreA;
+  });
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-slate-700 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black dark:text-white">
-            {participant.name} のスコア
+            {t('scoresFor', { name: participant.name })}
           </h2>
           <button
             onClick={onClose}
@@ -61,21 +77,26 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
 
         {loading ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
-            審査員を読み込み中...
+            {t('loadingJudges')}
           </p>
         ) : judgeScores.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-4">
-            まだ審査員が割り当てられていません。
+            {t('noJudgesAssigned')}
           </p>
         ) : (
           <div className="space-y-2">
-            {judgeScores.map((item, idx) => (
+            {judgeScores.map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 className="flex items-center justify-between bg-slate-100 dark:bg-slate-600 px-3 py-2 rounded-lg"
               >
-                <span className="text-sm font-medium text-black dark:text-white">
+                <span className="text-sm font-medium text-black dark:text-white flex items-center gap-2">
                   {item.judge_name}
+                  {item.kind === 'guest' && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                      {t('guest')}
+                    </span>
+                  )}
                 </span>
                 <span
                   className={`text-sm font-bold ${
@@ -95,7 +116,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
           onClick={onClose}
           className="mt-6 w-full px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 text-black dark:text-white font-semibold hover:bg-slate-300 dark:hover:bg-slate-500 transition"
         >
-          閉じる
+          {t('close')}
         </button>
       </div>
     </div>
@@ -110,6 +131,7 @@ function DeleteParticipantModal({
   onClose,
   onConfirm,
 }) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -126,10 +148,10 @@ function DeleteParticipantModal({
         onClose();
       } else {
         const data = await res.json();
-        setError(data.error || 'Failed to delete participant');
+        setError(data.error || t('failedToDeleteParticipant'));
       }
     } catch (err) {
-      setError('An error occurred while deleting');
+      setError(t('somethingWentWrong'));
     } finally {
       setLoading(false);
     }
@@ -139,11 +161,10 @@ function DeleteParticipantModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          参加者を削除
+          {t('deleteParticipant')}
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-          本当に <strong>{participantName}</strong>{' '}
-          とそのすべてのスコアを削除しますか？この操作は元に戻せません。
+          {t('deleteParticipantConfirm', { name: participantName })}
         </p>
         {error && (
           <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 mb-4">
@@ -155,14 +176,14 @@ function DeleteParticipantModal({
             onClick={onClose}
             className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
-            キャンセル
+            {t('cancel')}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading ? '削除中…' : '削除'}
+            {loading ? t('deletingDot') : t('delete')}
           </button>
         </div>
       </div>
@@ -172,6 +193,7 @@ function DeleteParticipantModal({
 
 /* ─── Participants Tab ─────────────────────────────────────────────────────── */
 function ParticipantsTab({ eventId }) {
+  const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -202,7 +224,7 @@ function ParticipantsTab({ eventId }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to add participant.');
+        setError(data.error || t('failedToAddParticipant'));
         return;
       }
       setParticipants((prev) => [...prev, data.participant]);
@@ -218,7 +240,7 @@ function ParticipantsTab({ eventId }) {
 
   if (loading)
     return (
-      <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>
+      <p className="text-sm text-zinc-600 py-6 text-center">{t('loading')}</p>
     );
 
   return (
@@ -238,7 +260,7 @@ function ParticipantsTab({ eventId }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="参加者名"
+          placeholder={t('participantName')}
           className="flex-1 rounded-lg border border-zinc-300 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
         />
         <button
@@ -246,7 +268,7 @@ function ParticipantsTab({ eventId }) {
           disabled={adding || !input.trim()}
           className="rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
         >
-          {adding ? '…' : '追加'}
+          {adding ? t('addingDot') : t('addParticipant')}
         </button>
       </form>
 
@@ -258,7 +280,7 @@ function ParticipantsTab({ eventId }) {
 
       {participants.length === 0 ? (
         <p className="text-sm text-zinc-700 text-center py-8">
-          まだ参加者がいません。上から追加してください。
+          {t('noParticipantsYetHelp')}
         </p>
       ) : (
         <ul className="divide-y divide-zinc-200 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
@@ -273,7 +295,7 @@ function ParticipantsTab({ eventId }) {
               <button
                 onClick={() => setParticipantToDelete(p)}
                 className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition p-1 rounded"
-                title="参加者を削除"
+                title={t('deleteParticipant')}
               >
                 <svg
                   className="w-4 h-4"
@@ -294,7 +316,7 @@ function ParticipantsTab({ eventId }) {
         </ul>
       )}
       <p className="text-xs text-zinc-700">
-        全 {participants.length} 人の参加者
+        {t('totalParticipantsLabel', { count: participants.length })}
       </p>
     </div>
   );
@@ -302,7 +324,9 @@ function ParticipantsTab({ eventId }) {
 
 /* ─── Judges Tab ───────────────────────────────────────────────────────────── */
 function JudgesTab({ eventId }) {
+  const { t } = useTranslation('common');
   const [assignedJudges, setAssignedJudges] = useState([]);
+  const [guestJudges, setGuestJudges] = useState([]);
   const [allJudges, setAllJudges] = useState([]);
   const [selectedJudgeIds, setSelectedJudgeIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -317,6 +341,7 @@ function JudgesTab({ eventId }) {
     const assignedData = await assignedRes.json();
     const allData = await allRes.json();
     setAssignedJudges(assignedData.judges || []);
+    setGuestJudges(assignedData.guestJudges || []);
     setAllJudges(allData.judges || []);
     setLoading(false);
   }, [eventId]);
@@ -370,7 +395,7 @@ function JudgesTab({ eventId }) {
       }
 
       if (failedAssignments.length > 0) {
-        setError(`Failed to assign ${failedAssignments.length} judge(s).`);
+        setError(t('failedToAssignJudges', { count: failedAssignments.length }));
       }
 
       setSelectedJudgeIds(new Set());
@@ -390,7 +415,7 @@ function JudgesTab({ eventId }) {
 
   if (loading)
     return (
-      <p className="text-sm text-zinc-400 py-6 text-center">読み込み中…</p>
+      <p className="text-sm text-zinc-400 py-6 text-center">{t('loading')}</p>
     );
 
   return (
@@ -400,7 +425,7 @@ function JudgesTab({ eventId }) {
         <>
           <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-700">
             <h3 className="text-sm font-medium text-black dark:text-black">
-              利用可能な審査員 ({unassignedJudges.length})
+              {t('availableJudges', { count: unassignedJudges.length })}
             </h3>
             {unassignedJudges.length > 1 && (
               <button
@@ -408,8 +433,8 @@ function JudgesTab({ eventId }) {
                 className="text-xs text-teal-600 dark:text-teal-400 hover:underline transition"
               >
                 {selectedJudgeIds.size === unassignedJudges.length
-                  ? 'すべて選択解除'
-                  : 'すべて選択'}
+                  ? t('unselectAll')
+                  : t('selectAll')}
               </button>
             )}
           </div>
@@ -446,18 +471,18 @@ function JudgesTab({ eventId }) {
               className="w-full rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
             >
               {assigning
-                ? '…'
-                : `選択した審査員を割り当てる (${selectedJudgeIds.size})`}
+                ? t('assigningDot')
+                : t('assignSelectedJudges', { count: selectedJudgeIds.size })}
             </button>
           )}
         </>
       ) : allJudges.length === 0 ? (
         <p className="text-xs text-zinc-700">
-          まだ審査員が登録されていません。審査員に登録を依頼してください。
+          {t('noJudgesRegistered')}
         </p>
       ) : (
         <p className="text-xs text-zinc-700">
-          登録されているすべての審査員が割り当てられています。
+          {t('allJudgesAssigned')}
         </p>
       )}
 
@@ -468,12 +493,12 @@ function JudgesTab({ eventId }) {
       )}
 
       <h3 className="text-sm font-medium text-black dark:text-black pt-2">
-        割り当てられた審査員 ({assignedJudges.length})
+        {t('assignedJudgesLabel', { count: assignedJudges.length })}
       </h3>
 
       {assignedJudges.length === 0 ? (
         <p className="text-sm text-zinc-700 text-center py-6">
-          まだ審査員が割り当てられていません。
+          {t('noJudgesAssignedYet')}
         </p>
       ) : (
         <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
@@ -485,7 +510,7 @@ function JudgesTab({ eventId }) {
             >
               <div>
                 <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                  {j.name}
+                  {j.name} ({t('judge')})
                 </p>
                 <p className="text-xs text-slate-800 dark:text-slate-200">
                   {j.email}
@@ -508,14 +533,42 @@ function JudgesTab({ eventId }) {
           ))}
         </ul>
       )}
+
+      {guestJudges.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-medium text-black dark:text-black mb-3">
+            {t('guestJudgesLabel', { count: guestJudges.length })}
+          </h3>
+          <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
+            {guestJudges.map((gj) => (
+              <li
+                key={gj.id}
+                className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 transition"
+              >
+                <div>
+                  <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
+                    {gj.name} ({t('guestJudge')})
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {t('joinedAt', { date: new Date(gj.created_at).toLocaleString() })}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ─── Scoreboard Tab ───────────────────────────────────────────────────────── */
-function ScoreboardTab({ eventId }) {
+function ScoreboardTab({ eventId, eventName }) {
+  const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [scores, setScores] = useState([]);
+  const [judges, setJudges] = useState([]);
+  const [guestJudges, setGuestJudges] = useState([]);
   const [assignedJudgesCount, setAssignedJudgesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
@@ -524,14 +577,18 @@ function ScoreboardTab({ eventId }) {
   const intervalRef = useRef(null);
 
   const fetchScoreboard = useCallback(async () => {
-    const [participantsRes, scoresRes] = await Promise.all([
+    const [participantsRes, scoresRes, judgesRes] = await Promise.all([
       authFetch(`/api/events/${eventId}/participants`),
       authFetch(`/api/events/${eventId}/scores`),
+      authFetch(`/api/events/${eventId}/judges`),
     ]);
     const participantsData = await participantsRes.json();
     const scoresData = await scoresRes.json();
+    const judgesData = await judgesRes.json();
     setParticipants(participantsData.participants || []);
     setScores(scoresData.scores || []);
+    setJudges(judgesData.judges || []);
+    setGuestJudges(judgesData.guestJudges || []);
     setAssignedJudgesCount(scoresData.assignedJudgesCount || 0);
     setLastRefreshed(new Date());
     setLoading(false);
@@ -572,6 +629,67 @@ function ScoreboardTab({ eventId }) {
     }
   }
 
+  function handleDownloadCsv() {
+    const escape = (val) => {
+      if (val == null) return '';
+      const s = String(val);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    const judgeColumns = [
+      ...judges.map((j) => ({ kind: 'user', id: j.id, label: j.name })),
+      ...guestJudges.map((g) => ({
+        kind: 'guest',
+        id: g.id,
+        label: `${g.name} (${t('guest')})`,
+      })),
+    ];
+
+    const header = [
+      t('rankLabel'),
+      t('participantLabel'),
+      t('totalScoreLabel'),
+      t('scoredJudgesLabel'),
+      ...judgeColumns.map((c) => c.label),
+    ];
+
+    const lines = [header.map(escape).join(',')];
+    rows.forEach((row, idx) => {
+      const cells = [
+        idx + 1,
+        row.name,
+        row.totalScore,
+        `${row.judgesScored}/${assignedJudgesCount}`,
+        ...judgeColumns.map((col) => {
+          const score = scores.find(
+            (s) =>
+              s.participant_id === row.id &&
+              (col.kind === 'user'
+                ? s.judge_id === col.id
+                : s.guest_judge_id === col.id),
+          );
+          return score ? score.score : '';
+        }),
+      ];
+      lines.push(cells.map(escape).join(','));
+    });
+
+    const csv = '﻿' + lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const safeName = (eventName || `event-${eventId}`)
+      .replace(/[^\w　-鿿\-]+/g, '_')
+      .slice(0, 60);
+    const stamp = new Date().toISOString().slice(0, 10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeName}-scoreboard-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function medalEmoji(index) {
     if (index === 0) return '🥇';
     if (index === 1) return '🥈';
@@ -581,57 +699,93 @@ function ScoreboardTab({ eventId }) {
 
   if (loading)
     return (
-      <p className="text-sm text-zinc-600 py-6 text-center">読み込み中…</p>
+      <p className="text-sm text-zinc-600 py-6 text-center">{t('loading')}</p>
     );
+
+  const hasAnyScore = scores.length > 0;
+  const bannerColor = allScored
+    ? 'border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60'
+    : 'border-teal-500 dark:border-teal-500 bg-teal-50 dark:bg-teal-950/40';
+  const bannerHeading = allScored
+    ? t('allScoresReady')
+    : t('presentationReady');
 
   return (
     <div className="space-y-3">
-      {/* Present Results banner */}
-      {allScored && (
-        <div className="rounded-xl border-2 border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-              🎉 すべてのスコアが出揃いました！
+      {/* Present Results banner — always available, even mid-event */}
+      <div
+        className={`rounded-xl border-2 ${bannerColor} px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md`}
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
+            {bannerHeading}
+          </p>
+          <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
+            {presentUrl}
+          </p>
+          {!allScored && (
+            <p className="text-[11px] text-zinc-700 dark:text-zinc-300 mt-1">
+              {t('presentationLiveHelp')}
             </p>
-            <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
-              {presentUrl}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleCopyLink}
-              className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
-            >
-              {copied ? '✓ コピーしました！' : 'リンクをコピー'}
-            </button>
-            <a
-              href={`/present/${eventId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
-            >
-              プレゼン画面へ →
-            </a>
-          </div>
+          )}
         </div>
-      )}
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <button
+            onClick={handleCopyLink}
+            className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
+          >
+            {copied ? t('copied') : t('copyLink')}
+          </button>
+          <a
+            href={`/present/${eventId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
+          >
+            {t('goToPresent')}
+          </a>
+        </div>
+      </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs text-slate-800">
-          15秒ごとに自動更新
-          {lastRefreshed && ` · 最終更新 ${lastRefreshed.toLocaleTimeString()}`}
+          {t('autoRefreshEvery15s')}
+          {lastRefreshed && ` · ${t('lastRefreshedAt', { time: lastRefreshed.toLocaleTimeString() })}`}
         </p>
-        <button
-          onClick={fetchScoreboard}
-          className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
-        >
-          ↻ 更新
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleDownloadCsv}
+            disabled={!hasAnyScore}
+            className="text-xs px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+            title={t('downloadCsvHelp')}
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"
+              />
+            </svg>
+            {t('downloadCsv')}
+          </button>
+          <button
+            onClick={fetchScoreboard}
+            className="text-xs text-slate-800 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition"
+          >
+            ↻ {t('refresh')}
+          </button>
+        </div>
       </div>
 
       {rows.length === 0 ? (
         <p className="text-sm text-zinc-600 text-center py-8">
-          参加者が追加されていません。
+          {t('noParticipantsAdded')}
         </p>
       ) : (
         <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
@@ -639,19 +793,19 @@ function ScoreboardTab({ eventId }) {
             <thead>
               <tr className="bg-slate-100 dark:bg-slate-600 border-b border-slate-200 dark:border-slate-700">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide w-12">
-                  順位
+                  {t('rankLabel')}
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  参加者
+                  {t('participantLabel')}
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  合計スコア
+                  {t('totalScoreLabel')}
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide hidden sm:table-cell">
-                  採点済み審査員
+                  {t('scoredJudgesLabel')}
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
-                  アクション
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -687,7 +841,7 @@ function ScoreboardTab({ eventId }) {
                       onClick={() => setSelectedParticipant(row)}
                       className="text-xs px-2 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold transition"
                     >
-                      表示
+                      {t('show')}
                     </button>
                   </td>
                 </tr>
@@ -710,20 +864,58 @@ function ScoreboardTab({ eventId }) {
 }
 
 /* ─── Main Page ────────────────────────────────────────────────────────────── */
-const TABS = ['参加者', '審査員', 'スコアボード'];
+const TABS = ['tabParticipants', 'tabJudges', 'tabScoreboard'];
 
 export default function AdminEventPage() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const router = useRouter();
   const { firebaseUser, supabaseUser, loading } = useAuth();
   const [event, setEvent] = useState(null);
-  const [activeTab, setActiveTab] = useState('参加者');
+  const [activeTab, setActiveTab] = useState('tabParticipants');
   const [pageLoading, setPageLoading] = useState(true);
+  const [startBusy, setStartBusy] = useState(false);
+  const [nextBusy, setNextBusy] = useState(false);
+  const { state: liveState, refetch: refetchLive } = useEventState(id);
+
+  async function handleStart() {
+    setStartBusy(true);
+    try {
+      const res = await authFetch(`/api/events/${id}/start`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const errMsg = data.message ? t(data.message) : (data.error || res.status);
+        alert(t('failedToStart', { error: errMsg }));
+      }
+      refetchLive();
+    } finally {
+      setStartBusy(false);
+    }
+  }
+
+  async function handleNext() {
+    setNextBusy(true);
+    try {
+      const res = await authFetch(`/api/events/${id}/next-participant`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const errMsg = data.message ? t(data.message) : (data.error || res.status);
+        alert(errMsg);
+      }
+      refetchLive();
+    } finally {
+      setNextBusy(false);
+    }
+  }
 
   const fetchEvent = useCallback(async () => {
     const res = await authFetch(`/api/events/${id}`);
     if (!res.ok) {
-      router.replace('/admin');
+      router.replace('/host');
       return;
     }
     const data = await res.json();
@@ -737,10 +929,6 @@ export default function AdminEventPage() {
       router.replace('/signin');
       return;
     }
-    if (supabaseUser && supabaseUser.role !== 'admin') {
-      router.replace('/judge');
-      return;
-    }
     if (supabaseUser) fetchEvent();
   }, [loading, firebaseUser, supabaseUser, fetchEvent, router]);
 
@@ -749,7 +937,7 @@ export default function AdminEventPage() {
       <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <span className="text-sm text-zinc-400">読み込み中…</span>
+          <span className="text-sm text-zinc-400">{t('loading')}</span>
         </div>
       </div>
     );
@@ -762,27 +950,25 @@ export default function AdminEventPage() {
         {/* Breadcrumb + title */}
         <div className="mb-6">
           <button
-            onClick={() => router.push('/admin')}
+            onClick={() => router.push('/host')}
             className="text-xs text-zinc-700 hover:text-teal-700 dark:hover:text-teal-400 transition mb-2"
           >
-            ← マイイベントに戻る
+            ← {t('backToMyEvents')}
           </button>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold text-black dark:text-black">
               {event?.name}
             </h1>
-            {event?.deadline &&
-              new Date(event.deadline) <
-                new Date(new Date().toDateString()) && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                  期限切れ
-                </span>
-              )}
+            {event?.expires_at && new Date(event.expires_at) < new Date() && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                {t('expired')}
+              </span>
+            )}
           </div>
           {event?.event_date && (
             <div className="mt-2 space-y-1">
               <p className="text-base text-zinc-800">
-                <strong>開始:</strong>{' '}
+                <strong>{t('start')}:</strong>{' '}
                 {new Date(event.event_date).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -790,32 +976,24 @@ export default function AdminEventPage() {
                 })}
                 {event?.start_time && <> {event.start_time}</>}
               </p>
-              {event?.deadline && event?.end_time && (
-                <p className="text-base text-zinc-800">
-                  <strong>終了:</strong>{' '}
-                  {new Date(event.deadline).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}{' '}
-                  {event.end_time}
-                </p>
-              )}
             </div>
           )}
-          {event?.deadline && (
+          {event?.expires_at && (
             <p
-              className={`text-base mt-0.5 font-medium ${
-                new Date(event.deadline) < new Date(new Date().toDateString())
+              className={`text-sm mt-0.5 font-medium ${
+                new Date(event.expires_at) < new Date()
                   ? 'text-red-600 dark:text-red-500'
-                  : 'text-amber-600 dark:text-amber-500'
+                  : 'text-zinc-600 dark:text-zinc-500'
               }`}
             >
-              採点期限:{' '}
-              {new Date(event.deadline).toLocaleDateString('en-US', {
+              <strong>{t('expiration')}:</strong>{' '}
+              {new Date(event.expires_at).toLocaleString('en-US', {
+                timeZone: 'Asia/Tokyo',
                 year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
               })}
             </p>
           )}
@@ -826,13 +1004,95 @@ export default function AdminEventPage() {
           )}
           {event?.max_score && (
             <p className="text-sm text-zinc-800 mt-1">
-              審査員ごとの最大スコア:{' '}
+              {t('maxScorePerJudge')}:{' '}
               <strong className="text-green-700 dark:text-green-400">
                 {event.max_score}
               </strong>{' '}
-              点
+              {t('points')}
             </p>
           )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-6">
+            {event?.event_code && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-zinc-800 font-medium">
+                  {t('eventCode')}:
+                </span>
+                <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-md overflow-hidden bg-white dark:bg-zinc-800 shadow-sm">
+                  <code className="px-3 py-1.5 text-sm font-mono text-zinc-900 dark:text-zinc-100 select-all bg-zinc-50 dark:bg-zinc-800/50">
+                    {event.event_code}
+                  </code>
+                  <button
+                    onClick={() =>
+                      navigator.clipboard.writeText(event.event_code)
+                    }
+                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    title={t('copyEventCode')}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {event?.judge_password && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-zinc-800 font-medium">
+                  {t('judgePassword')}:
+                </span>
+                <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-md overflow-hidden bg-white dark:bg-zinc-800 shadow-sm">
+                  <code className="px-3 py-1.5 text-sm font-mono text-zinc-900 dark:text-zinc-100 select-all bg-zinc-50 dark:bg-zinc-800/50">
+                    {event.judge_password}
+                  </code>
+                  <button
+                    onClick={() =>
+                      navigator.clipboard.writeText(event.judge_password)
+                    }
+                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    title={t('copyJudgePassword')}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Live turn control */}
+        <div className="mb-6">
+          <LiveTurnBanner
+            eventId={id}
+            state={liveState}
+            onStart={handleStart}
+            startBusy={startBusy}
+            onNext={handleNext}
+            nextBusy={nextBusy}
+          />
         </div>
 
         {/* Tabs */}
@@ -844,11 +1104,11 @@ export default function AdminEventPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2.5 text-base font-medium border-b-2 transition -mb-px ${
                   activeTab === tab
-                    ? 'border-teal-600 dark:border-teal-400 text-black dark:text-black'
-                    : 'border-transparent text-black dark:text-black hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'border-teal-600 dark:border-teal-400 text-teal-600 dark:text-teal-400'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-700'
                 }`}
               >
-                {tab}
+                {t(tab)}
               </button>
             ))}
           </div>
@@ -856,9 +1116,11 @@ export default function AdminEventPage() {
 
         {/* Tab content */}
         <div>
-          {activeTab === '参加者' && <ParticipantsTab eventId={id} />}
-          {activeTab === '審査員' && <JudgesTab eventId={id} />}
-          {activeTab === 'スコアボード' && <ScoreboardTab eventId={id} />}
+          {activeTab === 'tabParticipants' && <ParticipantsTab eventId={id} />}
+          {activeTab === 'tabJudges' && <JudgesTab eventId={id} />}
+          {activeTab === 'tabScoreboard' && (
+            <ScoreboardTab eventId={id} eventName={event?.name} />
+          )}
         </div>
       </main>
     </div>

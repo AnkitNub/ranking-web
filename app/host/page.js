@@ -1,40 +1,27 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { authFetch } from '@/lib/authFetch';
+import { useTranslation } from 'react-i18next';
 
 function isExpired(event) {
-  if (!event) return false;
-
-  // Check if scoring deadline (deadline + end_time) has passed
-  if (event.deadline && event.end_time) {
-    const scoringDeadline = new Date(`${event.deadline}T${event.end_time}`);
-    if (new Date() > scoringDeadline) return true;
-  }
-
-  // Fall back to deadline check without time
-  if (event.deadline && !event.end_time) {
-    return new Date(event.deadline) < new Date(new Date().toDateString());
-  }
-
-  return false;
+  if (!event || !event.expires_at) return false;
+  return new Date(event.expires_at) < new Date();
 }
 
 function CreateEventModal({ onClose, onCreate }) {
+  const { t } = useTranslation('common');
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [maxScore, setMaxScore] = useState('10');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [description, setDescription] = useState('');
-  const [deadline, setDeadline] = useState('');
-  const [maxScore, setMaxScore] = useState('10');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [confirmedStartTime, setConfirmedStartTime] = useState('');
-  const [confirmedEndTime, setConfirmedEndTime] = useState('');
+  const [createdEvent, setCreatedEvent] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -49,52 +36,116 @@ function CreateEventModal({ onClose, onCreate }) {
         method: 'POST',
         body: JSON.stringify({
           name: name.trim(),
+          description: description || null,
+          max_score: maxScore ? Number(maxScore) : 10,
           event_date: date || null,
           start_time: startTime || null,
-          end_time: endTime || null,
-          description: description || null,
-          deadline: deadline || null,
-          max_score: maxScore ? Number(maxScore) : 10,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'イベントの作成に失敗しました。');
+        if (data.message === 'eventCreateRateLimit') {
+          setError(t('eventCreateRateLimit', { limit: data.limit ?? 5 }));
+        } else {
+          setError(data.error || t('failedToCreateEvent'));
+        }
         return;
       }
       onCreate(data.event);
-      onClose();
+      setCreatedEvent(data.event);
     } finally {
       setLoading(false);
     }
+  }
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  if (createdEvent) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 max-h-[90vh] overflow-y-auto">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 text-emerald-600 dark:text-emerald-400">
+            {t('eventCreatedSuccessfully')}
+          </h2>
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('eventCode')}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={createdEvent.event_code || ''}
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm font-mono text-zinc-900 dark:text-zinc-100"
+                />
+                <button
+                  onClick={() => handleCopy(createdEvent.event_code)}
+                  className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-sm font-medium transition"
+                >
+                  {t('copy')}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('judgePassword')}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={createdEvent.judge_password || ''}
+                  className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm font-mono text-zinc-900 dark:text-zinc-100"
+                />
+                <button
+                  onClick={() => handleCopy(createdEvent.judge_password)}
+                  className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-sm font-medium transition"
+                >
+                  {t('copy')}
+                </button>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900">
+              {t('infoCanBeFoundInList')}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
+          >
+            {t('close')}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          新規イベント作成
+          {t('createNewEvent')}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              イベント名 *
+              {t('eventName')} *
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="春の大会 2026"
+              placeholder={t('eventNamePlaceholder')}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
 
-          {/* Event & Scoring Details */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                開始日 *
+                {t('eventDate')} *
               </label>
               <input
                 type="date"
@@ -104,92 +155,24 @@ function CreateEventModal({ onClose, onCreate }) {
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                イベントが開催される日
-              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                採点締め切り
+                {t('startTime')} *
               </label>
               <input
-                type="date"
-                min={new Date().toISOString().split('T')[0]}
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
+                type="time"
+                required
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                審査員はこの日付以降スコアを送信できません。
-              </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                開始時間 *
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  required
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedStartTime(startTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    startTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!startTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedStartTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                終了時間
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedEndTime(endTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    endTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!endTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedEndTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
-            </div>
-          </div>
+
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              審査員1人あたりの最高得点 *
+              {t('maxScorePerJudge')} *
             </label>
             <input
               type="number"
@@ -202,13 +185,13 @@ function CreateEventModal({ onClose, onCreate }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              各審査員が付けられる最高点
+              {t('maxScoreHelp')}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              説明（任意）
+              {t('descriptionOptional')}
             </label>
             <textarea
               value={description}
@@ -230,14 +213,14 @@ function CreateEventModal({ onClose, onCreate }) {
               onClick={onClose}
               className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
             >
-              キャンセル
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50"
             >
-              {loading ? 'Creating…' : 'イベントを作成'}
+              {loading ? t('creating') : t('createNewEvent')}
             </button>
           </div>
         </form>
@@ -247,6 +230,7 @@ function CreateEventModal({ onClose, onCreate }) {
 }
 
 function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
 
   async function handleConfirm() {
@@ -264,25 +248,25 @@ function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          イベントを削除
+          {t('deleteEvent')}
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
           <strong>{eventName}</strong>{' '}
-          とそのすべてのデータを削除してもよろしいですか？この操作は元に戻せません。
+          {t('deleteEventConfirm')}
         </p>
         <div className="flex gap-3">
           <button
             onClick={onClose}
             className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
-            キャンセル
+            {t('cancel')}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading ? '削除中…' : '削除'}
+            {loading ? t('deleting') : t('delete')}
           </button>
         </div>
       </div>
@@ -291,27 +275,14 @@ function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
 }
 
 function EditEventModal({ event, onClose, onEdit }) {
+  const { t } = useTranslation('common');
   const [name, setName] = useState(event?.name || '');
-  const [date, setDate] = useState(
-    event?.event_date
-      ? new Date(event.event_date).toISOString().split('T')[0]
-      : '',
-  );
-  const [startTime, setStartTime] = useState(event?.start_time || '');
-  const [endTime, setEndTime] = useState(event?.end_time || '');
   const [description, setDescription] = useState(event?.description || '');
-  const [deadline, setDeadline] = useState(
-    event?.deadline ? new Date(event.deadline).toISOString().split('T')[0] : '',
-  );
   const [maxScore, setMaxScore] = useState(event?.max_score || '10');
+  const [date, setDate] = useState(event?.event_date || '');
+  const [startTime, setStartTime] = useState(event?.start_time || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [confirmedStartTime, setConfirmedStartTime] = useState(
-    event?.start_time || '',
-  );
-  const [confirmedEndTime, setConfirmedEndTime] = useState(
-    event?.end_time || '',
-  );
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -326,12 +297,10 @@ function EditEventModal({ event, onClose, onEdit }) {
         method: 'PUT',
         body: JSON.stringify({
           name: name.trim(),
+          description: description || null,
+          max_score: maxScore ? Number(maxScore) : 10,
           event_date: date || null,
           start_time: startTime || null,
-          end_time: endTime || null,
-          description: description || null,
-          deadline: deadline || null,
-          max_score: maxScore ? Number(maxScore) : 10,
         }),
       });
       const data = await res.json();
@@ -350,27 +319,27 @@ function EditEventModal({ event, onClose, onEdit }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          イベントを編集
+          {t('editEvent')}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              イベント名 *
+              {t('eventName')} *
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="イベント名"
+              placeholder={t('eventName')}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                イベント日 *
+                {t('eventDate')} *
               </label>
               <input
                 type="date"
@@ -380,92 +349,23 @@ function EditEventModal({ event, onClose, onEdit }) {
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                The day your event takes place
-              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                得点締め切り
+                {t('startTime')} *
               </label>
               <input
-                type="date"
-                min={new Date().toISOString().split('T')[0]}
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
+                type="time"
+                required
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Deadline for judges
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                開始時間 *
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  required
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedStartTime(startTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    startTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!startTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedStartTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                終焉の時
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setConfirmedEndTime(endTime)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                    endTime
-                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                  }`}
-                  disabled={!endTime}
-                >
-                  OK
-                </button>
-              </div>
-              {confirmedEndTime && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                  ✓ 選択済み
-                </p>
-              )}
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              審査員1人あたりの最高得点 *
+              {t('maxScorePerJudge')} *
             </label>
             <input
               type="number"
@@ -478,13 +378,13 @@ function EditEventModal({ event, onClose, onEdit }) {
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              各審査員が付けられる最高点
+              {t('maxScoreHelp')}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              説明（任意）
+              {t('descriptionOptional')}
             </label>
             <textarea
               value={description}
@@ -506,14 +406,14 @@ function EditEventModal({ event, onClose, onEdit }) {
               onClick={onClose}
               className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
             >
-              キャンセル
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50"
             >
-              {loading ? '保存中…' : '変更を保存'}
+              {loading ? t('saving') : t('saveChanges')}
             </button>
           </div>
         </form>
@@ -523,6 +423,7 @@ function EditEventModal({ event, onClose, onEdit }) {
 }
 
 export default function AdminDashboard() {
+  const { t } = useTranslation('common');
   const { firebaseUser, supabaseUser, loading } = useAuth();
   const router = useRouter();
   const [events, setEvents] = useState([]);
@@ -546,10 +447,6 @@ export default function AdminDashboard() {
       router.replace('/signin');
       return;
     }
-    if (supabaseUser && supabaseUser.role !== 'admin') {
-      router.replace('/judge');
-      return;
-    }
     if (supabaseUser) fetchEvents();
   }, [loading, firebaseUser, supabaseUser, fetchEvents, router]);
 
@@ -566,7 +463,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <span className="text-sm text-zinc-400">読み込み中…</span>
+          <span className="text-sm text-zinc-400">{t('loading')}</span>
         </div>
       </div>
     );
@@ -606,11 +503,11 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-900">
-              マイイベント
+              {t('myEvents')}
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-700 mt-0.5">
-              合計: {events.length} · アクティブ:{' '}
-              {events.filter((e) => !isExpired(e)).length} · 終了:{' '}
+              {t('total')}: {events.length} · {t('active')}:{' '}
+              {events.filter((e) => !isExpired(e)).length} · {t('closed')}:{' '}
               {events.filter((e) => isExpired(e)).length}
             </p>
           </div>
@@ -618,7 +515,7 @@ export default function AdminDashboard() {
             onClick={() => setShowModal(true)}
             className="rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
           >
-            + 新規イベント作成
+            + {t('createNewEvent')}
           </button>
         </div>
 
@@ -626,13 +523,13 @@ export default function AdminDashboard() {
         {events.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-teal-200 dark:border-zinc-800 rounded-2xl">
             <p className="text-zinc-700 dark:text-zinc-300 text-sm mb-3">
-              イベントはまだありません。
+              {t('noEventsYet')}
             </p>
             <button
               onClick={() => setShowModal(true)}
               className="rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 transition"
             >
-              最初のイベントを作成
+              {t('createFirstEvent')}
             </button>
           </div>
         ) : (
@@ -647,7 +544,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-teal-500 dark:bg-teal-400"></div>
                     <h2 className="text-lg font-semibold text-teal-900 dark:text-teal-100">
-                      アクティブなイベント (
+                      {t('activeEvents')} (
                       {events.filter((e) => !isExpired(e)).length})
                     </h2>
                   </div>
@@ -674,7 +571,7 @@ export default function AdminDashboard() {
                           key={event.id}
                           className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group border-teal-200 dark:border-teal-800/50 hover:border-teal-400 dark:hover:border-teal-700 hover:shadow-md`}
                           onClick={() =>
-                            router.push(`/admin/events/${event.id}`)
+                            router.push(`/host/events/${event.id}`)
                           }
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -687,7 +584,7 @@ export default function AdminDashboard() {
                               {event.event_date && (
                                 <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="text-teal-700 dark:text-teal-300 font-semibold uppercase tracking-wide">
-                                    イベント日時
+                                    {t('eventDateTime')}
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {new Date(
@@ -702,34 +599,11 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               )}
-                              {event.deadline && event.end_time && (
-                                <div
-                                  className={`rounded-lg p-2.5 space-y-1 text-sm bg-teal-50 dark:bg-teal-900/20`}
-                                >
-                                  <p
-                                    className={`font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs`}
-                                  >
-                                    終了日時
-                                  </p>
-                                  <div
-                                    className={`text-zinc-800 dark:text-zinc-200 font-medium`}
-                                  >
-                                    {new Date(
-                                      event.deadline,
-                                    ).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })}
-                                    {' | '}
-                                    {event.end_time}
-                                  </div>
-                                </div>
-                              )}
+
                               {event.description && (
                                 <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs">
-                                    説明
+                                    {t('description')}
                                   </p>
                                   <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
                                     {event.description}
@@ -739,7 +613,7 @@ export default function AdminDashboard() {
                               {event.max_score && (
                                 <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300 text-xs">
-                                    最高スコア
+                                    {t('maxScore')}
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {event.max_score} pts
@@ -776,7 +650,7 @@ export default function AdminDashboard() {
                                   handleDelete(event.id);
                                 }}
                                 className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
-                                title="Delete event"
+                                title={t('deleteEvent')}
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -795,12 +669,12 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                            作成日:{' '}
+                            {t('createdAt')}:{' '}
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
                           <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
                             <button className="w-full text-sm font-bold px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 text-white transition">
-                              管理する →
+                              {t('manage')} →
                             </button>
                           </div>
                         </div>
@@ -820,7 +694,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-red-500 dark:bg-red-400"></div>
                     <h2 className="text-lg font-semibold text-red-900 dark:text-red-100">
-                      終了したイベント (
+                      {t('closedEvents')} (
                       {events.filter((e) => isExpired(e)).length})
                     </h2>
                   </div>
@@ -847,7 +721,7 @@ export default function AdminDashboard() {
                           key={event.id}
                           className={`bg-white dark:bg-zinc-900 rounded-xl border p-5 flex flex-col gap-3 transition cursor-pointer group border-red-200 dark:border-red-800/50 hover:border-red-400 dark:hover:border-red-700`}
                           onClick={() =>
-                            router.push(`/admin/events/${event.id}`)
+                            router.push(`/host/events/${event.id}`)
                           }
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -857,13 +731,13 @@ export default function AdminDashboard() {
                                   {event.name}
                                 </h2>
                                 <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 shrink-0">
-                                  終了
+                                  {t('closed')}
                                 </span>
                               </div>
                               {event.event_date && (
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="text-red-700 dark:text-red-300 font-semibold uppercase tracking-wide text-xs">
-                                    イベント日時
+                                    {t('eventDateTime')}
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {new Date(
@@ -878,34 +752,11 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               )}
-                              {event.deadline && event.end_time && (
-                                <div
-                                  className={`rounded-lg p-2.5 space-y-1 text-sm bg-red-50 dark:bg-red-900/20`}
-                                >
-                                  <p
-                                    className={`font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs`}
-                                  >
-                                    終了日時
-                                  </p>
-                                  <div
-                                    className={`text-zinc-800 dark:text-zinc-200 font-medium`}
-                                  >
-                                    {new Date(
-                                      event.deadline,
-                                    ).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })}
-                                    {' | '}
-                                    {event.end_time}
-                                  </div>
-                                </div>
-                              )}
+
                               {event.description && (
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs">
-                                    説明
+                                    {t('description')}
                                   </p>
                                   <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2">
                                     {event.description}
@@ -915,7 +766,7 @@ export default function AdminDashboard() {
                               {event.max_score && (
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 space-y-1 text-sm">
                                   <p className="font-semibold uppercase tracking-wide text-red-700 dark:text-red-300 text-xs">
-                                    最高スコア
+                                    {t('maxScore')}
                                   </p>
                                   <div className="text-zinc-800 dark:text-zinc-200 font-medium">
                                     {event.max_score} pts
@@ -947,12 +798,29 @@ export default function AdminDashboard() {
                                 </svg>
                               </button>
                               <button
+                                title={t('editEvent')}
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                              </button>
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(event.id);
                                 }}
                                 className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition p-1 rounded"
-                                title="イベントを削除"
+                                title={t('deleteEvent')}
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -971,12 +839,12 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                            作成日:{' '}
+                            {t('createdAt')}:{' '}
                             {new Date(event.created_at).toLocaleDateString()}
                           </p>
                           <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
                             <span className="text-xs text-red-600 dark:text-red-400 font-medium group-hover:text-red-800 dark:group-hover:text-red-300 transition">
-                              結果を見る →
+                              {t('viewResults')} →
                             </span>
                           </div>
                         </div>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import {
@@ -10,8 +10,11 @@ import {
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import Navbar from '@/components/Navbar';
 
 export default function SignUpPage() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,11 +30,11 @@ export default function SignUpPage() {
     setError('');
 
     if (password !== confirm) {
-      setError('Passwords do not match.');
+      setError(t('passwordMismatch'));
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(t('passwordTooShort'));
       return;
     }
 
@@ -58,7 +61,7 @@ export default function SignUpPage() {
       // AuthContext onAuthStateChanged will fire and sync to Supabase automatically
       router.push('/');
     } catch (err) {
-      setError(friendlyError(err.code));
+      setError(friendlyError(err.code, t));
     } finally {
       setLoading(false);
     }
@@ -83,55 +86,54 @@ export default function SignUpPage() {
       }
       router.push('/');
     } catch (err) {
-      setError(friendlyError(err.code));
+      setError(friendlyError(err.code, t));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f5ea] dark:bg-[#f9f5ea] px-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
+    <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
+      <Navbar />
+      <div className="flex items-center justify-center px-4 py-12 sm:py-20">
+        <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
-            アカウントを作成
+            {t('createAccount')}
           </h1>
-          {/* <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-            Get started for free
-          </p> */}
         </div>
 
         <form onSubmit={handleEmailSignUp} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              氏名
+              {t('fullName')}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Jane Smith"
+              placeholder={t('fullNamePlaceholder')}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              メールアドレス
+              {t('email')}
             </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={t('emailPlaceholder')}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              パスワード
+              {t('password')}
             </label>
             <div className="relative">
               <input
@@ -139,14 +141,16 @@ export default function SignUpPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder={t('atLeast6Chars')}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 pr-10 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={
+                  showPassword ? t('hidePassword') : t('showPassword')
+                }
               >
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
@@ -155,7 +159,7 @@ export default function SignUpPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              パスワードの確認
+              {t('confirmPassword')}
             </label>
             <div className="relative">
               <input
@@ -170,7 +174,7 @@ export default function SignUpPage() {
                 type="button"
                 onClick={() => setShowConfirm(!showConfirm)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition"
-                aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                aria-label={showConfirm ? t('hidePassword') : t('showPassword')}
               >
                 {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
               </button>
@@ -188,13 +192,13 @@ export default function SignUpPage() {
             disabled={loading}
             className="w-full rounded-lg bg-teal-600 text-white py-2 text-sm font-medium hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'アカウントを作成中…' : 'アカウントを作成する'}
+            {loading ? t('creatingAccount') : t('createAccountBtn')}
           </button>
         </form>
 
         <div className="my-5 flex items-center gap-3">
           <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
-          <span className="text-xs text-zinc-400">or</span>
+          <span className="text-xs text-zinc-400">{t('or')}</span>
           <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
         </div>
 
@@ -204,19 +208,20 @@ export default function SignUpPage() {
           className="w-full flex items-center justify-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
-          Googleで続ける
+          {t('continueWithGoogle')}
         </button>
 
         <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-700">
-          すでにアカウントをお持ちですか？{' '}
+          {t('alreadyHaveAccount')}{' '}
           <Link
             href="/signin"
             className="font-medium text-teal-700 dark:text-teal-400 hover:underline"
           >
-            ログイン
+            {t('loginLink')}
           </Link>
         </p>
       </div>
+    </div>
     </div>
   );
 }
@@ -278,17 +283,17 @@ function GoogleIcon() {
   );
 }
 
-function friendlyError(code) {
+function friendlyError(code, t) {
   switch (code) {
     case 'auth/email-already-in-use':
-      return 'An account with this email already exists.';
+      return t('emailAlreadyInUse');
     case 'auth/invalid-email':
-      return 'Please enter a valid email address.';
+      return t('invalidEmail');
     case 'auth/weak-password':
-      return 'Password must be at least 6 characters.';
+      return t('weakPassword');
     case 'auth/too-many-requests':
-      return 'Too many attempts. Please try again later.';
+      return t('tooManyAttempts');
     default:
-      return 'Something went wrong. Please try again.';
+      return t('somethingWentWrong');
   }
 }
