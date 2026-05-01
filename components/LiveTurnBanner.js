@@ -31,7 +31,7 @@ function useRoster(eventId) {
         judges[`user:${j.id}`] = j.name;
       });
       (jJson.guestJudges || []).forEach((g) => {
-        judges[`guest:${g.id}`] = `${g.name} (${t('guest')})`;
+        judges[`guest:${g.id}`] = g.name;
       });
       setRoster({ participants, judges });
     })();

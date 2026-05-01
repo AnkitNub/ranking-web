@@ -325,93 +325,20 @@ function ParticipantsTab({ eventId }) {
 /* ─── Judges Tab ───────────────────────────────────────────────────────────── */
 function JudgesTab({ eventId }) {
   const { t } = useTranslation('common');
-  const [assignedJudges, setAssignedJudges] = useState([]);
   const [guestJudges, setGuestJudges] = useState([]);
-  const [allJudges, setAllJudges] = useState([]);
-  const [selectedJudgeIds, setSelectedJudgeIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
-  const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState('');
 
   const fetchData = useCallback(async () => {
-    const [assignedRes, allRes] = await Promise.all([
-      authFetch(`/api/events/${eventId}/judges`),
-      authFetch('/api/judges'),
-    ]);
-    const assignedData = await assignedRes.json();
-    const allData = await allRes.json();
-    setAssignedJudges(assignedData.judges || []);
+    const res = await authFetch(`/api/events/${eventId}/judges`);
+    const assignedData = await res.json();
     setGuestJudges(assignedData.guestJudges || []);
-    setAllJudges(allData.judges || []);
     setLoading(false);
   }, [eventId]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const assignedIds = new Set(assignedJudges.map((j) => j.id));
-  const unassignedJudges = allJudges.filter((j) => !assignedIds.has(j.id));
-
-  function toggleJudge(judgeId) {
-    const newSelected = new Set(selectedJudgeIds);
-    if (newSelected.has(judgeId)) {
-      newSelected.delete(judgeId);
-    } else {
-      newSelected.add(judgeId);
-    }
-    setSelectedJudgeIds(newSelected);
-  }
-
-  function toggleAll() {
-    if (selectedJudgeIds.size === unassignedJudges.length) {
-      setSelectedJudgeIds(new Set());
-    } else {
-      setSelectedJudgeIds(new Set(unassignedJudges.map((j) => j.id)));
-    }
-  }
-
-  async function handleAssignSelected() {
-    if (selectedJudgeIds.size === 0) return;
-    setAssigning(true);
-    setError('');
-    try {
-      const judgeIds = Array.from(selectedJudgeIds);
-      const results = await Promise.all(
-        judgeIds.map((judge_id) =>
-          authFetch(`/api/events/${eventId}/judges`, {
-            method: 'POST',
-            body: JSON.stringify({ judge_id }),
-          }),
-        ),
-      );
-
-      const failedAssignments = [];
-      for (let i = 0; i < results.length; i++) {
-        if (!results[i].ok) {
-          const data = await results[i].json();
-          failedAssignments.push(data.error || 'Unknown error');
-        }
-      }
-
-      if (failedAssignments.length > 0) {
-        setError(t('failedToAssignJudges', { count: failedAssignments.length }));
-      }
-
-      setSelectedJudgeIds(new Set());
-      await fetchData();
-    } finally {
-      setAssigning(false);
-    }
-  }
-
-  async function handleUnassign(judgeId) {
-    await authFetch(`/api/events/${eventId}/judges`, {
-      method: 'DELETE',
-      body: JSON.stringify({ judge_id: judgeId }),
-    });
-    setAssignedJudges((prev) => prev.filter((j) => j.id !== judgeId));
-  }
 
   if (loading)
     return (
@@ -420,122 +347,14 @@ function JudgesTab({ eventId }) {
 
   return (
     <div className="space-y-4">
-      {/* Available judges to assign */}
-      {unassignedJudges.length > 0 ? (
-        <>
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-sm font-medium text-black dark:text-black">
-              {t('availableJudges', { count: unassignedJudges.length })}
-            </h3>
-            {unassignedJudges.length > 1 && (
-              <button
-                onClick={toggleAll}
-                className="text-xs text-teal-600 dark:text-teal-400 hover:underline transition"
-              >
-                {selectedJudgeIds.size === unassignedJudges.length
-                  ? t('unselectAll')
-                  : t('selectAll')}
-              </button>
-            )}
-          </div>
-
-          <ul className="divide-y divide-zinc-200 dark:divide-zinc-700 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden bg-white dark:bg-zinc-800">
-            {unassignedJudges.map((j) => (
-              <li
-                key={j.id}
-                onClick={() => toggleJudge(j.id)}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedJudgeIds.has(j.id)}
-                  onChange={() => toggleJudge(j.id)}
-                  className="w-4 h-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {j.name}
-                  </p>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
-                    {j.email}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          {selectedJudgeIds.size > 0 && (
-            <button
-              onClick={handleAssignSelected}
-              disabled={assigning}
-              className="w-full rounded-lg bg-teal-600 dark:bg-teal-600 text-white px-4 py-2 text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-700 transition disabled:opacity-50"
-            >
-              {assigning
-                ? t('assigningDot')
-                : t('assignSelectedJudges', { count: selectedJudgeIds.size })}
-            </button>
-          )}
-        </>
-      ) : allJudges.length === 0 ? (
-        <p className="text-xs text-zinc-700">
-          {t('noJudgesRegistered')}
-        </p>
-      ) : (
-        <p className="text-xs text-zinc-700">
-          {t('allJudgesAssigned')}
-        </p>
-      )}
-
       {error && (
         <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
           {error}
         </p>
       )}
 
-      <h3 className="text-sm font-medium text-black dark:text-black pt-2">
-        {t('assignedJudgesLabel', { count: assignedJudges.length })}
-      </h3>
-
-      {assignedJudges.length === 0 ? (
-        <p className="text-sm text-zinc-700 text-center py-6">
-          {t('noJudgesAssignedYet')}
-        </p>
-      ) : (
-        <ul className="divide-y divide-zinc-100 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
-          {assignedJudges.map((j) => (
-            <li
-              key={j.id}
-              onClick={() => handleUnassign(j.id)}
-              className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-600 transition cursor-pointer group"
-            >
-              <div>
-                <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                  {j.name} ({t('judge')})
-                </p>
-                <p className="text-xs text-slate-800 dark:text-slate-200">
-                  {j.email}
-                </p>
-              </div>
-              <svg
-                className="w-4 h-4 text-zinc-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </li>
-          ))}
-        </ul>
-      )}
-
       {guestJudges.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-2">
           <h3 className="text-sm font-medium text-black dark:text-black mb-3">
             {t('guestJudgesLabel', { count: guestJudges.length })}
           </h3>
@@ -547,7 +366,7 @@ function JudgesTab({ eventId }) {
               >
                 <div>
                   <p className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                    {gj.name} ({t('guestJudge')})
+                    {gj.name}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {t('joinedAt', { date: new Date(gj.created_at).toLocaleString() })}
@@ -641,7 +460,7 @@ function ScoreboardTab({ eventId, eventName }) {
       ...guestJudges.map((g) => ({
         kind: 'guest',
         id: g.id,
-        label: `${g.name} (${t('guest')})`,
+        label: g.name,
       })),
     ];
 
@@ -756,7 +575,7 @@ function ScoreboardTab({ eventId, eventName }) {
           <button
             onClick={handleDownloadCsv}
             disabled={!hasAnyScore}
-            className="text-xs px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="text-xs px-3 py-1.5 rounded-lg border-2 border-teal-600 dark:border-teal-500 text-teal-700 dark:text-teal-400 bg-white dark:bg-zinc-900 hover:bg-teal-50 dark:hover:bg-zinc-800 transition font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
             title={t('downloadCsvHelp')}
           >
             <svg
