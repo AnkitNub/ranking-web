@@ -204,7 +204,7 @@ function ScoreCard({
 /* ─── Participants Panel ─────────────────────────────────────────────────── */
 function ParticipantsPanel({ participants, myScores, currentParticipantId, t }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm mb-8">
       <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
         <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
           {t('participantList')}
@@ -213,7 +213,7 @@ function ParticipantsPanel({ participants, myScores, currentParticipantId, t }) 
           {participants.length} {t('total')}
         </span>
       </div>
-      <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+      <div className={`p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto custom-scrollbar ${participants.length > 10 ? 'max-h-[300px]' : ''}`}>
         {participants.map((p) => {
           const isCurrent = p.id === currentParticipantId;
           const score = myScores[p.id]?.score;
@@ -658,54 +658,6 @@ export default function JudgeScoringPage() {
             />
           </div>
         )}
-
-        {/* Participant list (other participants only shown when scoring is active) */}
-        {participants.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed border-teal-200 dark:border-zinc-800 rounded-2xl bg-white/60 dark:bg-zinc-900/40">
-            <div className="w-12 h-12 rounded-2xl bg-teal-100 dark:bg-teal-900/20 flex items-center justify-center mx-auto mb-3">
-              <svg
-                className="w-6 h-6 text-teal-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </div>
-            <p className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">
-              {t('noParticipantsYet')}
-            </p>
-          </div>
-        ) : isActive && otherParticipants.length > 0 ? (
-          <>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-              <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                {currentParticipant ? t('otherParticipants') : t('participantList')} — {otherParticipants.length}
-              </h2>
-            </div>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {otherParticipants.map((p) => (
-                <ScoreCard
-                  key={p.id}
-                  participant={p}
-                  existingScore={myScores[p.id] ?? null}
-                  eventId={id}
-                  onScored={handleScored}
-                  disabled={isExpired(event)}
-                  maxScore={event?.max_score ?? 10}
-                  isCurrentTurn={false}
-                  turnToken={null}
-                />
-              ))}
-            </ul>
-          </>
-        ) : null}
       </main>
     </div>
   );
