@@ -2,18 +2,7 @@
 const nextConfig = {
   reactCompiler: true,
   async redirects() {
-    return [
-      {
-        source: '/admin',
-        destination: '/host',
-        permanent: true,
-      },
-      {
-        source: '/admin/:path*',
-        destination: '/host/:path*',
-        permanent: true,
-      },
-    ];
+    return [];
   },
 };
 

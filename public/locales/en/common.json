@@ -253,6 +253,24 @@
     "downloadCsvHelp": "Download the scoreboard as a CSV file (Excel-compatible)",
     "hostedEvents": "Hosted Events",
     "judgingEvents": "Judging",
-    "eventCreateRateLimit": "You can create up to {{limit}} events per day. Please try again tomorrow."
+    "eventCreateRateLimit": "You can create up to {{limit}} events per day. Please try again tomorrow.",
+    "admin": "Admin",
+    "adminDashboard": "Admin Dashboard",
+    "allUsers": "All Registered Users",
+    "allEvents": "All Events",
+    "ongoingEvents": "Ongoing Events",
+    "userRole": "Role",
+    "userEmail": "Email",
+    "userName": "Name",
+    "eventHost": "Host",
+    "eventStatus": "Status",
+    "totalUsers": "Total Users",
+    "totalEvents": "Total Events",
+    "manageGlobalState": "Overview and management of all users and events across the platform.",
+    "upcomingEvents": "Upcoming Events",
+    "endedEvents": "Ended Events",
+    "noEventsFound": "No events found.",
+    "not_started": "Not Started",
+    "date": "Date"
   }
 }
