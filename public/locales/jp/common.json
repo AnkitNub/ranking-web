@@ -129,6 +129,8 @@
     "skipToLeaderboard": "順位表へスキップ",
     "evaluatingParticipant": "参加者を評価中: {{current}} / {{total}}",
     "totalScore": "合計スコア",
+    "judgesVoted": "投票済み審査員",
+    "evaluatingParticipant": "参加者 {{current}} / {{total}} を評価中",
     "currentTop3": "現在のトップ3",
     "otherRanks": "その他の順位",
     "allResultsRevealed": "全{{total}}組の順位発表完了",

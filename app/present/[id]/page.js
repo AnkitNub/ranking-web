@@ -883,80 +883,111 @@ function LiveScoringView({ data }) {
     (p) => p.id === data?.event?.current_participant_id,
   );
   const liveScores = currentParticipant?.scores ?? [];
-  const ranked = (data?.ranked ?? []).filter((p) => p.judgesScored > 0);
+  const totalScore = liveScores.reduce((sum, s) => sum + s.score, 0);
+  const assignedJudgesCount = data?.assignedJudgesCount ?? 0;
+  const votedCount = liveScores.length;
+  const waitingCount = Math.max(0, assignedJudgesCount - votedCount);
+
+  // Participant progress (e.g. "2 of 5")
+  const participantsOrder = data?.event?.participants_order ?? [];
+  const currentIndex =
+    participantsOrder.indexOf(data?.event?.current_participant_id) + 1;
+  const totalParticipants = participantsOrder.length;
+
+  // Only show leaderboard for already-scored participants
+  const ranked = (data?.ranked ?? []).filter(
+    (p) => p.judgesScored > 0 && p.id !== data?.event?.current_participant_id,
+  );
   const movementById = useRankMovement(ranked);
 
-  return (
-    <div className="w-full max-w-7xl flex flex-col items-center gap-8">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center"
+  const hasLeaderboard = ranked.length > 0;
+
+  /* ── Participant info panel (reused in both layouts) ── */
+  const participantPanel = (compact = false) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className={`flex flex-col ${compact ? 'items-start' : 'items-center'}`}
+    >
+      {/* Progress label */}
+      {totalParticipants > 0 && (
+        <p className={`text-zinc-600 text-[10px] font-black uppercase tracking-[0.28em] ${compact ? 'mb-3' : 'mb-5'}`}>
+          {t('evaluatingParticipant', { current: currentIndex, total: totalParticipants })}
+        </p>
+      )}
+
+      {/* Live badge */}
+      <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] ${compact ? 'mb-4' : 'mb-6'}`}>
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+        {t('liveOnStage')}
+      </div>
+
+      {/* Participant name */}
+      <h2
+        className={`font-black tracking-tighter ${compact ? 'text-4xl sm:text-5xl mb-2 text-left' : 'text-5xl sm:text-7xl md:text-8xl mb-3 text-center'} drop-shadow-2xl`}
+        style={{ color: '#00e676' }}
       >
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          {t('liveOnStage')}
-        </div>
-        <h2 className="text-6xl md:text-8xl font-black text-white tracking-tighter mb-3 drop-shadow-2xl text-center">
-          {currentParticipant?.name ?? '—'}
-        </h2>
-        <div className="h-1 w-24 bg-linear-to-r from-transparent via-emerald-500 to-transparent mb-8 opacity-50" />
+        {currentParticipant?.name ?? '—'}
+      </h2>
+      <div className={`h-0.5 rounded-full bg-emerald-500/30 ${compact ? 'w-20 mb-6 self-start' : 'w-28 mb-10'}`} />
 
-        {/* Live judge scores */}
-        <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800/50 rounded-3xl p-6 shadow-2xl mb-8 w-full max-w-3xl">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
-              {t('judgeScores')}
-            </span>
-            <div className="px-3 py-1 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-mono">
-              {liveScores.length} / {data.assignedJudgesCount}
-            </div>
+      {/* Vote counter */}
+      <div className={`flex flex-col ${compact ? 'items-start' : 'items-center'} gap-3`}>
+        <div className="flex items-baseline gap-2">
+          <span className={`font-black tabular-nums text-white leading-none ${compact ? 'text-5xl' : 'text-6xl sm:text-7xl'}`}>
+            {votedCount}
+          </span>
+          <span className="text-2xl font-black text-zinc-600 leading-none">/</span>
+          <span className={`font-black text-zinc-500 tabular-nums leading-none ${compact ? 'text-2xl' : 'text-3xl'}`}>
+            {assignedJudgesCount}
+          </span>
+        </div>
+        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+          {t('judgesVoted')}
+        </p>
+        {assignedJudgesCount > 0 && (
+          <div className="flex gap-3 mt-1">
+            {Array.from({ length: assignedJudgesCount }).map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-full transition-all duration-500 ${compact ? 'w-3 h-3' : 'w-4 h-4'} ${
+                  i < votedCount
+                    ? 'bg-emerald-400 shadow-lg shadow-emerald-500/50 scale-110'
+                    : 'bg-zinc-700'
+                }`}
+              />
+            ))}
           </div>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <AnimatePresence mode="popLayout">
-              {liveScores.map((s, i) => (
-                <motion.div
-                  key={`score-${currentParticipant?.id}-${i}`}
-                  initial={{ scale: 0, opacity: 0, y: 10 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-5 py-3 flex flex-col items-center min-w-[100px] shadow-lg shadow-emerald-900/10"
-                >
-                  <span className="text-2xl font-black text-emerald-400 tabular-nums">
-                    {s.score}
-                  </span>
-                  <span className="text-[9px] text-zinc-500 uppercase font-bold mt-1 truncate max-w-[80px]">
-                    {s.judgeName}
-                  </span>
-                </motion.div>
-              ))}
-              {Array.from({
-                length: Math.max(
-                  0,
-                  data.assignedJudgesCount - liveScores.length,
-                ),
-              }).map((_, i) => (
-                <div
-                  key={`waiting-${i}`}
-                  className="bg-zinc-800/20 border border-zinc-700/30 border-dashed rounded-2xl px-5 py-3 flex flex-col items-center min-w-[100px] opacity-40"
-                >
-                  <span className="text-2xl font-black text-zinc-700">?</span>
-                  <span className="text-[9px] text-zinc-600 uppercase font-bold mt-1">
-                    {t('waiting')}
-                  </span>
-                </div>
-              ))}
-            </AnimatePresence>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="w-full max-w-6xl">
+      {hasLeaderboard ? (
+        /* ── Two-column layout when leaderboard is present ── */
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start justify-center w-full">
+          {/* Left: participant info */}
+          <div className="lg:flex-1 lg:sticky lg:top-8">
+            {participantPanel(true)}
+          </div>
+          {/* Right: leaderboard */}
+          <div className="lg:flex-1 w-full">
+            <LeaderboardSplit
+              ranked={ranked}
+              highlightId={null}
+              movementById={movementById}
+              placementFocus={null}
+            />
           </div>
         </div>
-      </motion.div>
-
-      {ranked.length > 0 && (
-        <LeaderboardSplit
-          ranked={ranked}
-          highlightId={null}
-          movementById={movementById}
-          placementFocus={null}
-        />
+      ) : (
+        /* ── Full centered layout when no leaderboard yet ── */
+        <div className="flex flex-col items-center">
+          {participantPanel(false)}
+        </div>
       )}
     </div>
   );
