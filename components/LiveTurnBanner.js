@@ -128,19 +128,6 @@ export default function LiveTurnBanner({
               {t('interludeHelp')}
             </p>
           </div>
-          {onNext && (
-            <button
-              onClick={onNext}
-              disabled={nextBusy}
-              className="rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
-            >
-              {nextBusy
-                ? t('advancingDot')
-                : isLastParticipant
-                  ? t('endEvent')
-                  : t('nextParticipant')}
-            </button>
-          )}
         </div>
       </div>
     );
@@ -198,18 +185,6 @@ export default function LiveTurnBanner({
             </p>
           </div>
         </div>
-        
-        {onNext && (
-          <div className="shrink-0">
-            <button
-              onClick={onNext}
-              disabled={nextBusy}
-              className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
-            >
-              {nextBusy ? t('advancingDot') : t('nextParticipant')}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

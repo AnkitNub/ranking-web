@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
+import { useAuth } from '@/context/AuthContext';
+import { authFetch } from '@/lib/authFetch';
 
 /* ─── Animated counter with roll-up + sound trigger ───────────────────────── */
 function CountUp({ end, duration = 1.2 }) {
@@ -991,13 +993,68 @@ function FinalLeaderboardView({ data }) {
   );
 }
 
+/* ─── Host Controller Overlay ────────────────────────────────────────────── */
+function HostController({ eventId, status, onRefresh }) {
+  const { t } = useTranslation('common');
+  const [busy, setBusy] = useState(false);
+
+  async function handleNext() {
+    setBusy(true);
+    try {
+      const res = await authFetch(`/api/events/${eventId}/next-participant`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d.message || d.error || 'Error');
+      } else {
+        onRefresh();
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed bottom-8 right-8 z-50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-zinc-900/90 backdrop-blur-xl border border-zinc-700 shadow-2xl rounded-2xl p-4 flex items-center gap-4">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-0.5">
+            {t('hostControls')}
+          </span>
+          <span className="text-xs font-bold text-zinc-300">
+            {status === 'active' ? t('votingInProgress') : t('resultsReveal')}
+          </span>
+        </div>
+        <button
+          onClick={handleNext}
+          disabled={busy}
+          className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-900/20 flex items-center gap-2"
+        >
+          {busy ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+          )}
+          {t('nextStep')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main presentation page ───────────────────────────────────────────── */
 export default function PresentationPage() {
   const { t } = useTranslation('common');
   const { id } = useParams();
+  const { supabaseUser } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const isHost = supabaseUser?.id === data?.event?.admin_id;
 
   const fetchData = useCallback(async () => {
     try {
@@ -1106,46 +1163,90 @@ export default function PresentationPage() {
 
       {/* Stage */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 py-6 relative z-0">
-        {status === 'not_started' && (
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
-              <svg
-                className="w-8 h-8 text-emerald-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 6v6l4 2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-zinc-100 mb-1">
-              {t('eventNotStarted')}
-            </h1>
-            <p className="text-xs text-zinc-600 uppercase tracking-widest mt-3 flex items-center justify-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {t('autoUpdating')}
-            </p>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {status === 'not_started' && (
+            <motion.div
+              key="not_started"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                <svg
+                  className="w-8 h-8 text-emerald-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 6v6l4 2M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold text-zinc-100 mb-1">
+                {t('eventNotStarted')}
+              </h1>
+              <p className="text-xs text-zinc-600 uppercase tracking-widest mt-3 flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {t('autoUpdating')}
+              </p>
+            </motion.div>
+          )}
 
-        {status === 'active' && <LiveScoringView data={data} />}
+          {status === 'active' && (
+            <motion.div
+              key="active"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
+            >
+              <LiveScoringView data={data} />
+            </motion.div>
+          )}
 
-        {status === 'interlude' && interludeParticipant && (
-          <InterludeReveal
-            key={interludeParticipant.id}
-            participant={interludeParticipant}
-            ranked={interludeRanked}
-          />
-        )}
+          {status === 'interlude' && interludeParticipant && (
+            <motion.div
+              key={`interlude-${interludeParticipant.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
+            >
+              <InterludeReveal
+                participant={interludeParticipant}
+                ranked={interludeRanked}
+              />
+            </motion.div>
+          )}
 
-        {status === 'ended' && <FinalLeaderboardView data={data} />}
+          {status === 'ended' && (
+            <motion.div
+              key="ended"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
+            >
+              <FinalLeaderboardView data={data} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {isHost && (status === 'active' || status === 'interlude') && (
+        <HostController
+          key="host-controller"
+          eventId={id}
+          status={status}
+          onRefresh={fetchData}
+        />
+      )}
     </div>
   );
 }

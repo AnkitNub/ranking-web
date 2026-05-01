@@ -18,7 +18,7 @@ export async function GET(_request, { params }) {
       supabaseAdmin
         .from('events')
         .select(
-          'id, name, event_date, status, current_participant_id, current_participant_index, current_judge_index, judges_order, participants_order',
+          'id, name, admin_id, event_date, status, current_participant_id, current_participant_index, current_judge_index, judges_order, participants_order',
         )
         .eq('id', id)
         .single(),
@@ -92,6 +92,7 @@ export async function GET(_request, { params }) {
     event: {
       id: event.id,
       name: event.name,
+      admin_id: event.admin_id,
       event_date: event.event_date,
       status: event.status,
       current_participant_id: event.current_participant_id,
