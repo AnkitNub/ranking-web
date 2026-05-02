@@ -680,6 +680,8 @@ export default function AdminEventPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [startBusy, setStartBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedPassword, setCopiedPassword] = useState(false);
   const { state: liveState, refetch: refetchLive } = useEventState(id);
 
   async function handleStart() {
@@ -712,6 +714,22 @@ export default function AdminEventPage() {
     } catch {
       /* fallback: ignore */
     }
+  }
+
+  async function handleCopyCode() {
+    try {
+      await navigator.clipboard.writeText(event?.event_code || '');
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {}
+  }
+
+  async function handleCopyPassword() {
+    try {
+      await navigator.clipboard.writeText(event?.judge_password || '');
+      setCopiedPassword(true);
+      setTimeout(() => setCopiedPassword(false), 2000);
+    } catch {}
   }
 
 
@@ -826,25 +844,36 @@ export default function AdminEventPage() {
                     {event.event_code}
                   </code>
                   <button
-                    onClick={() =>
-                      navigator.clipboard.writeText(event.event_code)
-                    }
-                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    onClick={handleCopyCode}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition border-l border-zinc-300 dark:border-zinc-700 ${
+                      copiedCode 
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' 
+                        : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                    }`}
                     title={t('copyEventCode')}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      ></path>
-                    </svg>
+                    {copiedCode ? (
+                      <>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{t('copied')}</span>
+                      </>
+                    ) : (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -860,25 +889,36 @@ export default function AdminEventPage() {
                     {event.judge_password}
                   </code>
                   <button
-                    onClick={() =>
-                      navigator.clipboard.writeText(event.judge_password)
-                    }
-                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    onClick={handleCopyPassword}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition border-l border-zinc-300 dark:border-zinc-700 ${
+                      copiedPassword 
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' 
+                        : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                    }`}
                     title={t('copyJudgePassword')}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      ></path>
-                    </svg>
+                    {copiedPassword ? (
+                      <>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{t('copied')}</span>
+                      </>
+                    ) : (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
