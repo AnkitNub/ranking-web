@@ -256,6 +256,8 @@
     "betweenParticipants": "Between Participants",
     "endEvent": "End Event",
     "presentationReady": "📺 Presentation ready",
+    "presentationUrl": "Presentation URL",
+    "eventInProgress": "Event in Progress",
     "presentationLiveHelp": "Open the projector view now — it updates live as judges score.",
     "downloadCsv": "Download CSV",
     "downloadCsvHelp": "Download the scoreboard as a CSV file (Excel-compatible)",

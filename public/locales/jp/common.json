@@ -258,6 +258,8 @@
     "betweenParticipants": "参加者の間",
     "endEvent": "イベント終了",
     "presentationReady": "📺 プレゼンテーション準備完了",
+    "presentationUrl": "プレゼンテーションURL",
+    "eventInProgress": "イベント進行中",
     "presentationLiveHelp": "プロジェクター画面を今すぐ開いてください — 採点中にリアルタイムで更新されます。",
     "downloadCsv": "CSVダウンロード",
     "downloadCsvHelp": "スコアボードをCSVファイルとしてダウンロード（Excel対応）",

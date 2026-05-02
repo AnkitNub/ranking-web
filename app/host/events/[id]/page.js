@@ -402,7 +402,6 @@ function ScoreboardTab({ eventId, eventName }) {
   const [assignedJudgesCount, setAssignedJudgesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
-  const [copied, setCopied] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const intervalRef = useRef(null);
 
@@ -444,20 +443,6 @@ function ScoreboardTab({ eventId, eventName }) {
     rows.length > 0 &&
     rows.every((r) => r.judgesScored === assignedJudgesCount);
 
-  const presentUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/present/${eventId}`
-      : `/present/${eventId}`;
-
-  async function handleCopyLink() {
-    try {
-      await navigator.clipboard.writeText(presentUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* fallback: ignore */
-    }
-  }
 
   function handleDownloadCsv() {
     const escape = (val) => {
@@ -532,50 +517,8 @@ function ScoreboardTab({ eventId, eventName }) {
       <p className="text-sm text-zinc-600 py-6 text-center">{t('loading')}</p>
     );
 
-  const hasAnyScore = scores.length > 0;
-  const bannerColor = allScored
-    ? 'border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60'
-    : 'border-teal-500 dark:border-teal-500 bg-teal-50 dark:bg-teal-950/40';
-  const bannerHeading = allScored
-    ? t('allScoresReady')
-    : t('presentationReady');
-
   return (
     <div className="space-y-3">
-      {/* Present Results banner — always available, even mid-event */}
-      <div
-        className={`rounded-xl border-2 ${bannerColor} px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md`}
-      >
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-            {bannerHeading}
-          </p>
-          <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
-            {presentUrl}
-          </p>
-          {!allScored && (
-            <p className="text-[11px] text-zinc-700 dark:text-zinc-300 mt-1">
-              {t('presentationLiveHelp')}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
-          <button
-            onClick={handleCopyLink}
-            className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
-          >
-            {copied ? t('copied') : t('copyLink')}
-          </button>
-          <a
-            href={`/present/${eventId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
-          >
-            {t('goToPresent')}
-          </a>
-        </div>
-      </div>
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs text-slate-800">
@@ -705,6 +648,7 @@ export default function AdminEventPage() {
   const [activeTab, setActiveTab] = useState('tabParticipants');
   const [pageLoading, setPageLoading] = useState(true);
   const [startBusy, setStartBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { state: liveState, refetch: refetchLive } = useEventState(id);
 
   async function handleStart() {
@@ -721,6 +665,21 @@ export default function AdminEventPage() {
       refetchLive();
     } finally {
       setStartBusy(false);
+    }
+  }
+
+  const presentUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/present/${id}`
+      : `/present/${id}`;
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(presentUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* fallback: ignore */
     }
   }
 
@@ -896,14 +855,76 @@ export default function AdminEventPage() {
           </div>
         </div>
 
-        {/* Live turn control */}
-        <div className="mb-6">
-          <LiveTurnBanner
-            eventId={id}
-            state={liveState}
-            onStart={handleStart}
-            startBusy={startBusy}
-          />
+        {/* Presentation & Status Banner */}
+        <div className="mb-8">
+          <div className="rounded-2xl border-2 border-emerald-500 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden">
+            <div className="flex flex-col md:flex-row items-stretch">
+              {/* Status Section */}
+              <div className="flex-1 p-5 border-b md:border-b-0 md:border-r border-zinc-100 dark:border-zinc-800 bg-emerald-50/30 dark:bg-emerald-950/10">
+                <div className="flex items-center gap-3 mb-2">
+                   <div className="flex h-2.5 w-2.5 relative">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${liveState?.status === 'not_started' ? 'bg-amber-400' : liveState?.status === 'ended' ? 'bg-zinc-400' : 'bg-emerald-400'}`}></span>
+                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${liveState?.status === 'not_started' ? 'bg-amber-500' : liveState?.status === 'ended' ? 'bg-zinc-500' : 'bg-emerald-500'}`}></span>
+                  </div>
+                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
+                    {liveState?.status === 'not_started' ? t('eventNotStarted') : liveState?.status === 'ended' ? t('eventEnded') : t('eventInProgress')}
+                  </p>
+                </div>
+                
+                {liveState?.status === 'not_started' ? (
+                  <div className="flex items-center gap-4">
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {t('eventStartHelp')}
+                    </p>
+                    <button
+                      onClick={handleStart}
+                      disabled={startBusy}
+                      className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                    >
+                      {startBusy ? t('startingDot') : t('startEvent')}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    {liveState?.status === 'ended' ? t('allParticipantsScored') : t('presentationLiveHelp')}
+                  </p>
+                )}
+              </div>
+
+              {/* Presentation Link Section */}
+              <div className="flex-[1.5] p-5 flex flex-col justify-center bg-white dark:bg-zinc-900">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-wider font-black text-zinc-400 dark:text-zinc-500 mb-1">
+                      {t('presentationUrl')}
+                    </p>
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 truncate">
+                      {presentUrl}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={handleCopyLink}
+                      className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition font-bold"
+                    >
+                      {copied ? t('copied') : t('copyLink')}
+                    </button>
+                    <a
+                      href={presentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition hover:opacity-80 flex items-center gap-2"
+                    >
+                      {t('goToPresent')}
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
