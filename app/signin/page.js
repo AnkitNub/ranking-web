@@ -73,6 +73,9 @@ export default function SignInPage() {
       if (!res.ok) {
         throw new Error(data.error || t('failedToSignInGuest'));
       }
+      if (data.guest_session) {
+        sessionStorage.setItem('guest_session', JSON.stringify(data.guest_session));
+      }
       router.push(`/judge/events/${data.event_id}`);
     } catch (err) {
       setError(err.message);

@@ -77,10 +77,14 @@ export async function POST(req) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24, // 1 day
+      // Removed maxAge to make it a session cookie (expires when tab/browser closes)
     });
 
-    return new Response(JSON.stringify({ success: true, event_id: event.id }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      event_id: event.id,
+      guest_session: sessionData // Return for sessionStorage storage
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
