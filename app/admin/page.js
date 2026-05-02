@@ -16,6 +16,8 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('events'); // 'events' or 'users'
+  const [deletingUserId, setDeletingUserId] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -40,6 +42,37 @@ export default function AdminDashboard() {
       setPageLoading(false);
     }
   }, [router]);
+
+  const handleDeleteUser = async (userId) => {
+    if (userId === supabaseUser?.id) {
+      alert("You cannot delete your own account.");
+      return;
+    }
+
+    if (!window.confirm(t('deleteJudgeConfirmHelp'))) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+    try {
+      const res = await authFetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || t('failedToDeleteJudge'));
+      }
+
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      alert(err.message);
+    } finally {
+      setDeletingUserId(null);
+      setUserToDelete(null);
+    }
+  };
 
   useEffect(() => {
     if (loading) return;
@@ -71,6 +104,15 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#f9f5ea] dark:bg-[#f9f5ea]">
       <Navbar />
+      {userToDelete && (
+        <DeleteUserModal
+          user={userToDelete}
+          onClose={() => setUserToDelete(null)}
+          onConfirm={() => handleDeleteUser(userToDelete.id)}
+          isDeleting={deletingUserId === userToDelete.id}
+          t={t}
+        />
+      )}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-900">
@@ -182,6 +224,7 @@ export default function AdminDashboard() {
                     <th className="px-6 py-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{t('userEmail')}</th>
                     <th className="px-6 py-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{t('userRole')}</th>
                     <th className="px-6 py-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{t('joinedDate')}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -208,6 +251,14 @@ export default function AdminDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-500">
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <button
+                          onClick={() => setUserToDelete(user)}
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium transition disabled:opacity-50"
+                        >
+                          {t('delete')}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -216,6 +267,51 @@ export default function AdminDashboard() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+function DeleteUserModal({ user, onClose, onConfirm, isDeleting, t }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 overflow-hidden">
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            {t('deleteJudgeConfirmTitle')}
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+            {t('deleteJudgeConfirmHelp')}
+          </p>
+          <div className="mt-4 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800 w-full">
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">{t('userName')}</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{user.name}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">{user.email}</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition disabled:opacity-50"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="flex-1 rounded-xl bg-red-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-red-700 transition shadow-sm shadow-red-200 dark:shadow-none disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isDeleting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+            {isDeleting ? t('deleting') : t('delete')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
