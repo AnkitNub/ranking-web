@@ -282,6 +282,12 @@
     "noEventsFound": "イベントが見つかりませんでした。",
     "not_started": "未開始",
     "date": "日付",
-    "cannotAddParticipantsAfterStart": "イベント開始後は参加者の追加や削除はできません。"
+    "cannotAddParticipantsAfterStart": "イベント開始後は参加者の追加や削除はできません。",
+    "decimalScoring": "小数点採点",
+    "decimalNone": "小数なし",
+    "decimal1": "小数第1位",
+    "decimal2": "小数第2位",
+    "decimalScoringHelp": "審査員が小数点付きのスコアを付けられるようにします。",
+    "scoreDecimalError": "スコアは小数点以下{{places}}桁以内で入力してください。"
   }
 }

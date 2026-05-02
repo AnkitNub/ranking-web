@@ -34,6 +34,7 @@ function ScoreCard({
   onScored,
   disabled,
   maxScore,
+  decimalPlaces,
   isCurrentTurn,
   turnToken,
 }) {
@@ -44,6 +45,8 @@ function ScoreCard({
   const isScored = existingScore != null;
   const isDirty = String(value) !== String(existingScore?.score ?? '');
   const max = maxScore || 10;
+  const dp = decimalPlaces ?? 0;
+  const step = dp === 0 ? 1 : dp === 1 ? 0.1 : 0.01;
   const effectiveDisabled = disabled || !isCurrentTurn;
 
   async function handleSubmit(e) {
@@ -58,8 +61,14 @@ function ScoreCard({
       return;
     }
     const num = Number(value);
-    if (isNaN(num) || num < 1 || num > max) {
+    if (isNaN(num) || num < 0 || num > max) {
       setError(t('scoreRangeError', { max }));
+      return;
+    }
+    // Validate decimal precision
+    const multiplier = Math.pow(10, dp);
+    if (Math.abs(Math.round(num * multiplier) / multiplier - num) > 1e-9) {
+      setError(t('scoreDecimalError', { places: dp }));
       return;
     }
     setError('');
@@ -156,12 +165,12 @@ function ScoreCard({
             <div className="relative flex-1">
               <input
                 type="number"
-                min={1}
+                min={0}
                 max={max}
-                step={1}
+                step={step}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder={`1 – ${max}`}
+                placeholder={`0 – ${max}`}
                 disabled={effectiveDisabled}
                 className="w-full rounded-xl border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 px-3 py-2 text-sm text-center font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -615,6 +624,7 @@ export default function JudgeScoringPage() {
                   onScored={handleScored}
                   disabled={isExpired(event)}
                   maxScore={event?.max_score ?? 10}
+                  decimalPlaces={event?.score_decimal_places ?? 0}
                   isCurrentTurn={isMyTurn}
                   turnToken={liveState?.turn_token ?? null}
                 />

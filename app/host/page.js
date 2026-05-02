@@ -17,6 +17,7 @@ function CreateEventModal({ onClose, onCreate }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [maxScore, setMaxScore] = useState('10');
+  const [decimalPlaces, setDecimalPlaces] = useState('0');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,7 @@ function CreateEventModal({ onClose, onCreate }) {
           name: name.trim(),
           description: description || null,
           max_score: maxScore ? Number(maxScore) : 10,
+          score_decimal_places: Number(decimalPlaces),
           event_date: date || null,
           start_time: startTime || null,
         }),
@@ -170,23 +172,42 @@ function CreateEventModal({ onClose, onCreate }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              {t('maxScorePerJudge')} *
-            </label>
-            <input
-              type="number"
-              required
-              min={1}
-              step={1}
-              value={maxScore}
-              onChange={(e) => setMaxScore(e.target.value)}
-              placeholder="10"
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-            />
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              {t('maxScoreHelp')}
-            </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('maxScorePerJudge')} *
+              </label>
+              <input
+                type="number"
+                required
+                min={1}
+                step={1}
+                value={maxScore}
+                onChange={(e) => setMaxScore(e.target.value)}
+                placeholder="10"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('maxScoreHelp')}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('decimalScoring')}
+              </label>
+              <select
+                value={decimalPlaces}
+                onChange={(e) => setDecimalPlaces(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              >
+                <option value="0">{t('decimalNone')} (1, 2…)</option>
+                <option value="1">{t('decimal1')} (1.5…)</option>
+                <option value="2">{t('decimal2')} (1.25…)</option>
+              </select>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('decimalScoringHelp')}
+              </p>
+            </div>
           </div>
 
           <div>
@@ -279,6 +300,7 @@ function EditEventModal({ event, onClose, onEdit }) {
   const [name, setName] = useState(event?.name || '');
   const [description, setDescription] = useState(event?.description || '');
   const [maxScore, setMaxScore] = useState(event?.max_score || '10');
+  const [decimalPlaces, setDecimalPlaces] = useState(String(event?.score_decimal_places ?? 0));
   const [date, setDate] = useState(event?.event_date || '');
   const [startTime, setStartTime] = useState(event?.start_time || '');
   const [loading, setLoading] = useState(false);
@@ -299,6 +321,7 @@ function EditEventModal({ event, onClose, onEdit }) {
           name: name.trim(),
           description: description || null,
           max_score: maxScore ? Number(maxScore) : 10,
+          score_decimal_places: Number(decimalPlaces),
           event_date: date || null,
           start_time: startTime || null,
         }),
@@ -363,23 +386,42 @@ function EditEventModal({ event, onClose, onEdit }) {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              {t('maxScorePerJudge')} *
-            </label>
-            <input
-              type="number"
-              required
-              min={1}
-              step={1}
-              value={maxScore}
-              onChange={(e) => setMaxScore(e.target.value)}
-              placeholder="10"
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
-            />
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              {t('maxScoreHelp')}
-            </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('maxScorePerJudge')} *
+              </label>
+              <input
+                type="number"
+                required
+                min={1}
+                step={1}
+                value={maxScore}
+                onChange={(e) => setMaxScore(e.target.value)}
+                placeholder="10"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('maxScoreHelp')}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('decimalScoring')}
+              </label>
+              <select
+                value={decimalPlaces}
+                onChange={(e) => setDecimalPlaces(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              >
+                <option value="0">{t('decimalNone')} (1, 2…)</option>
+                <option value="1">{t('decimal1')} (1.5…)</option>
+                <option value="2">{t('decimal2')} (1.25…)</option>
+              </select>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('decimalScoringHelp')}
+              </p>
+            </div>
           </div>
 
           <div>
