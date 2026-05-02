@@ -69,7 +69,7 @@ export async function POST(request) {
     );
   }
 
-  const { name, description, max_score, event_date, start_time } =
+  const { name, description, max_score, event_date, start_time, score_decimal_places } =
     await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
@@ -78,10 +78,18 @@ export async function POST(request) {
   if (
     max_score !== undefined &&
     max_score !== null &&
-    (isNaN(maxScoreNum) || maxScoreNum < 1 || !Number.isInteger(maxScoreNum))
+    (isNaN(maxScoreNum) || maxScoreNum < 1)
   )
     return NextResponse.json(
-      { error: 'Max score must be a positive integer' },
+      { error: 'Max score must be a positive number' },
+      { status: 400 },
+    );
+
+  // Validate score_decimal_places: must be 0, 1, or 2
+  const decimalPlaces = score_decimal_places != null ? Number(score_decimal_places) : 0;
+  if (![0, 1, 2].includes(decimalPlaces))
+    return NextResponse.json(
+      { error: 'score_decimal_places must be 0, 1, or 2' },
       { status: 400 },
     );
 
@@ -113,6 +121,7 @@ export async function POST(request) {
       judge_password,
       turn_duration_seconds: 10,
       expires_at,
+      score_decimal_places: decimalPlaces,
     })
     .select()
     .single();

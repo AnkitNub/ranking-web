@@ -280,6 +280,12 @@
     "noEventsFound": "No events found.",
     "not_started": "Not Started",
     "date": "Date",
-    "cannotAddParticipantsAfterStart": "Participants cannot be added or removed after the event has started."
+    "cannotAddParticipantsAfterStart": "Participants cannot be added or removed after the event has started.",
+    "decimalScoring": "Decimal Scoring",
+    "decimalNone": "No Decimals",
+    "decimal1": "1 Decimal",
+    "decimal2": "2 Decimals",
+    "decimalScoringHelp": "Allow judges to give scores with decimal places.",
+    "scoreDecimalError": "Score must have at most {{places}} decimal place(s)."
   }
 }

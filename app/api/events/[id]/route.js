@@ -63,7 +63,7 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { name, description, max_score, event_date, start_time, turn_duration_seconds } =
+  const { name, description, max_score, event_date, start_time, turn_duration_seconds, score_decimal_places } =
     await request.json();
 
   if (name !== undefined && !name?.trim())
@@ -74,9 +74,9 @@ export async function PUT(request, { params }) {
 
   if (max_score !== undefined && max_score !== null) {
     const maxScoreNum = Number(max_score);
-    if (isNaN(maxScoreNum) || maxScoreNum < 1 || !Number.isInteger(maxScoreNum))
+    if (isNaN(maxScoreNum) || maxScoreNum < 1)
       return NextResponse.json(
-        { error: 'Max score must be a positive integer' },
+        { error: 'Max score must be a positive number' },
         { status: 400 },
       );
   }
@@ -90,6 +90,15 @@ export async function PUT(request, { params }) {
       );
   }
 
+  if (score_decimal_places !== undefined && score_decimal_places !== null) {
+    const dp = Number(score_decimal_places);
+    if (![0, 1, 2].includes(dp))
+      return NextResponse.json(
+        { error: 'score_decimal_places must be 0, 1, or 2' },
+        { status: 400 },
+      );
+  }
+
   const updateData = {};
   if (name !== undefined) updateData.name = name.trim();
   if (description !== undefined)
@@ -98,6 +107,8 @@ export async function PUT(request, { params }) {
     updateData.max_score = max_score ? Number(max_score) : null;
   if (turn_duration_seconds !== undefined)
     updateData.turn_duration_seconds = turn_duration_seconds ? Number(turn_duration_seconds) : null;
+  if (score_decimal_places !== undefined && score_decimal_places !== null)
+    updateData.score_decimal_places = Number(score_decimal_places);
 
   if (event_date !== undefined) updateData.event_date = event_date || null;
   if (start_time !== undefined) updateData.start_time = start_time || null;
