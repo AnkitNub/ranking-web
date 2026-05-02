@@ -65,7 +65,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
       <div className="bg-white dark:bg-slate-700 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black dark:text-white">
-            {t('scoresFor', { name: participant.name })}
+            {t('scoresFor', { name: `${participant.sequence ? participant.sequence + '. ' : ''}${participant.name}` })}
           </h2>
           <button
             onClick={onClose}
@@ -293,13 +293,13 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
         </p>
       ) : (
         <ul className="divide-y divide-zinc-200 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
-          {participants.map((p) => (
+          {participants.map((p, idx) => (
             <li
               key={p.id}
               className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-600 transition"
             >
               <span className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                {p.name}
+                {idx + 1}. {p.name}
               </span>
               {canAddParticipants && (
                 <button
@@ -431,11 +431,11 @@ function ScoreboardTab({ eventId, eventName }) {
   }, [fetchScoreboard]);
 
   // Compute ranked rows
-  const rows = participants.map((p) => {
+  const rows = participants.map((p, idx) => {
     const participantScores = scores.filter((s) => s.participant_id === p.id);
     const totalScore = participantScores.reduce((sum, s) => sum + s.score, 0);
     const judgesScored = participantScores.length;
-    return { ...p, totalScore, judgesScored };
+    return { ...p, totalScore, judgesScored, sequence: idx + 1 };
   });
   rows.sort((a, b) => b.totalScore - a.totalScore);
 
@@ -649,7 +649,7 @@ function ScoreboardTab({ eventId, eventName }) {
                     {medalEmoji(index)}
                   </td>
                   <td className="px-4 py-3 text-black dark:text-white font-medium">
-                    {row.name}
+                    {row.sequence}. {row.name}
                   </td>
                   <td className="px-4 py-3 text-right font-bold text-black dark:text-white">
                     {row.totalScore}

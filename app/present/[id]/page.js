@@ -313,7 +313,7 @@ function Top3Card({
               rank === 1 ? 'text-3xl lg:text-4xl' : 'text-2xl lg:text-3xl'
             }`}
           >
-            {entry.name}
+            {entry.sequence ? `${entry.sequence}. ` : ''}{entry.name}
           </p>
         </div>
 
@@ -523,7 +523,7 @@ function RestListCard({
               isNew ? 'text-emerald-100' : 'text-zinc-200'
             } text-sm`}
           >
-            {entry.name}
+            {entry.sequence ? `${entry.sequence}. ` : ''}{entry.name}
           </p>
         </div>
 
@@ -554,6 +554,7 @@ function LeaderboardSplit({
   highlightId,
   movementById,
   placementFocus,
+  participantsOrder = [],
 }) {
   const { t } = useTranslation('common');
   const top3 = ranked.slice(0, 3);
@@ -571,7 +572,10 @@ function LeaderboardSplit({
             {top3.map((entry, idx) => (
               <Top3Card
                 key={entry.id}
-                entry={entry}
+                entry={{
+                  ...entry,
+                  sequence: participantsOrder.indexOf(entry.id) + 1,
+                }}
                 rank={idx + 1}
                 movement={movementById[entry.id]}
                 isPlacementFocus={placementFocus?.id === entry.id}
@@ -599,7 +603,10 @@ function LeaderboardSplit({
               {rest.map((entry, idx) => (
                 <RestListCard
                   key={entry.id}
-                  entry={entry}
+                  entry={{
+                    ...entry,
+                    sequence: participantsOrder.indexOf(entry.id) + 1,
+                  }}
                   rank={idx + 4}
                   movement={movementById[entry.id]}
                   isPlacementFocus={placementFocus?.id === entry.id}
@@ -669,7 +676,12 @@ function useRankMovement(ranked) {
 //   N      : show running total
 //   N+1+   : show animated leaderboard re-sort with the new participant placed
 //
-function InterludeReveal({ participant, ranked, onLeaderboardShown }) {
+function InterludeReveal({
+  participant,
+  ranked,
+  onLeaderboardShown,
+  participantsOrder = [],
+}) {
   const { t } = useTranslation('common');
   const scores = participant?.scores ?? [];
   const N = scores.length;
@@ -751,7 +763,7 @@ function InterludeReveal({ participant, ranked, onLeaderboardShown }) {
           {t('interlude')}
         </p>
         <h2 className="text-4xl md:text-5xl font-black mb-8 md:mb-12 text-emerald-400 text-center drop-shadow-md">
-          {participant.name}
+          {participant.sequence ? `${participant.sequence}. ` : ''}{participant.name}
         </h2>
 
         <div
@@ -872,6 +884,7 @@ function InterludeReveal({ participant, ranked, onLeaderboardShown }) {
       highlightId={participant.id}
       movementById={movementById}
       placementFocus={placementFocus}
+      participantsOrder={participantsOrder}
     />
   );
 }
@@ -921,7 +934,7 @@ function LiveScoringView({ data }) {
           className="font-black tracking-tighter text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] mb-6 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] leading-tight"
           style={{ color: '#00e676' }}
         >
-          {currentParticipant?.name ?? '—'}
+          {currentIndex ? `${currentIndex}. ` : ''}{currentParticipant?.name ?? '—'}
         </h2>
 
         <div className="w-48 h-1 rounded-full bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent mb-16" />
@@ -993,6 +1006,7 @@ function FinalLeaderboardView({ data }) {
           highlightId={null}
           movementById={movementById}
           placementFocus={null}
+          participantsOrder={data?.event?.participants_order ?? []}
         />
       </div>
     </>
@@ -1225,8 +1239,12 @@ export default function PresentationPage() {
               className="w-full flex justify-center"
             >
               <InterludeReveal
-                participant={interludeParticipant}
+                participant={{
+                  ...interludeParticipant,
+                  sequence: (data?.event?.participants_order ?? []).indexOf(interludeParticipant.id) + 1,
+                }}
                 ranked={interludeRanked}
+                participantsOrder={data?.event?.participants_order ?? []}
               />
             </motion.div>
           )}
