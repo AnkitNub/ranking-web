@@ -393,7 +393,7 @@ function JudgesTab({ eventId }) {
 }
 
 /* ─── Scoreboard Tab ───────────────────────────────────────────────────────── */
-function ScoreboardTab({ eventId, eventName }) {
+function ScoreboardTab({ eventId, eventName, scoreDecimalPlaces = 0 }) {
   const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [scores, setScores] = useState([]);
@@ -430,9 +430,11 @@ function ScoreboardTab({ eventId, eventName }) {
   }, [fetchScoreboard]);
 
   // Compute ranked rows
+  const multiplier = Math.pow(10, scoreDecimalPlaces);
   const rows = participants.map((p, idx) => {
     const participantScores = scores.filter((s) => s.participant_id === p.id);
-    const totalScore = participantScores.reduce((sum, s) => sum + s.score, 0);
+    const rawTotal = participantScores.reduce((sum, s) => sum + s.score, 0);
+    const totalScore = Math.round(rawTotal * multiplier) / multiplier;
     const judgesScored = participantScores.length;
     return { ...p, totalScore, judgesScored, sequence: idx + 1 };
   });
@@ -595,7 +597,7 @@ function ScoreboardTab({ eventId, eventName }) {
                     {row.sequence}. {row.name}
                   </td>
                   <td className="px-4 py-3 text-right font-bold text-black dark:text-white">
-                    {row.totalScore}
+                    {row.totalScore.toFixed(scoreDecimalPlaces)}
                   </td>
                   <td className="px-4 py-3 text-right hidden sm:table-cell">
                     <span
@@ -958,7 +960,11 @@ export default function AdminEventPage() {
           )}
           {activeTab === 'tabJudges' && <JudgesTab eventId={id} />}
           {activeTab === 'tabScoreboard' && (
-            <ScoreboardTab eventId={id} eventName={event?.name} />
+            <ScoreboardTab
+              eventId={id}
+              eventName={event?.name}
+              scoreDecimalPlaces={event?.score_decimal_places ?? 0}
+            />
           )}
         </div>
       </main>

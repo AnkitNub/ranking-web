@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { authFetch } from '@/lib/authFetch';
 
 /* ─── Animated counter with roll-up + sound trigger ───────────────────────── */
-function CountUp({ end, duration = 1.2 }) {
+function CountUp({ end, duration = 1.2, decimals = 0 }) {
   const [displayValue, setDisplayValue] = useState(0);
   const frameRef = useRef(null);
 
@@ -40,13 +40,12 @@ function CountUp({ end, duration = 1.2 }) {
     };
   }, [end, duration]);
 
-  const decimals = end % 1 === 0 ? 0 : 1;
   return <span className="tabular-nums">{displayValue.toFixed(decimals)}</span>;
 }
 
-function formatScore(value) {
+function formatScore(value, decimals = 0) {
   const num = Number(value) || 0;
-  return Number.isInteger(num) ? String(num) : num.toFixed(1);
+  return num.toFixed(decimals);
 }
 
 /* ─── Confetti burst for the winner ───────────────────────────────────────── */
@@ -108,6 +107,7 @@ function Top3Card({
   isPlacementFocus,
   isMuted,
   placementSignal,
+  decimals = 0,
 }) {
   const { t } = useTranslation('common');
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
@@ -323,7 +323,7 @@ function Top3Card({
               rank === 1 ? 'text-5xl' : 'text-4xl'
             } ${scoreText} drop-shadow-sm`}
           >
-            {formatScore(entry.totalScore)}
+            {formatScore(entry.totalScore, decimals)}
           </p>
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mt-1">
             pt
@@ -352,6 +352,7 @@ function RestListCard({
   isPlacementFocus,
   isMuted,
   placementSignal,
+  decimals = 0,
 }) {
   const isMovingDown = movement?.direction === 'down';
   const isMovingUp = movement?.direction === 'up';
@@ -533,7 +534,7 @@ function RestListCard({
               isNew ? 'text-emerald-300' : 'text-zinc-300'
             } text-lg tabular-nums`}
           >
-            {formatScore(entry.totalScore)}
+            {formatScore(entry.totalScore, decimals)}
           </p>
           <p
             className={`text-xs ${
@@ -548,13 +549,13 @@ function RestListCard({
   );
 }
 
-/* ─── Animated leaderboard split (Top3 + Rest) ─────────────────────────── */
 function LeaderboardSplit({
   ranked,
   highlightId,
   movementById,
   placementFocus,
   participantsOrder = [],
+  decimals = 0,
 }) {
   const { t } = useTranslation('common');
   const top3 = ranked.slice(0, 3);
@@ -585,6 +586,7 @@ function LeaderboardSplit({
                 }
                 placementSignal={placementFocus?.signal ?? 0}
                 isNew={highlightId === entry.id}
+                decimals={decimals}
               />
             ))}
           </AnimatePresence>
@@ -616,6 +618,7 @@ function LeaderboardSplit({
                   }
                   placementSignal={placementFocus?.signal ?? 0}
                   isNew={highlightId === entry.id}
+                  decimals={decimals}
                 />
               ))}
             </AnimatePresence>
@@ -681,6 +684,7 @@ function InterludeReveal({
   ranked,
   onLeaderboardShown,
   participantsOrder = [],
+  decimals = 0,
 }) {
   const { t } = useTranslation('common');
   const scores = participant?.scores ?? [];
@@ -752,9 +756,10 @@ function InterludeReveal({
   if (!participant) return null;
 
   if (stage === 'breakdown') {
-    const total = scores
+    const rawTotal = scores
       .slice(0, Math.min(phase, N))
       .reduce((sum, s) => sum + s.score, 0);
+    const total = Math.round(rawTotal * Math.pow(10, decimals)) / Math.pow(10, decimals);
 
     return (
       <div className="w-full max-w-5xl flex flex-col items-center">
@@ -816,7 +821,7 @@ function InterludeReveal({
                       } relative z-10 flex items-center justify-center tabular-nums drop-shadow-md`}
                     >
                       {isRevealed ? (
-                        <CountUp end={scoreObj.score} duration={0.6} />
+                        <CountUp end={scoreObj.score} duration={0.6} decimals={decimals} />
                       ) : (
                         '?'
                       )}
@@ -866,7 +871,7 @@ function InterludeReveal({
                 >
                   <div className="absolute inset-0 blur-xl bg-amber-500/10 rounded-full" />
                   <span className="relative z-10">
-                    <CountUp end={total} duration={0.8} />
+                    <CountUp end={total} duration={0.8} decimals={decimals} />
                   </span>
                 </motion.div>
               </motion.div>
@@ -885,6 +890,7 @@ function InterludeReveal({
       movementById={movementById}
       placementFocus={placementFocus}
       participantsOrder={participantsOrder}
+      decimals={decimals}
     />
   );
 }
@@ -1007,6 +1013,7 @@ function FinalLeaderboardView({ data }) {
           movementById={movementById}
           placementFocus={null}
           participantsOrder={data?.event?.participants_order ?? []}
+          decimals={data?.event?.score_decimal_places ?? 0}
         />
       </div>
     </>
@@ -1245,6 +1252,7 @@ export default function PresentationPage() {
                 }}
                 ranked={interludeRanked}
                 participantsOrder={data?.event?.participants_order ?? []}
+                decimals={data?.event?.score_decimal_places ?? 0}
               />
             </motion.div>
           )}

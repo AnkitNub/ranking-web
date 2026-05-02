@@ -18,7 +18,7 @@ export async function GET(_request, { params }) {
       supabaseAdmin
         .from('events')
         .select(
-          'id, name, admin_id, event_date, status, current_participant_id, current_participant_index, current_judge_index, judges_order, participants_order',
+          'id, name, admin_id, event_date, status, current_participant_id, current_participant_index, current_judge_index, judges_order, participants_order, score_decimal_places',
         )
         .eq('id', id)
         .single(),
@@ -60,10 +60,14 @@ export async function GET(_request, { params }) {
   const regularJudgesCount = judgesRes.count ?? 0;
   const assignedJudgesCount = regularJudgesCount + guestJudges.length;
 
+  const precision = event.score_decimal_places ?? 0;
+  const multiplier = Math.pow(10, precision);
+
   const ranked = participants
     .map((p, index) => {
       const participantScores = scores.filter((s) => s.participant_id === p.id);
-      const totalScore = participantScores.reduce((sum, s) => sum + s.score, 0);
+      const rawTotal = participantScores.reduce((sum, s) => sum + s.score, 0);
+      const totalScore = Math.round(rawTotal * multiplier) / multiplier;
       const judgesScored = participantScores.length;
 
       const detailedScores = participantScores.map((s) => ({
@@ -99,6 +103,7 @@ export async function GET(_request, { params }) {
       current_participant_index: event.current_participant_index,
       current_judge_index: event.current_judge_index,
       judges_total: event.judges_order?.length ?? 0,
+      score_decimal_places: event.score_decimal_places ?? 0,
     },
     ranked,
     assignedJudgesCount,
