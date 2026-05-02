@@ -168,7 +168,7 @@
     "allScoresReady": "🎉 All scores are in!",
     "copyLink": "Copy Link",
     "copied": "✓ Copied!",
-    "goToPresent": "Go to Presentation →",
+    "goToPresent": "Go to Presentation ",
     "autoRefreshEvery15s": "Auto-refreshes every 15s",
     "lastRefreshedAt": "Last refreshed at {{time}}",
     "refresh": "Refresh",
@@ -290,6 +290,7 @@
     "decimalScoringHelp": "Allow judges to give scores with decimal places.",
     "scoreDecimalError": "Score must have at most {{places}} decimal place(s).",
     "judges": "Judges",
-    "judgesPending": "Judges Pending"
+    "judgesPending": "Judges Pending",
+    "maxParticipantsReached": "Participant limit reached (max {{limit}})"
   }
 }

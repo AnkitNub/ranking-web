@@ -43,6 +43,18 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  const { count: currentCount } = await supabaseAdmin
+    .from('participants')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', id);
+
+  if ((currentCount ?? 0) >= 10) {
+    return NextResponse.json(
+      { error: 'participantLimitReached', message: 'Maximum 10 participants allowed' },
+      { status: 400 },
+    );
+  }
+
   if (event.status !== 'not_started') {
     return NextResponse.json(
       { error: 'Cannot add participants after event has started' },

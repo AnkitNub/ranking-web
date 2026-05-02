@@ -168,7 +168,7 @@
     "allScoresReady": "🎉 すべてのスコアが出揃いました！",
     "copyLink": "リンクをコピー",
     "copied": "✓ コピーしました！",
-    "goToPresent": "プレゼン画面へ →",
+    "goToPresent": "プレゼン画面へ ",
     "autoRefreshEvery15s": "15秒ごとに自動更新",
     "lastRefreshedAt": "最終更新 {{time}}",
     "refresh": "更新",
@@ -292,6 +292,7 @@
     "decimalScoringHelp": "審査員が小数点付きのスコアを付けられるようにします。",
     "scoreDecimalError": "スコアは小数点以下{{places}}桁以内で入力してください。",
     "judges": "審査員",
-    "judgesPending": "未完了の審査員"
+    "judgesPending": "未完了の審査員",
+    "maxParticipantsReached": "参加者数の上限に達しました (最大 {{limit}}人)"
   }
 }
