@@ -55,9 +55,37 @@ export function AuthProvider({ children }) {
 
   const loading = firebaseUser === undefined;
 
+  async function refreshAuth() {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.type === 'guest') {
+        setGuestUser(data.user);
+      } else {
+        setGuestUser(null);
+      }
+      if (data.type === 'authenticated') {
+        setSupabaseUser(data.user);
+      } else {
+        setSupabaseUser(null);
+      }
+    } catch {
+      setGuestUser(null);
+      setSupabaseUser(null);
+    }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ firebaseUser, supabaseUser, guestUser, loading }}
+      value={{
+        firebaseUser,
+        supabaseUser,
+        guestUser,
+        loading,
+        refreshAuth,
+        setGuestUser,
+        setSupabaseUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

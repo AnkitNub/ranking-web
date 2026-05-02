@@ -33,14 +33,32 @@ export async function POST(request, { params }) {
 
   const { id } = await params;
 
-  // Verify admin owns the event
+  // Verify admin owns the event and get judge limit
   const { data: event } = await supabaseAdmin
     .from('events')
-    .select('admin_id')
+    .select('admin_id, number_of_judges')
     .eq('id', id)
     .single();
   if (!event || event.admin_id !== user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  // Check judge limit
+  const { count: assignedCount } = await supabaseAdmin
+    .from('event_judges')
+    .select('*', { count: 'exact', head: true })
+    .eq('event_id', id);
+  const { count: guestCount } = await supabaseAdmin
+    .from('guest_judges')
+    .select('*', { count: 'exact', head: true })
+    .eq('event_id', id);
+
+  const totalJudges = (assignedCount || 0) + (guestCount || 0);
+  if (totalJudges >= (event.number_of_judges || 5)) {
+    return NextResponse.json(
+      { error: 'judgeLimitReached', limit: event.number_of_judges || 5 },
+      { status: 400 }
+    );
   }
 
   const { judge_id } = await request.json();

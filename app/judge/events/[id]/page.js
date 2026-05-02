@@ -133,10 +133,10 @@ function ScoreCard({
                     : 'bg-teal-100 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
               }`}
             >
-              {participant.name.charAt(0).toUpperCase()}
+              {participant.sequence ?? participant.name.charAt(0).toUpperCase()}
             </div>
             <p className={`font-semibold truncate text-sm ${!effectiveDisabled ? 'text-teal-900 dark:text-teal-100' : 'text-zinc-900 dark:text-zinc-100'}`}>
-              {participant.name}
+              {participant.sequence}. {participant.name}
             </p>
           </div>
           {isScored && !isDirty && (
@@ -231,9 +231,10 @@ function ParticipantsPanel({
         </span>
       </div>
       <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto flex-1 custom-scrollbar">
-        {participants.map((p) => {
+        {participants.map((p, idx) => {
           const isCurrent = p.id === currentParticipantId;
           const score = myScores[p.id]?.score;
+          const sequence = idx + 1;
           return (
             <div
               key={p.id}
@@ -251,7 +252,7 @@ function ParticipantsPanel({
                       : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
                   }`}
                 >
-                  {p.name.charAt(0).toUpperCase()}
+                  {sequence}
                 </div>
                 <span
                   className={`text-sm font-semibold truncate ${
@@ -260,7 +261,7 @@ function ParticipantsPanel({
                       : 'text-zinc-700 dark:text-zinc-300'
                   }`}
                 >
-                  {p.name}
+                  {sequence}. {p.name}
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -618,7 +619,10 @@ export default function JudgeScoringPage() {
               <div className="max-w-md mx-auto">
                 <ScoreCard
                   key={currentParticipant.id}
-                  participant={currentParticipant}
+                  participant={{
+                    ...currentParticipant,
+                    sequence: participants.findIndex((p) => p.id === currentParticipant.id) + 1,
+                  }}
                   existingScore={myScores[currentParticipant.id] ?? null}
                   eventId={id}
                   onScored={handleScored}

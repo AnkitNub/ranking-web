@@ -71,7 +71,14 @@ export default function SignInPage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.error === 'judgeLimitReached') {
+          setError(t('judgeLimitReached', { limit: data.limit }));
+          return;
+        }
         throw new Error(data.error || t('failedToSignInGuest'));
+      }
+      if (data.guest_session) {
+        sessionStorage.setItem('guest_session', JSON.stringify(data.guest_session));
       }
       router.push(`/judge/events/${data.event_id}`);
     } catch (err) {

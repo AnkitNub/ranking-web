@@ -65,7 +65,7 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
       <div className="bg-white dark:bg-slate-700 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black dark:text-white">
-            {t('scoresFor', { name: participant.name })}
+            {t('scoresFor', { name: `${participant.sequence ? participant.sequence + '. ' : ''}${participant.name}` })}
           </h2>
           <button
             onClick={onClose}
@@ -255,7 +255,21 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
         />
       )}
 
-      {canAddParticipants ? (
+      {!canAddParticipants ? (
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          {t('cannotAddParticipantsAfterStart')}
+        </div>
+      ) : participants.length >= 10 ? (
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          {t('maxParticipantsReached', { limit: 10 })}
+        </div>
+      ) : (
         <form onSubmit={handleAdd} className="flex gap-2">
           <input
             type="text"
@@ -272,13 +286,6 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
             {adding ? t('addingDot') : t('addParticipant')}
           </button>
         </form>
-      ) : (
-        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          {t('cannotAddParticipantsAfterStart')}
-        </div>
       )}
 
       {error && (
@@ -293,13 +300,13 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
         </p>
       ) : (
         <ul className="divide-y divide-zinc-200 dark:divide-slate-600 border border-zinc-200 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-700">
-          {participants.map((p) => (
+          {participants.map((p, idx) => (
             <li
               key={p.id}
               className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-600 transition"
             >
               <span className="text-sm text-slate-900 dark:text-zinc-100 font-medium">
-                {p.name}
+                {idx + 1}. {p.name}
               </span>
               {canAddParticipants && (
                 <button
@@ -334,7 +341,7 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
 }
 
 /* ─── Judges Tab ───────────────────────────────────────────────────────────── */
-function JudgesTab({ eventId }) {
+function JudgesTab({ eventId, maxJudges = 5 }) {
   const { t } = useTranslation('common');
   const [guestJudges, setGuestJudges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -363,6 +370,26 @@ function JudgesTab({ eventId }) {
           {error}
         </p>
       )}
+
+      <div className="bg-white dark:bg-slate-700 border border-zinc-200 dark:border-slate-600 rounded-xl p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider">
+            {t('judgeSlotsLabel')}
+          </h3>
+          <span className={`text-xs font-bold px-2 py-1 rounded-full ${guestJudges.length >= maxJudges ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'}`}>
+            {guestJudges.length} / {maxJudges}
+          </span>
+        </div>
+        <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-500 ${guestJudges.length >= maxJudges ? 'bg-red-500' : 'bg-emerald-500'}`}
+            style={{ width: `${Math.min(100, (guestJudges.length / maxJudges) * 100)}%` }}
+          />
+        </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+          {t('judgeSlotsHelp', { current: guestJudges.length, limit: maxJudges })}
+        </p>
+      </div>
 
       {guestJudges.length > 0 && (
         <div className="mt-2">
@@ -393,7 +420,7 @@ function JudgesTab({ eventId }) {
 }
 
 /* ─── Scoreboard Tab ───────────────────────────────────────────────────────── */
-function ScoreboardTab({ eventId, eventName }) {
+function ScoreboardTab({ eventId, eventName, scoreDecimalPlaces = 0 }) {
   const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [scores, setScores] = useState([]);
@@ -402,7 +429,6 @@ function ScoreboardTab({ eventId, eventName }) {
   const [assignedJudgesCount, setAssignedJudgesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
-  const [copied, setCopied] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const intervalRef = useRef(null);
 
@@ -431,11 +457,13 @@ function ScoreboardTab({ eventId, eventName }) {
   }, [fetchScoreboard]);
 
   // Compute ranked rows
-  const rows = participants.map((p) => {
+  const multiplier = Math.pow(10, scoreDecimalPlaces);
+  const rows = participants.map((p, idx) => {
     const participantScores = scores.filter((s) => s.participant_id === p.id);
-    const totalScore = participantScores.reduce((sum, s) => sum + s.score, 0);
+    const rawTotal = participantScores.reduce((sum, s) => sum + s.score, 0);
+    const totalScore = Math.round(rawTotal * multiplier) / multiplier;
     const judgesScored = participantScores.length;
-    return { ...p, totalScore, judgesScored };
+    return { ...p, totalScore, judgesScored, sequence: idx + 1 };
   });
   rows.sort((a, b) => b.totalScore - a.totalScore);
 
@@ -444,20 +472,8 @@ function ScoreboardTab({ eventId, eventName }) {
     rows.length > 0 &&
     rows.every((r) => r.judgesScored === assignedJudgesCount);
 
-  const presentUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/present/${eventId}`
-      : `/present/${eventId}`;
+  const hasAnyScore = scores.length > 0;
 
-  async function handleCopyLink() {
-    try {
-      await navigator.clipboard.writeText(presentUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* fallback: ignore */
-    }
-  }
 
   function handleDownloadCsv() {
     const escape = (val) => {
@@ -532,50 +548,8 @@ function ScoreboardTab({ eventId, eventName }) {
       <p className="text-sm text-zinc-600 py-6 text-center">{t('loading')}</p>
     );
 
-  const hasAnyScore = scores.length > 0;
-  const bannerColor = allScored
-    ? 'border-emerald-600 dark:border-emerald-500 bg-emerald-100 dark:bg-emerald-950/60'
-    : 'border-teal-500 dark:border-teal-500 bg-teal-50 dark:bg-teal-950/40';
-  const bannerHeading = allScored
-    ? t('allScoresReady')
-    : t('presentationReady');
-
   return (
     <div className="space-y-3">
-      {/* Present Results banner — always available, even mid-event */}
-      <div
-        className={`rounded-xl border-2 ${bannerColor} px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-md`}
-      >
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-            {bannerHeading}
-          </p>
-          <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 truncate font-medium">
-            {presentUrl}
-          </p>
-          {!allScored && (
-            <p className="text-[11px] text-zinc-700 dark:text-zinc-300 mt-1">
-              {t('presentationLiveHelp')}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
-          <button
-            onClick={handleCopyLink}
-            className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-600 dark:border-emerald-500 text-emerald-900 dark:text-emerald-100 bg-white dark:bg-emerald-950/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 transition font-bold"
-          >
-            {copied ? t('copied') : t('copyLink')}
-          </button>
-          <a
-            href={`/present/${eventId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg"
-          >
-            {t('goToPresent')}
-          </a>
-        </div>
-      </div>
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs text-slate-800">
@@ -649,10 +623,10 @@ function ScoreboardTab({ eventId, eventName }) {
                     {medalEmoji(index)}
                   </td>
                   <td className="px-4 py-3 text-black dark:text-white font-medium">
-                    {row.name}
+                    {row.sequence}. {row.name}
                   </td>
                   <td className="px-4 py-3 text-right font-bold text-black dark:text-white">
-                    {row.totalScore}
+                    {row.totalScore.toFixed(scoreDecimalPlaces)}
                   </td>
                   <td className="px-4 py-3 text-right hidden sm:table-cell">
                     <span
@@ -705,6 +679,9 @@ export default function AdminEventPage() {
   const [activeTab, setActiveTab] = useState('tabParticipants');
   const [pageLoading, setPageLoading] = useState(true);
   const [startBusy, setStartBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedPassword, setCopiedPassword] = useState(false);
   const { state: liveState, refetch: refetchLive } = useEventState(id);
 
   async function handleStart() {
@@ -722,6 +699,37 @@ export default function AdminEventPage() {
     } finally {
       setStartBusy(false);
     }
+  }
+
+  const presentUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/present/${id}`
+      : `/present/${id}`;
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(presentUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* fallback: ignore */
+    }
+  }
+
+  async function handleCopyCode() {
+    try {
+      await navigator.clipboard.writeText(event?.event_code || '');
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {}
+  }
+
+  async function handleCopyPassword() {
+    try {
+      await navigator.clipboard.writeText(event?.judge_password || '');
+      setCopiedPassword(true);
+      setTimeout(() => setCopiedPassword(false), 2000);
+    } catch {}
   }
 
 
@@ -836,25 +844,36 @@ export default function AdminEventPage() {
                     {event.event_code}
                   </code>
                   <button
-                    onClick={() =>
-                      navigator.clipboard.writeText(event.event_code)
-                    }
-                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    onClick={handleCopyCode}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition border-l border-zinc-300 dark:border-zinc-700 ${
+                      copiedCode 
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' 
+                        : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                    }`}
                     title={t('copyEventCode')}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      ></path>
-                    </svg>
+                    {copiedCode ? (
+                      <>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{t('copied')}</span>
+                      </>
+                    ) : (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -870,25 +889,36 @@ export default function AdminEventPage() {
                     {event.judge_password}
                   </code>
                   <button
-                    onClick={() =>
-                      navigator.clipboard.writeText(event.judge_password)
-                    }
-                    className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition border-l border-zinc-300 dark:border-zinc-700"
+                    onClick={handleCopyPassword}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition border-l border-zinc-300 dark:border-zinc-700 ${
+                      copiedPassword 
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' 
+                        : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                    }`}
                     title={t('copyJudgePassword')}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      ></path>
-                    </svg>
+                    {copiedPassword ? (
+                      <>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{t('copied')}</span>
+                      </>
+                    ) : (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -896,14 +926,76 @@ export default function AdminEventPage() {
           </div>
         </div>
 
-        {/* Live turn control */}
-        <div className="mb-6">
-          <LiveTurnBanner
-            eventId={id}
-            state={liveState}
-            onStart={handleStart}
-            startBusy={startBusy}
-          />
+        {/* Presentation & Status Banner */}
+        <div className="mb-8">
+          <div className="rounded-2xl border-2 border-emerald-500 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden">
+            <div className="flex flex-col md:flex-row items-stretch">
+              {/* Status Section */}
+              <div className="flex-1 p-5 border-b md:border-b-0 md:border-r border-zinc-100 dark:border-zinc-800 bg-emerald-50/30 dark:bg-emerald-950/10">
+                <div className="flex items-center gap-3 mb-2">
+                   <div className="flex h-2.5 w-2.5 relative">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${liveState?.status === 'not_started' ? 'bg-amber-400' : liveState?.status === 'ended' ? 'bg-zinc-400' : 'bg-emerald-400'}`}></span>
+                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${liveState?.status === 'not_started' ? 'bg-amber-500' : liveState?.status === 'ended' ? 'bg-zinc-500' : 'bg-emerald-500'}`}></span>
+                  </div>
+                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
+                    {liveState?.status === 'not_started' ? t('eventNotStarted') : liveState?.status === 'ended' ? t('eventEnded') : t('eventInProgress')}
+                  </p>
+                </div>
+                
+                {liveState?.status === 'not_started' ? (
+                  <div className="flex items-center gap-4">
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {t('eventStartHelp')}
+                    </p>
+                    <button
+                      onClick={handleStart}
+                      disabled={startBusy}
+                      className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                    >
+                      {startBusy ? t('startingDot') : t('startEvent')}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    {liveState?.status === 'ended' ? t('allParticipantsScored') : t('presentationLiveHelp')}
+                  </p>
+                )}
+              </div>
+
+              {/* Presentation Link Section */}
+              <div className="flex-[1.5] p-5 flex flex-col justify-center bg-white dark:bg-zinc-900">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-wider font-black text-zinc-400 dark:text-zinc-500 mb-1">
+                      {t('presentationUrl')}
+                    </p>
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 truncate">
+                      {presentUrl}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={handleCopyLink}
+                      className="text-xs px-3 py-1.5 rounded-lg border-2 border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition font-bold"
+                    >
+                      {copied ? t('copied') : t('copyLink')}
+                    </button>
+                    <a
+                      href={presentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition hover:opacity-80 flex items-center gap-2"
+                    >
+                      {t('goToPresent')}
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -935,9 +1027,13 @@ export default function AdminEventPage() {
               }
             />
           )}
-          {activeTab === 'tabJudges' && <JudgesTab eventId={id} />}
+          {activeTab === 'tabJudges' && <JudgesTab eventId={id} maxJudges={event?.number_of_judges} />}
           {activeTab === 'tabScoreboard' && (
-            <ScoreboardTab eventId={id} eventName={event?.name} />
+            <ScoreboardTab
+              eventId={id}
+              eventName={event?.name}
+              scoreDecimalPlaces={event?.score_decimal_places ?? 0}
+            />
           )}
         </div>
       </main>

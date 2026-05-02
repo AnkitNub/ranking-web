@@ -168,7 +168,7 @@
     "allScoresReady": "🎉 All scores are in!",
     "copyLink": "Copy Link",
     "copied": "✓ Copied!",
-    "goToPresent": "Go to Presentation →",
+    "goToPresent": "Go to Presentation ",
     "autoRefreshEvery15s": "Auto-refreshes every 15s",
     "lastRefreshedAt": "Last refreshed at {{time}}",
     "refresh": "Refresh",
@@ -215,6 +215,7 @@
     "backToEvent": "Back to Event",
     "eventUpdatedSuccessfully": "Event updated successfully!",
     "failedToUpdateEvent": "Failed to update event.",
+    "failedToDeleteEvent": "Failed to delete event.",
     "deadline": "Deadline",
     "turnDurationSeconds": "Turn Duration (Seconds)",
     "descriptionPlaceholder": "Enter event description...",
@@ -256,6 +257,8 @@
     "betweenParticipants": "Between Participants",
     "endEvent": "End Event",
     "presentationReady": "📺 Presentation ready",
+    "presentationUrl": "Presentation URL",
+    "eventInProgress": "Event in Progress",
     "presentationLiveHelp": "Open the projector view now — it updates live as judges score.",
     "downloadCsv": "Download CSV",
     "downloadCsvHelp": "Download the scoreboard as a CSV file (Excel-compatible)",
@@ -286,6 +289,14 @@
     "decimal1": "1 Decimal",
     "decimal2": "2 Decimals",
     "decimalScoringHelp": "Allow judges to give scores with decimal places.",
-    "scoreDecimalError": "Score must have at most {{places}} decimal place(s)."
+    "scoreDecimalError": "Score must have at most {{places}} decimal place(s).",
+    "judges": "Judges",
+    "judgesPending": "Judges Pending",
+    "maxParticipantsReached": "Participant limit reached (max {{limit}})",
+    "numberOfJudges": "Number of Judges",
+    "numberOfJudgesHelp": "Maximum number of judges allowed to join this event.",
+    "judgeLimitReached": "Judge limit reached (max {{limit}})",
+    "judgeSlotsLabel": "Judge Slots",
+    "judgeSlotsHelp": "{{current}} of {{limit}} judges joined"
   }
 }

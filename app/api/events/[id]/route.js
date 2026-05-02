@@ -59,11 +59,11 @@ export async function PUT(request, { params }) {
 
   const { id } = await params;
   const event = await resolveEvent(id);
-  if (!event || event.admin_id !== user.id) {
+  if (!event || (event.admin_id !== user.id && user.role !== 'admin')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { name, description, max_score, event_date, start_time, turn_duration_seconds, score_decimal_places } =
+  const { name, description, max_score, event_date, start_time, turn_duration_seconds, score_decimal_places, number_of_judges } =
     await request.json();
 
   if (name !== undefined && !name?.trim())
@@ -109,6 +109,8 @@ export async function PUT(request, { params }) {
     updateData.turn_duration_seconds = turn_duration_seconds ? Number(turn_duration_seconds) : null;
   if (score_decimal_places !== undefined && score_decimal_places !== null)
     updateData.score_decimal_places = Number(score_decimal_places);
+  if (number_of_judges !== undefined && number_of_judges !== null)
+    updateData.number_of_judges = Number(number_of_judges);
 
   if (event_date !== undefined) updateData.event_date = event_date || null;
   if (start_time !== undefined) updateData.start_time = start_time || null;
@@ -147,7 +149,7 @@ export async function DELETE(request, { params }) {
 
   const { id } = await params;
   const event = await resolveEvent(id);
-  if (!event || event.admin_id !== user.id) {
+  if (!event || (event.admin_id !== user.id && user.role !== 'admin')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

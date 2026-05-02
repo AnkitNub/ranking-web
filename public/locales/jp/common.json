@@ -168,7 +168,7 @@
     "allScoresReady": "🎉 すべてのスコアが出揃いました！",
     "copyLink": "リンクをコピー",
     "copied": "✓ コピーしました！",
-    "goToPresent": "プレゼン画面へ →",
+    "goToPresent": "プレゼン画面へ ",
     "autoRefreshEvery15s": "15秒ごとに自動更新",
     "lastRefreshedAt": "最終更新 {{time}}",
     "refresh": "更新",
@@ -217,6 +217,7 @@
     "backToEvent": "イベントに戻る",
     "eventUpdatedSuccessfully": "イベントが正常に更新されました！",
     "failedToUpdateEvent": "イベントの更新に失敗しました。",
+    "failedToDeleteEvent": "イベントの削除に失敗しました。",
     "deadline": "提出期限",
     "turnDurationSeconds": "ターンの長さ（秒）",
     "descriptionPlaceholder": "イベントの説明を入力してください...",
@@ -258,6 +259,8 @@
     "betweenParticipants": "参加者の間",
     "endEvent": "イベント終了",
     "presentationReady": "📺 プレゼンテーション準備完了",
+    "presentationUrl": "プレゼンテーションURL",
+    "eventInProgress": "イベント進行中",
     "presentationLiveHelp": "プロジェクター画面を今すぐ開いてください — 採点中にリアルタイムで更新されます。",
     "downloadCsv": "CSVダウンロード",
     "downloadCsvHelp": "スコアボードをCSVファイルとしてダウンロード（Excel対応）",
@@ -288,6 +291,14 @@
     "decimal1": "小数第1位",
     "decimal2": "小数第2位",
     "decimalScoringHelp": "審査員が小数点付きのスコアを付けられるようにします。",
-    "scoreDecimalError": "スコアは小数点以下{{places}}桁以内で入力してください。"
+    "scoreDecimalError": "スコアは小数点以下{{places}}桁以内で入力してください。",
+    "judges": "審査員",
+    "judgesPending": "未完了の審査員",
+    "maxParticipantsReached": "参加者数の上限に達しました (最大 {{limit}}人)",
+    "numberOfJudges": "審査員数",
+    "numberOfJudgesHelp": "このイベントに参加できる審査員の最大数。",
+    "judgeLimitReached": "審査員数の上限に達しました (最大 {{limit}}人)",
+    "judgeSlotsLabel": "審査員枠",
+    "judgeSlotsHelp": "{{limit}}人中{{current}}人の審査員が参加済み"
   }
 }

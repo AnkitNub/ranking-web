@@ -20,9 +20,11 @@ function CreateEventModal({ onClose, onCreate }) {
   const [decimalPlaces, setDecimalPlaces] = useState('0');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
+  const [numberOfJudges, setNumberOfJudges] = useState('5');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [createdEvent, setCreatedEvent] = useState(null);
+  const [copiedType, setCopiedType] = useState(null); // 'code' or 'password'
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -42,6 +44,7 @@ function CreateEventModal({ onClose, onCreate }) {
           score_decimal_places: Number(decimalPlaces),
           event_date: date || null,
           start_time: startTime || null,
+          number_of_judges: Number(numberOfJudges),
         }),
       });
       const data = await res.json();
@@ -60,8 +63,10 @@ function CreateEventModal({ onClose, onCreate }) {
     }
   }
 
-  const handleCopy = (text) => {
+  const handleCopy = (text, type) => {
     navigator.clipboard.writeText(text);
+    setCopiedType(type);
+    setTimeout(() => setCopiedType(null), 2000);
   };
 
   if (createdEvent) {
@@ -83,10 +88,14 @@ function CreateEventModal({ onClose, onCreate }) {
                   className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm font-mono text-zinc-900 dark:text-zinc-100"
                 />
                 <button
-                  onClick={() => handleCopy(createdEvent.event_code)}
-                  className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-sm font-medium transition"
+                  onClick={() => handleCopy(createdEvent.event_code, 'code')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                    copiedType === 'code'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
                 >
-                  {t('copy')}
+                  {copiedType === 'code' ? t('copied') : t('copy')}
                 </button>
               </div>
             </div>
@@ -101,10 +110,14 @@ function CreateEventModal({ onClose, onCreate }) {
                   className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm font-mono text-zinc-900 dark:text-zinc-100"
                 />
                 <button
-                  onClick={() => handleCopy(createdEvent.judge_password)}
-                  className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-sm font-medium transition"
+                  onClick={() => handleCopy(createdEvent.judge_password, 'password')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                    copiedType === 'password'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                  }`}
                 >
-                  {t('copy')}
+                  {copiedType === 'password' ? t('copied') : t('copy')}
                 </button>
               </div>
             </div>
@@ -208,6 +221,24 @@ function CreateEventModal({ onClose, onCreate }) {
                 {t('decimalScoringHelp')}
               </p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('numberOfJudges')} *
+              </label>
+              <input
+                type="number"
+                required
+                min={1}
+                max={50}
+                value={numberOfJudges}
+                onChange={(e) => setNumberOfJudges(e.target.value)}
+                placeholder="5"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('numberOfJudgesHelp')}
+              </p>
+            </div>
           </div>
 
           <div>
@@ -303,6 +334,7 @@ function EditEventModal({ event, onClose, onEdit }) {
   const [decimalPlaces, setDecimalPlaces] = useState(String(event?.score_decimal_places ?? 0));
   const [date, setDate] = useState(event?.event_date || '');
   const [startTime, setStartTime] = useState(event?.start_time || '');
+  const [numberOfJudges, setNumberOfJudges] = useState(event?.number_of_judges || '5');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -324,6 +356,7 @@ function EditEventModal({ event, onClose, onEdit }) {
           score_decimal_places: Number(decimalPlaces),
           event_date: date || null,
           start_time: startTime || null,
+          number_of_judges: Number(numberOfJudges),
         }),
       });
       const data = await res.json();
@@ -420,6 +453,24 @@ function EditEventModal({ event, onClose, onEdit }) {
               </select>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                 {t('decimalScoringHelp')}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('numberOfJudges')} *
+              </label>
+              <input
+                type="number"
+                required
+                min={1}
+                max={50}
+                value={numberOfJudges}
+                onChange={(e) => setNumberOfJudges(e.target.value)}
+                placeholder="5"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('numberOfJudgesHelp')}
               </p>
             </div>
           </div>

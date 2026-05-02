@@ -21,7 +21,7 @@ export async function POST(req) {
     // 1. Verify event code, password, and expiration
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id, expires_at')
+      .select('id, expires_at, number_of_judges')
       .eq('event_code', event_code)
       .eq('judge_password', judge_password)
       .single();
@@ -46,6 +46,27 @@ export async function POST(req) {
           status: 401,
           headers: { 'Content-Type': 'application/json' },
         },
+      );
+    }
+
+    // Check judge limit
+    const { count: assignedCount } = await supabase
+      .from('event_judges')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_id', event.id);
+    const { count: guestCount } = await supabase
+      .from('guest_judges')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_id', event.id);
+
+    const totalJudges = (assignedCount || 0) + (guestCount || 0);
+    if (totalJudges >= (event.number_of_judges || 5)) {
+      return new Response(
+        JSON.stringify({ error: 'judgeLimitReached', limit: event.number_of_judges || 5 }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
     }
 
@@ -77,10 +98,14 @@ export async function POST(req) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24, // 1 day
+      // Removed maxAge to make it a session cookie (expires when tab/browser closes)
     });
 
-    return new Response(JSON.stringify({ success: true, event_id: event.id }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      event_id: event.id,
+      guest_session: sessionData // Return for sessionStorage storage
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

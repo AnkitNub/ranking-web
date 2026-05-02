@@ -69,7 +69,7 @@ export async function POST(request) {
     );
   }
 
-  const { name, description, max_score, event_date, start_time, score_decimal_places } =
+  const { name, description, max_score, event_date, start_time, score_decimal_places, number_of_judges } =
     await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
@@ -122,6 +122,7 @@ export async function POST(request) {
       turn_duration_seconds: 10,
       expires_at,
       score_decimal_places: decimalPlaces,
+      number_of_judges: number_of_judges ? Number(number_of_judges) : 5,
     })
     .select()
     .single();

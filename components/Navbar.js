@@ -10,11 +10,21 @@ import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
   const { t } = useTranslation('common');
-  const { supabaseUser, firebaseUser, guestUser, loading } = useAuth();
+  const { supabaseUser, firebaseUser, guestUser, loading, setGuestUser, setSupabaseUser } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   async function handleLogout() {
-    await signOut(auth);
+    if (firebaseUser) {
+      await signOut(auth);
+    }
+    // Clear guest session
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('guest_session');
+      // Clearing cookie by setting expiration in the past
+      document.cookie = 'guest_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+    setGuestUser(null);
+    setSupabaseUser(null);
     router.push('/signin');
   }
 
@@ -86,7 +96,7 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {firebaseUser && (
+              {(firebaseUser || guestUser) && (
                 <button
                   onClick={handleLogout}
                   className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition order-last sm:order-none"
