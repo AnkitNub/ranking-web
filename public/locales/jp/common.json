@@ -288,6 +288,8 @@
     "decimal1": "小数第1位",
     "decimal2": "小数第2位",
     "decimalScoringHelp": "審査員が小数点付きのスコアを付けられるようにします。",
-    "scoreDecimalError": "スコアは小数点以下{{places}}桁以内で入力してください。"
+    "scoreDecimalError": "スコアは小数点以下{{places}}桁以内で入力してください。",
+    "judges": "審査員",
+    "judgesPending": "未完了の審査員"
   }
 }

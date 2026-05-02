@@ -883,10 +883,8 @@ function LiveScoringView({ data }) {
     (p) => p.id === data?.event?.current_participant_id,
   );
   const liveScores = currentParticipant?.scores ?? [];
-  const totalScore = liveScores.reduce((sum, s) => sum + s.score, 0);
   const assignedJudgesCount = data?.assignedJudgesCount ?? 0;
   const votedCount = liveScores.length;
-  const waitingCount = Math.max(0, assignedJudgesCount - votedCount);
 
   // Participant progress (e.g. "2 of 5")
   const participantsOrder = data?.event?.participants_order ?? [];
@@ -894,104 +892,81 @@ function LiveScoringView({ data }) {
     participantsOrder.indexOf(data?.event?.current_participant_id) + 1;
   const totalParticipants = participantsOrder.length;
 
-  // Only show leaderboard for already-scored participants
-  const ranked = (data?.ranked ?? []).filter(
-    (p) => p.judgesScored > 0 && p.id !== data?.event?.current_participant_id,
-  );
-  const movementById = useRankMovement(ranked);
-
-  const hasLeaderboard = ranked.length > 0;
-
-  /* ── Participant info panel (reused in both layouts) ── */
-  const participantPanel = (compact = false) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`flex flex-col ${compact ? 'items-start' : 'items-center'}`}
-    >
-      {/* Progress label */}
-      {totalParticipants > 0 && (
-        <p className={`text-zinc-600 text-[10px] font-black uppercase tracking-[0.28em] ${compact ? 'mb-3' : 'mb-5'}`}>
-          {t('evaluatingParticipant', { current: currentIndex, total: totalParticipants })}
-        </p>
-      )}
-
-      {/* Live badge */}
-      <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] ${compact ? 'mb-4' : 'mb-6'}`}>
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-        {t('liveOnStage')}
-      </div>
-
-      {/* Participant name */}
-      <h2
-        className={`font-black tracking-tighter ${compact ? 'text-4xl sm:text-5xl mb-2 text-left' : 'text-5xl sm:text-7xl md:text-8xl mb-3 text-center'} drop-shadow-2xl`}
-        style={{ color: '#00e676' }}
-      >
-        {currentParticipant?.name ?? '—'}
-      </h2>
-      <div className={`h-0.5 rounded-full bg-emerald-500/30 ${compact ? 'w-20 mb-6 self-start' : 'w-28 mb-10'}`} />
-
-      {/* Vote counter */}
-      <div className={`flex flex-col ${compact ? 'items-start' : 'items-center'} gap-3`}>
-        <div className="flex items-baseline gap-2">
-          <span className={`font-black tabular-nums text-white leading-none ${compact ? 'text-5xl' : 'text-6xl sm:text-7xl'}`}>
-            {votedCount}
-          </span>
-          <span className="text-2xl font-black text-zinc-600 leading-none">/</span>
-          <span className={`font-black text-zinc-500 tabular-nums leading-none ${compact ? 'text-2xl' : 'text-3xl'}`}>
-            {assignedJudgesCount}
-          </span>
-        </div>
-        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
-          {t('judgesVoted')}
-        </p>
-        {assignedJudgesCount > 0 && (
-          <div className="flex gap-3 mt-1">
-            {Array.from({ length: assignedJudgesCount }).map((_, i) => (
-              <div
-                key={i}
-                className={`rounded-full transition-all duration-500 ${compact ? 'w-3 h-3' : 'w-4 h-4'} ${
-                  i < votedCount
-                    ? 'bg-emerald-400 shadow-lg shadow-emerald-500/50 scale-110'
-                    : 'bg-zinc-700'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-
   return (
-    <div className="w-full max-w-6xl">
-      {hasLeaderboard ? (
-        /* ── Two-column layout when leaderboard is present ── */
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start justify-center w-full">
-          {/* Left: participant info */}
-          <div className="lg:flex-1 lg:sticky lg:top-8">
-            {participantPanel(true)}
-          </div>
-          {/* Right: leaderboard */}
-          <div className="lg:flex-1 w-full">
-            <LeaderboardSplit
-              ranked={ranked}
-              highlightId={null}
-              movementById={movementById}
-              placementFocus={null}
-            />
-          </div>
+    <div className="w-full max-w-4xl">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center text-center"
+      >
+        {/* Progress header */}
+        {totalParticipants > 0 && (
+          <p className="text-zinc-600 text-xs font-black uppercase tracking-[0.3em] mb-6">
+            {t('evaluatingParticipant', {
+              current: currentIndex,
+              total: totalParticipants,
+            })}
+          </p>
+        )}
+
+        {/* Status Badge */}
+        <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-black uppercase tracking-[0.25em] mb-8">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+          {t('liveOnStage')}
         </div>
-      ) : (
-        /* ── Full centered layout when no leaderboard yet ── */
-        <div className="flex flex-col items-center">
-          {participantPanel(false)}
+
+        {/* Participant Name - MASSIVE */}
+        <h2
+          className="font-black tracking-tighter text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] mb-6 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] leading-tight"
+          style={{ color: '#00e676' }}
+        >
+          {currentParticipant?.name ?? '—'}
+        </h2>
+
+        <div className="w-48 h-1 rounded-full bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent mb-16" />
+
+        {/* Voting Progress Section */}
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center">
+            <span className="text-zinc-500 text-xs font-black uppercase tracking-[0.4em] mb-4">
+              {t('judgesVoted')}
+            </span>
+            <div className="flex items-baseline gap-4">
+              <span className="font-black tabular-nums text-white leading-none text-8xl sm:text-9xl drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                {votedCount}
+              </span>
+              <span className="text-3xl font-black text-zinc-700">/</span>
+              <span className="text-4xl font-black text-zinc-500 tabular-nums">
+                {assignedJudgesCount}
+              </span>
+            </div>
+            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4">
+              {t('judges')}
+            </p>
+          </div>
+
+          {/* Dots Indicator */}
+          {assignedJudgesCount > 0 && (
+            <div className="flex gap-4 mt-4">
+              {Array.from({ length: assignedJudgesCount }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`rounded-full transition-all duration-700 ${
+                    i < votedCount
+                      ? 'w-6 h-6 bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.6)] scale-110'
+                      : 'w-5 h-5 bg-zinc-800 border border-zinc-700'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </motion.div>
     </div>
   );
 }
+
 
 /* ─── Final leaderboard view ────────────────────────────────────────────── */
 function FinalLeaderboardView({ data }) {
