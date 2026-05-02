@@ -18,6 +18,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('events'); // 'events' or 'users'
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [deletingEventId, setDeletingEventId] = useState(null);
+  const [eventToDelete, setEventToDelete] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -49,10 +51,6 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (!window.confirm(t('deleteJudgeConfirmHelp'))) {
-      return;
-    }
-
     setDeletingUserId(userId);
     try {
       const res = await authFetch(`/api/admin/users/${userId}`, {
@@ -71,6 +69,29 @@ export default function AdminDashboard() {
     } finally {
       setDeletingUserId(null);
       setUserToDelete(null);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+
+    setDeletingEventId(eventId);
+    try {
+      const res = await authFetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || t('failedToDeleteEvent'));
+      }
+
+      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    } catch (err) {
+      console.error('Failed to delete event:', err);
+      alert(err.message);
+    } finally {
+      setDeletingEventId(null);
+      setEventToDelete(null);
     }
   };
 
@@ -110,6 +131,15 @@ export default function AdminDashboard() {
           onClose={() => setUserToDelete(null)}
           onConfirm={() => handleDeleteUser(userToDelete.id)}
           isDeleting={deletingUserId === userToDelete.id}
+          t={t}
+        />
+      )}
+      {eventToDelete && (
+        <DeleteEventModal
+          event={eventToDelete}
+          onClose={() => setEventToDelete(null)}
+          onConfirm={() => handleDeleteEvent(eventToDelete.id)}
+          isDeleting={deletingEventId === eventToDelete.id}
           t={t}
         />
       )}
@@ -174,7 +204,14 @@ export default function AdminDashboard() {
                 </h2>
                 <div className="grid gap-4">
                   {ongoingEvents.map(event => (
-                    <EventRow key={event.id} event={event} t={t} router={router} />
+                    <EventRow 
+                      key={event.id} 
+                      event={event} 
+                      t={t} 
+                      router={router} 
+                      onDelete={() => setEventToDelete(event)}
+                      isDeleting={deletingEventId === event.id}
+                    />
                   ))}
                 </div>
               </section>
@@ -188,7 +225,14 @@ export default function AdminDashboard() {
                 </h2>
                 <div className="grid gap-4">
                   {upcomingEvents.map(event => (
-                    <EventRow key={event.id} event={event} t={t} router={router} />
+                    <EventRow 
+                      key={event.id} 
+                      event={event} 
+                      t={t} 
+                      router={router} 
+                      onDelete={() => setEventToDelete(event)}
+                      isDeleting={deletingEventId === event.id}
+                    />
                   ))}
                 </div>
               </section>
@@ -202,7 +246,14 @@ export default function AdminDashboard() {
                 </h2>
                 <div className="grid gap-4">
                   {endedEvents.map(event => (
-                    <EventRow key={event.id} event={event} t={t} router={router} />
+                    <EventRow 
+                      key={event.id} 
+                      event={event} 
+                      t={t} 
+                      router={router} 
+                      onDelete={() => setEventToDelete(event)}
+                      isDeleting={deletingEventId === event.id}
+                    />
                   ))}
                 </div>
               </section>
@@ -271,6 +322,51 @@ export default function AdminDashboard() {
   );
 }
 
+function DeleteEventModal({ event, onClose, onConfirm, isDeleting, t }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-6 overflow-hidden">
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            {t('deleteEvent')}?
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+            {t('deleteEventConfirm')}
+          </p>
+          <div className="mt-4 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800 w-full text-left">
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">{t('eventName')}</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{event.name}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">Host: {event.users?.name || 'Unknown'}</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition disabled:opacity-50"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="flex-1 rounded-xl bg-red-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-red-700 transition shadow-sm shadow-red-200 dark:shadow-none disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isDeleting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+            {isDeleting ? t('deleting') : t('delete')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DeleteUserModal({ user, onClose, onConfirm, isDeleting, t }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
@@ -316,13 +412,12 @@ function DeleteUserModal({ user, onClose, onConfirm, isDeleting, t }) {
   );
 }
 
-function EventRow({ event, t, router }) {
+function EventRow({ event, t, router, onDelete, isDeleting }) {
   const hostName = event.users?.name || 'Unknown';
   
   return (
     <div 
-      onClick={() => router.push(`/host/events/${event.id}`)}
-      className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:border-teal-400 dark:hover:border-teal-700 transition cursor-pointer group"
+      className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:border-teal-400 dark:hover:border-teal-700 transition group"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -359,10 +454,26 @@ function EventRow({ event, t, router }) {
             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-tighter">{t('createdAt')}</p>
             <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{new Date(event.created_at).toLocaleDateString()}</p>
           </div>
-          <div className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-teal-500 group-hover:bg-teal-50 dark:group-hover:bg-teal-900/20 transition">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => router.push(`/host/events/${event.id}`)}
+              className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition"
+              title={t('manage')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => onDelete(event.id)}
+              disabled={isDeleting}
+              className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition disabled:opacity-50"
+              title={t('delete')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>

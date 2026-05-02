@@ -215,6 +215,7 @@
     "backToEvent": "Back to Event",
     "eventUpdatedSuccessfully": "Event updated successfully!",
     "failedToUpdateEvent": "Failed to update event.",
+    "failedToDeleteEvent": "Failed to delete event.",
     "deadline": "Deadline",
     "turnDurationSeconds": "Turn Duration (Seconds)",
     "descriptionPlaceholder": "Enter event description...",

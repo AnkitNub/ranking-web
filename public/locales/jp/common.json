@@ -217,6 +217,7 @@
     "backToEvent": "イベントに戻る",
     "eventUpdatedSuccessfully": "イベントが正常に更新されました！",
     "failedToUpdateEvent": "イベントの更新に失敗しました。",
+    "failedToDeleteEvent": "イベントの削除に失敗しました。",
     "deadline": "提出期限",
     "turnDurationSeconds": "ターンの長さ（秒）",
     "descriptionPlaceholder": "イベントの説明を入力してください...",

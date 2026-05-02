@@ -59,7 +59,7 @@ export async function PUT(request, { params }) {
 
   const { id } = await params;
   const event = await resolveEvent(id);
-  if (!event || event.admin_id !== user.id) {
+  if (!event || (event.admin_id !== user.id && user.role !== 'admin')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -149,7 +149,7 @@ export async function DELETE(request, { params }) {
 
   const { id } = await params;
   const event = await resolveEvent(id);
-  if (!event || event.admin_id !== user.id) {
+  if (!event || (event.admin_id !== user.id && user.role !== 'admin')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
