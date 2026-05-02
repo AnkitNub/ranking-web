@@ -20,6 +20,7 @@ function CreateEventModal({ onClose, onCreate }) {
   const [decimalPlaces, setDecimalPlaces] = useState('0');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
+  const [numberOfJudges, setNumberOfJudges] = useState('5');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [createdEvent, setCreatedEvent] = useState(null);
@@ -42,6 +43,7 @@ function CreateEventModal({ onClose, onCreate }) {
           score_decimal_places: Number(decimalPlaces),
           event_date: date || null,
           start_time: startTime || null,
+          number_of_judges: Number(numberOfJudges),
         }),
       });
       const data = await res.json();
@@ -208,6 +210,24 @@ function CreateEventModal({ onClose, onCreate }) {
                 {t('decimalScoringHelp')}
               </p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('numberOfJudges')} *
+              </label>
+              <input
+                type="number"
+                required
+                min={1}
+                max={50}
+                value={numberOfJudges}
+                onChange={(e) => setNumberOfJudges(e.target.value)}
+                placeholder="5"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('numberOfJudgesHelp')}
+              </p>
+            </div>
           </div>
 
           <div>
@@ -303,6 +323,7 @@ function EditEventModal({ event, onClose, onEdit }) {
   const [decimalPlaces, setDecimalPlaces] = useState(String(event?.score_decimal_places ?? 0));
   const [date, setDate] = useState(event?.event_date || '');
   const [startTime, setStartTime] = useState(event?.start_time || '');
+  const [numberOfJudges, setNumberOfJudges] = useState(event?.number_of_judges || '5');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -324,6 +345,7 @@ function EditEventModal({ event, onClose, onEdit }) {
           score_decimal_places: Number(decimalPlaces),
           event_date: date || null,
           start_time: startTime || null,
+          number_of_judges: Number(numberOfJudges),
         }),
       });
       const data = await res.json();
@@ -420,6 +442,24 @@ function EditEventModal({ event, onClose, onEdit }) {
               </select>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                 {t('decimalScoringHelp')}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                {t('numberOfJudges')} *
+              </label>
+              <input
+                type="number"
+                required
+                min={1}
+                max={50}
+                value={numberOfJudges}
+                onChange={(e) => setNumberOfJudges(e.target.value)}
+                placeholder="5"
+                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {t('numberOfJudgesHelp')}
               </p>
             </div>
           </div>

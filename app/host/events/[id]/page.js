@@ -341,7 +341,7 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
 }
 
 /* ─── Judges Tab ───────────────────────────────────────────────────────────── */
-function JudgesTab({ eventId }) {
+function JudgesTab({ eventId, maxJudges = 5 }) {
   const { t } = useTranslation('common');
   const [guestJudges, setGuestJudges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -370,6 +370,26 @@ function JudgesTab({ eventId }) {
           {error}
         </p>
       )}
+
+      <div className="bg-white dark:bg-slate-700 border border-zinc-200 dark:border-slate-600 rounded-xl p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider">
+            {t('judgeSlotsLabel')}
+          </h3>
+          <span className={`text-xs font-bold px-2 py-1 rounded-full ${guestJudges.length >= maxJudges ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'}`}>
+            {guestJudges.length} / {maxJudges}
+          </span>
+        </div>
+        <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-500 ${guestJudges.length >= maxJudges ? 'bg-red-500' : 'bg-emerald-500'}`}
+            style={{ width: `${Math.min(100, (guestJudges.length / maxJudges) * 100)}%` }}
+          />
+        </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+          {t('judgeSlotsHelp', { current: guestJudges.length, limit: maxJudges })}
+        </p>
+      </div>
 
       {guestJudges.length > 0 && (
         <div className="mt-2">
@@ -451,6 +471,8 @@ function ScoreboardTab({ eventId, eventName, scoreDecimalPlaces = 0 }) {
     assignedJudgesCount > 0 &&
     rows.length > 0 &&
     rows.every((r) => r.judgesScored === assignedJudgesCount);
+
+  const hasAnyScore = scores.length > 0;
 
 
   function handleDownloadCsv() {
@@ -965,7 +987,7 @@ export default function AdminEventPage() {
               }
             />
           )}
-          {activeTab === 'tabJudges' && <JudgesTab eventId={id} />}
+          {activeTab === 'tabJudges' && <JudgesTab eventId={id} maxJudges={event?.number_of_judges} />}
           {activeTab === 'tabScoreboard' && (
             <ScoreboardTab
               eventId={id}

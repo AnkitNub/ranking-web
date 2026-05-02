@@ -291,6 +291,11 @@
     "scoreDecimalError": "Score must have at most {{places}} decimal place(s).",
     "judges": "Judges",
     "judgesPending": "Judges Pending",
-    "maxParticipantsReached": "Participant limit reached (max {{limit}})"
+    "maxParticipantsReached": "Participant limit reached (max {{limit}})",
+    "numberOfJudges": "Number of Judges",
+    "numberOfJudgesHelp": "Maximum number of judges allowed to join this event.",
+    "judgeLimitReached": "Judge limit reached (max {{limit}})",
+    "judgeSlotsLabel": "Judge Slots",
+    "judgeSlotsHelp": "{{current}} of {{limit}} judges joined"
   }
 }

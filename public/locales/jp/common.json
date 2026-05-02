@@ -293,6 +293,11 @@
     "scoreDecimalError": "スコアは小数点以下{{places}}桁以内で入力してください。",
     "judges": "審査員",
     "judgesPending": "未完了の審査員",
-    "maxParticipantsReached": "参加者数の上限に達しました (最大 {{limit}}人)"
+    "maxParticipantsReached": "参加者数の上限に達しました (最大 {{limit}}人)",
+    "numberOfJudges": "審査員数",
+    "numberOfJudgesHelp": "このイベントに参加できる審査員の最大数。",
+    "judgeLimitReached": "審査員数の上限に達しました (最大 {{limit}}人)",
+    "judgeSlotsLabel": "審査員枠",
+    "judgeSlotsHelp": "{{limit}}人中{{current}}人の審査員が参加済み"
   }
 }
