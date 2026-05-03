@@ -118,7 +118,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const ongoingEvents = events.filter(e => e.status === 'active');
+  const ongoingEvents = events.filter(e => e.status === 'active' || e.status === 'interlude');
   const upcomingEvents = events.filter(e => e.status === 'not_started');
   const endedEvents = events.filter(e => e.status === 'ended');
 
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
                             ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' 
                             : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                         }`}>
-                          {user.role}
+                          {t(user.role === 'judge' ? 'adminHost' : user.role)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-500">

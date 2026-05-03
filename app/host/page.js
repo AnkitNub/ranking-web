@@ -229,7 +229,7 @@ function CreateEventModal({ onClose, onCreate }) {
                 type="number"
                 required
                 min={1}
-                max={50}
+                max={10}
                 value={numberOfJudges}
                 onChange={(e) => setNumberOfJudges(e.target.value)}
                 placeholder="5"
@@ -288,9 +288,16 @@ function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
   async function handleConfirm() {
     setLoading(true);
     try {
-      await authFetch(`/api/events/${eventId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/events/${eventId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || t('failedToDeleteEvent'));
+      }
       onConfirm(eventId);
       onClose();
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     } finally {
       setLoading(false);
     }
@@ -463,7 +470,7 @@ function EditEventModal({ event, onClose, onEdit }) {
                 type="number"
                 required
                 min={1}
-                max={50}
+                max={10}
                 value={numberOfJudges}
                 onChange={(e) => setNumberOfJudges(e.target.value)}
                 placeholder="5"
@@ -875,23 +882,6 @@ export default function AdminDashboard() {
                                 }}
                                 className="text-zinc-400 dark:text-zinc-500 hover:text-teal-500 dark:hover:text-teal-400 transition p-1 rounded"
                                 title="イベントを編集"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                title={t('editEvent')}
                               >
                                 <svg
                                   className="w-4 h-4"

@@ -93,6 +93,17 @@ export async function POST(request) {
       { status: 400 },
     );
 
+  // Validate number_of_judges: must be between 1 and 10
+  if (number_of_judges !== undefined && number_of_judges !== null) {
+    const judgesNum = Number(number_of_judges);
+    if (isNaN(judgesNum) || judgesNum < 1 || judgesNum > 10) {
+      return NextResponse.json(
+        { error: 'Number of judges must be between 1 and 10' },
+        { status: 400 },
+      );
+    }
+  }
+
   const event_code = generateRandomString(6);
   const judge_password = generateRandomString(6);
 

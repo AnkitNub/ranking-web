@@ -80,7 +80,9 @@ export default function SignInPage() {
       if (data.guest_session) {
         sessionStorage.setItem('guest_session', JSON.stringify(data.guest_session));
       }
-      router.push(`/judge/events/${data.event_id}`);
+      // Use a full-page navigation so AuthProvider remounts and picks up
+      // the guest session from sessionStorage on the very first render.
+      window.location.href = `/judge/events/${data.event_id}`;
     } catch (err) {
       setError(err.message);
     } finally {

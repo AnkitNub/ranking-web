@@ -13,6 +13,7 @@ export default function Navbar() {
   const { supabaseUser, firebaseUser, guestUser, loading, setGuestUser, setSupabaseUser } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  
   async function handleLogout() {
     if (firebaseUser) {
       await signOut(auth);
@@ -33,10 +34,10 @@ export default function Navbar() {
     return (
       <Link
         href={href}
-        className={`text-sm font-medium transition-colors px-3 py-1.5 rounded-lg ${
+        className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 rounded-full ${
           active
-            ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400'
-            : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/60'
+            ? 'text-teal-700 dark:text-teal-400 bg-teal-50/80 dark:bg-teal-900/30'
+            : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
         }`}
       >
         {label}
@@ -49,6 +50,7 @@ export default function Navbar() {
     firebaseUser?.displayName ||
     firebaseUser?.email ||
     guestUser?.name;
+    
   const initials = displayName
     ? displayName
         .split(' ')
@@ -59,37 +61,37 @@ export default function Navbar() {
     : '?';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur supports-backdrop-filter:bg-white/80">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md supports-backdrop-filter:bg-white/60">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-6">
         {/* Logo + Nav */}
-        <div className="flex items-center gap-5">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold bg-linear-to-br from-teal-500 to-teal-700">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-3 shrink-0 group">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm font-bold bg-linear-to-br from-teal-500 to-teal-700 shadow-sm group-hover:shadow group-hover:scale-105 transition-all duration-300">
               R
             </div>
-            <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+            <span className="text-lg font-bold bg-clip-text text-transparent bg-linear-to-r from-zinc-900 to-zinc-600 dark:from-zinc-100 dark:to-zinc-400">
               RankIt
             </span>
           </Link>
 
           {!loading && firebaseUser && (
-            <nav className="hidden sm:flex items-center gap-1">
-              {supabaseUser?.role === 'admin' && navLink('/admin', t('admin'))}
-              {navLink('/host', t('hostedEvents'))}
-              {navLink('/judge', t('judgingEvents'))}
+            <nav className="hidden sm:flex items-center gap-2">
+              {navLink('/host', t('myEvents'))}
+              {supabaseUser?.role === 'admin' && navLink('/admin', t('dashboard'))}
+              {supabaseUser?.role !== 'admin' && navLink('/judge', t('judgingEvents'))}
             </nav>
           )}
         </div>
 
         {/* User info + Logout + Language Toggle */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {!loading && (firebaseUser || guestUser) && (
             <>
-              <div className="flex items-center gap-2.5 mr-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-linear-to-br from-teal-500 to-teal-700">
+              <div className="flex items-center gap-3 mr-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-linear-to-br from-teal-500 to-teal-700 shadow-sm">
                   {initials}
                 </div>
-                <div className="text-right">
+                <div className="text-right hidden md:block">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                     {displayName}
                   </p>
@@ -99,7 +101,7 @@ export default function Navbar() {
               {(firebaseUser || guestUser) && (
                 <button
                   onClick={handleLogout}
-                  className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition order-last sm:order-none"
+                  className="rounded-full border border-zinc-200 dark:border-zinc-700 px-4 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all duration-300 order-last sm:order-none shadow-sm hover:shadow"
                 >
                   {t('logout')}
                 </button>
@@ -108,36 +110,30 @@ export default function Navbar() {
           )}
 
           {!loading && !firebaseUser && !guestUser && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {pathname !== '/signin' && (
                 <Link
                   href="/signin"
-                  className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition"
+                  className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
                 >
                   {t('login')}
-                </Link>
-              )}
-              {pathname !== '/signup' && (
-                <Link
-                  href="/signup"
-                  className="rounded-lg bg-teal-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-teal-700 transition"
-                >
-                  {t('signup')}
                 </Link>
               )}
             </div>
           )}
 
-          <LanguageToggle />
+          <div className="pl-2 border-l border-zinc-200 dark:border-zinc-800">
+            <LanguageToggle />
+          </div>
         </div>
       </div>
 
       {/* Mobile nav */}
       {!loading && firebaseUser && (
-        <div className="sm:hidden border-t border-zinc-100 dark:border-zinc-800 px-4 py-2 flex gap-2">
-          {supabaseUser?.role === 'admin' && navLink('/admin', t('admin'))}
-          {navLink('/host', t('hostedEvents'))}
-          {navLink('/judge', t('judgingEvents'))}
+        <div className="sm:hidden border-t border-zinc-200/60 dark:border-zinc-800/60 px-4 py-3 flex gap-2 overflow-x-auto">
+          {navLink('/host', t('myEvents'))}
+          {supabaseUser?.role === 'admin' && navLink('/admin', t('dashboard'))}
+          {supabaseUser?.role !== 'admin' && navLink('/judge', t('judgingEvents'))}
         </div>
       )}
     </header>

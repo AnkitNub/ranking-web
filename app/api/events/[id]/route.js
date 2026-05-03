@@ -99,6 +99,16 @@ export async function PUT(request, { params }) {
       );
   }
 
+  if (number_of_judges !== undefined && number_of_judges !== null) {
+    const judgesNum = Number(number_of_judges);
+    if (isNaN(judgesNum) || judgesNum < 1 || judgesNum > 10) {
+      return NextResponse.json(
+        { error: 'Number of judges must be between 1 and 10' },
+        { status: 400 },
+      );
+    }
+  }
+
   const updateData = {};
   if (name !== undefined) updateData.name = name.trim();
   if (description !== undefined)
@@ -154,6 +164,9 @@ export async function DELETE(request, { params }) {
   }
 
   // Delete all associated records in order to satisfy foreign key constraints.
+  // 0. Break circular dependency by clearing current_participant_id
+  await supabaseAdmin.from('events').update({ current_participant_id: null }).eq('id', id);
+
   // 1. Scores (which depend on event_id)
   await supabaseAdmin.from('scores').delete().eq('event_id', id);
 
