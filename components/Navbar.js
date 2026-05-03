@@ -119,14 +119,6 @@ export default function Navbar() {
                   {t('login')}
                 </Link>
               )}
-              {pathname !== '/signup' && (
-                <Link
-                  href="/signup"
-                  className="rounded-full bg-teal-600 text-white px-4 py-2 text-sm font-semibold hover:bg-teal-700 shadow-sm hover:shadow transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  {t('signup')}
-                </Link>
-              )}
             </div>
           )}
 
