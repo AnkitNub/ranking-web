@@ -9,6 +9,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [firebaseUser, setFirebaseUser] = useState(undefined); // undefined = loading
   const [supabaseUser, setSupabaseUser] = useState(null);
+  const [supabaseLoading, setSupabaseLoading] = useState(true);
   const [guestUser, setGuestUser] = useState(null);
 
   useEffect(() => {
@@ -16,6 +17,7 @@ export function AuthProvider({ children }) {
       setFirebaseUser(user);
 
       if (user) {
+        setSupabaseLoading(true);
         try {
           const res = await fetch('/api/sync-user', {
             method: 'POST',
@@ -33,9 +35,12 @@ export function AuthProvider({ children }) {
           }
         } catch (err) {
           console.error('Failed to sync user to Supabase:', err);
+        } finally {
+          setSupabaseLoading(false);
         }
       } else {
         setSupabaseUser(null);
+        setSupabaseLoading(false);
         // If not a Firebase user, check if they are a guest
         fetch('/api/auth/me')
           .then((res) => res.json())
@@ -53,7 +58,7 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  const loading = firebaseUser === undefined;
+  const loading = firebaseUser === undefined || supabaseLoading;
 
   async function refreshAuth() {
     try {
@@ -85,6 +90,7 @@ export function AuthProvider({ children }) {
         refreshAuth,
         setGuestUser,
         setSupabaseUser,
+        setSupabaseLoading,
       }}
     >
       {children}
