@@ -76,7 +76,7 @@ export default function LiveTurnBanner({
           <button
             onClick={onStart}
             disabled={startBusy}
-            className="rounded-lg bg-white hover:bg-amber-50 text-amber-700 px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
+            className="rounded-lg bg-white hover:bg-amber-50 text-amber-700 px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow whitespace-nowrap"
           >
             {startBusy ? t('startingDot') : t('startEvent')}
           </button>
