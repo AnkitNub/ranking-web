@@ -8,23 +8,29 @@ export async function DELETE(request, { params }) {
 
   const { id, participantId } = await params;
 
-  // Verify the requester owns the event that this participant belongs to.
+  // Fetch the participant to confirm it exists and belongs to this event.
   const { data: participant } = await supabaseAdmin
     .from('participants')
-    .select('event_id, events(admin_id, status)')
+    .select('id, event_id')
     .eq('id', participantId)
+    .eq('event_id', id)
     .single();
 
   if (!participant)
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  if (
-    String(participant.event_id) !== id ||
-    participant.events?.admin_id !== user.id
-  ) {
+
+  // Fetch the event to verify ownership and status.
+  const { data: event } = await supabaseAdmin
+    .from('events')
+    .select('admin_id, status')
+    .eq('id', id)
+    .single();
+
+  if (!event || event.admin_id !== user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  if (participant.events?.status !== 'not_started') {
+  if (event.status !== 'not_started') {
     return NextResponse.json(
       { error: 'Cannot delete participants after event has started' },
       { status: 400 },
