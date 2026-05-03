@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
 import { useAuth } from '@/context/AuthContext';
 import { authFetch } from '@/lib/authFetch';
+import LanguageToggle from '@/components/LanguageToggle';
 
 /* ─── Animated counter with roll-up + sound trigger ───────────────────────── */
 function CountUp({ end, duration = 1.2, decimals = 0 }) {
@@ -313,7 +314,8 @@ function Top3Card({
               rank === 1 ? 'text-3xl lg:text-4xl' : 'text-2xl lg:text-3xl'
             }`}
           >
-            {entry.sequence ? `${entry.sequence}. ` : ''}{entry.name}
+            {entry.sequence ? `${entry.sequence}. ` : ''}
+            {entry.name}
           </p>
         </div>
 
@@ -524,7 +526,8 @@ function RestListCard({
               isNew ? 'text-emerald-100' : 'text-zinc-200'
             } text-sm`}
           >
-            {entry.sequence ? `${entry.sequence}. ` : ''}{entry.name}
+            {entry.sequence ? `${entry.sequence}. ` : ''}
+            {entry.name}
           </p>
         </div>
 
@@ -581,8 +584,7 @@ function LeaderboardSplit({
                 movement={movementById[entry.id]}
                 isPlacementFocus={placementFocus?.id === entry.id}
                 isMuted={
-                  Boolean(placementFocus?.id) &&
-                  placementFocus.id !== entry.id
+                  Boolean(placementFocus?.id) && placementFocus.id !== entry.id
                 }
                 placementSignal={placementFocus?.signal ?? 0}
                 isNew={highlightId === entry.id}
@@ -759,7 +761,8 @@ function InterludeReveal({
     const rawTotal = scores
       .slice(0, Math.min(phase, N))
       .reduce((sum, s) => sum + s.score, 0);
-    const total = Math.round(rawTotal * Math.pow(10, decimals)) / Math.pow(10, decimals);
+    const total =
+      Math.round(rawTotal * Math.pow(10, decimals)) / Math.pow(10, decimals);
 
     return (
       <div className="w-full max-w-5xl flex flex-col items-center">
@@ -768,7 +771,8 @@ function InterludeReveal({
           {t('interlude')}
         </p>
         <h2 className="text-4xl md:text-5xl font-black mb-8 md:mb-12 text-emerald-400 text-center drop-shadow-md">
-          {participant.sequence ? `${participant.sequence}. ` : ''}{participant.name}
+          {participant.sequence ? `${participant.sequence}. ` : ''}
+          {participant.name}
         </h2>
 
         <div
@@ -821,7 +825,11 @@ function InterludeReveal({
                       } relative z-10 flex items-center justify-center tabular-nums drop-shadow-md`}
                     >
                       {isRevealed ? (
-                        <CountUp end={scoreObj.score} duration={0.6} decimals={decimals} />
+                        <CountUp
+                          end={scoreObj.score}
+                          duration={0.6}
+                          decimals={decimals}
+                        />
                       ) : (
                         '?'
                       )}
@@ -940,7 +948,8 @@ function LiveScoringView({ data }) {
           className="font-black tracking-tighter text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] mb-6 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] leading-tight"
           style={{ color: '#00e676' }}
         >
-          {currentIndex ? `${currentIndex}. ` : ''}{currentParticipant?.name ?? '—'}
+          {currentIndex ? `${currentIndex}. ` : ''}
+          {currentParticipant?.name ?? '—'}
         </h2>
 
         <div className="w-48 h-1 rounded-full bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent mb-16" />
@@ -985,7 +994,6 @@ function LiveScoringView({ data }) {
     </div>
   );
 }
-
 
 /* ─── Final leaderboard view ────────────────────────────────────────────── */
 function FinalLeaderboardView({ data }) {
@@ -1061,8 +1069,18 @@ function HostController({ eventId, status, onRefresh }) {
           {busy ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
           ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 5l7 7-7 7M5 5l7 7-7 7"
+              />
             </svg>
           )}
           {t('nextStep')}
@@ -1165,7 +1183,7 @@ export default function PresentationPage() {
             {data?.event?.name}
           </h1>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-4 shrink-0">
           <span
             className={`text-[10px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border ${
               status === 'active'
@@ -1185,6 +1203,9 @@ export default function PresentationPage() {
                   ? t('allCompleted')
                   : t('eventNotStarted')}
           </span>
+          <div className="pl-3 border-l border-zinc-700/60">
+            <LanguageToggle />
+          </div>
         </div>
       </div>
 
@@ -1248,7 +1269,10 @@ export default function PresentationPage() {
               <InterludeReveal
                 participant={{
                   ...interludeParticipant,
-                  sequence: (data?.event?.participants_order ?? []).indexOf(interludeParticipant.id) + 1,
+                  sequence:
+                    (data?.event?.participants_order ?? []).indexOf(
+                      interludeParticipant.id,
+                    ) + 1,
                 }}
                 ranked={interludeRanked}
                 participantsOrder={data?.event?.participants_order ?? []}
