@@ -269,6 +269,7 @@
     "eventCreateRateLimit": "1日に{{limit}}件までイベントを作成できます。明日もう一度お試しください。",
     "admin": "管理者",
     "adminDashboard": "管理者ダッシュボード",
+    "dashboard": "ダッシュボード",
     "allUsers": "全登録ユーザー",
     "allEvents": "全イベント",
     "ongoingEvents": "進行中のイベント",

@@ -267,6 +267,7 @@
     "eventCreateRateLimit": "You can create up to {{limit}} events per day. Please try again tomorrow.",
     "admin": "Admin",
     "adminDashboard": "Admin Dashboard",
+    "dashboard": "Dashboard",
     "allUsers": "All Registered Users",
     "allEvents": "All Events",
     "ongoingEvents": "Ongoing Events",

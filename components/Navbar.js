@@ -76,9 +76,9 @@ export default function Navbar() {
 
           {!loading && firebaseUser && (
             <nav className="hidden sm:flex items-center gap-2">
-              {supabaseUser?.role === 'admin' && navLink('/admin', t('admin'))}
-              {navLink('/host', t('hostedEvents'))}
-              {navLink('/judge', t('judgingEvents'))}
+              {navLink('/host', t('myEvents'))}
+              {supabaseUser?.role === 'admin' && navLink('/admin', t('dashboard'))}
+              {supabaseUser?.role !== 'admin' && navLink('/judge', t('judgingEvents'))}
             </nav>
           )}
         </div>
@@ -139,9 +139,9 @@ export default function Navbar() {
       {/* Mobile nav */}
       {!loading && firebaseUser && (
         <div className="sm:hidden border-t border-zinc-200/60 dark:border-zinc-800/60 px-4 py-3 flex gap-2 overflow-x-auto">
-          {supabaseUser?.role === 'admin' && navLink('/admin', t('admin'))}
-          {navLink('/host', t('hostedEvents'))}
-          {navLink('/judge', t('judgingEvents'))}
+          {navLink('/host', t('myEvents'))}
+          {supabaseUser?.role === 'admin' && navLink('/admin', t('dashboard'))}
+          {supabaseUser?.role !== 'admin' && navLink('/judge', t('judgingEvents'))}
         </div>
       )}
     </header>
