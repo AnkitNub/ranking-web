@@ -63,12 +63,12 @@ export default function LiveTurnBanner({
 
   if (state.status === 'not_started') {
     return (
-      <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="rounded-xl border border-amber-500 bg-amber-500 px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex-1">
-          <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
+          <p className="text-sm font-bold text-white">
             {t('eventNotStarted')}
           </p>
-          <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+          <p className="text-xs text-amber-100 mt-0.5">
             {t('eventStartHelp')}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function LiveTurnBanner({
           <button
             onClick={onStart}
             disabled={startBusy}
-            className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
+            className="rounded-lg bg-white hover:bg-amber-50 text-amber-700 px-4 py-2 text-sm font-bold disabled:opacity-50 transition shadow"
           >
             {startBusy ? t('startingDot') : t('startEvent')}
           </button>
