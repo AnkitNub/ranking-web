@@ -288,9 +288,16 @@ function DeleteEventModal({ eventId, eventName, onClose, onConfirm }) {
   async function handleConfirm() {
     setLoading(true);
     try {
-      await authFetch(`/api/events/${eventId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/events/${eventId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || t('failedToDeleteEvent'));
+      }
       onConfirm(eventId);
       onClose();
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     } finally {
       setLoading(false);
     }

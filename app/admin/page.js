@@ -118,7 +118,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const ongoingEvents = events.filter(e => e.status === 'active');
+  const ongoingEvents = events.filter(e => e.status === 'active' || e.status === 'interlude');
   const upcomingEvents = events.filter(e => e.status === 'not_started');
   const endedEvents = events.filter(e => e.status === 'ended');
 

@@ -164,6 +164,9 @@ export async function DELETE(request, { params }) {
   }
 
   // Delete all associated records in order to satisfy foreign key constraints.
+  // 0. Break circular dependency by clearing current_participant_id
+  await supabaseAdmin.from('events').update({ current_participant_id: null }).eq('id', id);
+
   // 1. Scores (which depend on event_id)
   await supabaseAdmin.from('scores').delete().eq('event_id', id);
 
