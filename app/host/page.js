@@ -229,7 +229,7 @@ function CreateEventModal({ onClose, onCreate }) {
                 type="number"
                 required
                 min={1}
-                max={50}
+                max={10}
                 value={numberOfJudges}
                 onChange={(e) => setNumberOfJudges(e.target.value)}
                 placeholder="5"
@@ -463,7 +463,7 @@ function EditEventModal({ event, onClose, onEdit }) {
                 type="number"
                 required
                 min={1}
-                max={50}
+                max={10}
                 value={numberOfJudges}
                 onChange={(e) => setNumberOfJudges(e.target.value)}
                 placeholder="5"
