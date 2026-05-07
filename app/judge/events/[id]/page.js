@@ -311,6 +311,13 @@ export default function JudgeScoringPage() {
     setMyScores(map);
   }, [id]);
 
+  const fetchParticipants = useCallback(async () => {
+    const res = await authFetch(`/api/events/${id}/participants`);
+    if (!res.ok) return;
+    const data = await res.json();
+    setParticipants(data.participants || []);
+  }, [id]);
+
   const fetchData = useCallback(async () => {
     const [eventRes, participantsRes] = await Promise.all([
       authFetch(`/api/events/${id}`),
@@ -334,7 +341,7 @@ export default function JudgeScoringPage() {
     setParticipants(participantsData.participants || []);
     await fetchScores();
     setPageLoading(false);
-  }, [id, router, fetchScores]);
+  }, [id, router, fetchScores, fetchParticipants]);
 
   useEffect(() => {
     if (loading) return;
@@ -345,12 +352,13 @@ export default function JudgeScoringPage() {
     fetchData();
   }, [loading, supabaseUser, fetchData, router]);
 
-  // Refetch scores whenever the live turn moves on, so a judge sees their own
-  // recorded score reflected and the leaderboard underneath stays current.
+  // Refetch scores and participants whenever the live turn moves on, so a judge sees their own
+  // recorded score reflected and any newly added participants are visible.
   useEffect(() => {
     if (!liveState?.turn_token) return;
     fetchScores();
-  }, [liveState?.turn_token, fetchScores]);
+    fetchParticipants();
+  }, [liveState?.turn_token, fetchScores, fetchParticipants]);
 
   function handleScored(participantId, scoreObj) {
     setMyScores((prev) => ({ ...prev, [participantId]: scoreObj }));
