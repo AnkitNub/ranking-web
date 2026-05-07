@@ -6,7 +6,7 @@ import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
-import { playDrumroll, playVictoryFanfare } from '@/lib/sounds';
+import { playDrumroll, playVictoryFanfare, playScoreDing, playPlacementChime } from '@/lib/sounds';
 import { useAuth } from '@/context/AuthContext';
 import { authFetch } from '@/lib/authFetch';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -32,6 +32,9 @@ function CountUp({ end, duration = 1.2, decimals = 0 }) {
       setDisplayValue(nextValue);
       if (progress < 1) {
         frameRef.current = requestAnimationFrame(tick);
+      } else {
+        // Play ding sound when animation completes
+        setTimeout(() => playScoreDing(), 100);
       }
     };
 
@@ -754,6 +757,13 @@ function InterludeReveal({
     }, 250);
     return () => clearInterval(interval);
   }, [phase, stage, N]);
+
+  // Play chime sound when leaderboard is shown
+  useEffect(() => {
+    if (stage === 'leaderboard') {
+      setTimeout(() => playPlacementChime(), 200);
+    }
+  }, [stage]);
 
   if (!participant) return null;
 
