@@ -10,19 +10,30 @@ import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
   const { t } = useTranslation('common');
-  const { supabaseUser, firebaseUser, guestUser, loading, setGuestUser, setSupabaseUser } = useAuth();
+  const {
+    supabaseUser,
+    firebaseUser,
+    guestUser,
+    loading,
+    setGuestUser,
+    setSupabaseUser,
+  } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   async function handleLogout() {
     if (firebaseUser) {
       await signOut(auth);
     }
-    // Clear guest session
+    // Clear guest session from sessionStorage
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('guest_session');
-      // Clearing cookie by setting expiration in the past
-      document.cookie = 'guest_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+    // Clear guest session from server-side cookie
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore errors
     }
     setGuestUser(null);
     setSupabaseUser(null);
@@ -50,7 +61,7 @@ export default function Navbar() {
     firebaseUser?.displayName ||
     firebaseUser?.email ||
     guestUser?.name;
-    
+
   const initials = displayName
     ? displayName
         .split(' ')
@@ -77,8 +88,10 @@ export default function Navbar() {
           {!loading && firebaseUser && (
             <nav className="hidden sm:flex items-center gap-2">
               {navLink('/host', t('myEvents'))}
-              {supabaseUser?.role === 'admin' && navLink('/admin', t('dashboard'))}
-              {supabaseUser?.role !== 'admin' && navLink('/judge', t('judgingEvents'))}
+              {supabaseUser?.role === 'admin' &&
+                navLink('/admin', t('dashboard'))}
+              {supabaseUser?.role !== 'admin' &&
+                navLink('/judge', t('judgingEvents'))}
             </nav>
           )}
         </div>
@@ -133,7 +146,8 @@ export default function Navbar() {
         <div className="sm:hidden border-t border-zinc-200/60 dark:border-zinc-800/60 px-4 py-3 flex gap-2 overflow-x-auto">
           {navLink('/host', t('myEvents'))}
           {supabaseUser?.role === 'admin' && navLink('/admin', t('dashboard'))}
-          {supabaseUser?.role !== 'admin' && navLink('/judge', t('judgingEvents'))}
+          {supabaseUser?.role !== 'admin' &&
+            navLink('/judge', t('judgingEvents'))}
         </div>
       )}
     </header>
