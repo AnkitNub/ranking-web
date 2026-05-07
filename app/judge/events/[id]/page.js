@@ -135,7 +135,9 @@ function ScoreCard({
             >
               {participant.sequence ?? participant.name.charAt(0).toUpperCase()}
             </div>
-            <p className={`font-semibold truncate text-sm ${!effectiveDisabled ? 'text-teal-900 dark:text-teal-100' : 'text-zinc-900 dark:text-zinc-100'}`}>
+            <p
+              className={`font-semibold truncate text-sm ${!effectiveDisabled ? 'text-teal-900 dark:text-teal-100' : 'text-zinc-900 dark:text-zinc-100'}`}
+            >
               {participant.sequence}. {participant.name}
             </p>
           </div>
@@ -372,8 +374,12 @@ export default function JudgeScoringPage() {
   const scoredCount = Object.keys(myScores).length;
   const totalCount = participants.length;
 
-  const currentParticipant = participants.find((p) => p.id === currentParticipantId);
-  const otherParticipants = participants.filter((p) => p.id !== currentParticipantId);
+  const currentParticipant = participants.find(
+    (p) => p.id === currentParticipantId,
+  );
+  const otherParticipants = participants.filter(
+    (p) => p.id !== currentParticipantId,
+  );
 
   // Pulse the scoreboard right after the interlude ends, so judges notice the
   // standings have just shuffled.
@@ -533,11 +539,14 @@ export default function JudgeScoringPage() {
                         {t('eventDateTime')}
                       </p>
                       <div className="text-zinc-800 dark:text-zinc-200 font-medium">
-                        {new Date(event.event_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                        {new Date(event.event_date).toLocaleDateString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          },
+                        )}
                         {' | '}
                         {event.start_time}
                       </div>
@@ -629,7 +638,10 @@ export default function JudgeScoringPage() {
                   key={currentParticipant.id}
                   participant={{
                     ...currentParticipant,
-                    sequence: participants.findIndex((p) => p.id === currentParticipant.id) + 1,
+                    sequence:
+                      participants.findIndex(
+                        (p) => p.id === currentParticipant.id,
+                      ) + 1,
                   }}
                   existingScore={myScores[currentParticipant.id] ?? null}
                   eventId={id}
