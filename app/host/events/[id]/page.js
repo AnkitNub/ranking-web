@@ -857,6 +857,7 @@ export default function AdminEventPage() {
   const [copied, setCopied] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
+  const [copiedBoth, setCopiedBoth] = useState(false);
   const { state: liveState, refetch: refetchLive } = useEventState(id);
 
   async function handleStart() {
@@ -906,6 +907,18 @@ export default function AdminEventPage() {
       await navigator.clipboard.writeText(event?.judge_password || '');
       setCopiedPassword(true);
       setTimeout(() => setCopiedPassword(false), 2000);
+    } catch {}
+  }
+
+  async function handleCopyBoth() {
+    try {
+      const text = t('copyBothFormat', {
+        eventCode: event?.event_code || '',
+        judgePassword: event?.judge_password || '',
+      });
+      await navigator.clipboard.writeText(text);
+      setCopiedBoth(true);
+      setTimeout(() => setCopiedBoth(false), 2000);
     } catch {}
   }
 
@@ -1120,6 +1133,56 @@ export default function AdminEventPage() {
               </div>
             )}
           </div>
+
+          {event?.event_code && event?.judge_password && (
+            <div className="mt-4 flex justify-start">
+              <button
+                onClick={handleCopyBoth}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                  copiedBoth
+                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/50'
+                }`}
+                title={t('copyBoth')}
+              >
+                {copiedBoth ? (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span>{t('copied')}</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      />
+                    </svg>
+                    <span>{t('copyBoth')}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Presentation & Status Banner */}

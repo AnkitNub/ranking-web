@@ -302,6 +302,8 @@
     "numberOfJudgesHelp": "Maximum number of judges allowed to join this event.",
     "judgeLimitReached": "Judge limit reached (max {{limit}})",
     "judgeSlotsLabel": "Judge Slots",
-    "judgeSlotsHelp": "{{current}} of {{limit}} judges joined"
+    "judgeSlotsHelp": "{{current}} of {{limit}} judges joined",
+    "copyBoth": "Copy Both",
+    "copyBothFormat": "Event Code: {{eventCode}}  | Judge Password: {{judgePassword}}"
   }
 }

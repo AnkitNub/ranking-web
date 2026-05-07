@@ -304,6 +304,8 @@
     "numberOfJudgesHelp": "このイベントに参加できる審査員の最大数。",
     "judgeLimitReached": "審査員数の上限に達しました (最大 {{limit}}人)",
     "judgeSlotsLabel": "審査員枠",
-    "judgeSlotsHelp": "{{limit}}人中{{current}}人の審査員が参加済み"
+    "judgeSlotsHelp": "{{limit}}人中{{current}}人の審査員が参加済み",
+    "copyBoth": "両方コピー",
+    "copyBothFormat": "イベントコード: {{eventCode}}  | ジャッジ用パスワード: {{judgePassword}}"
   }
 }
