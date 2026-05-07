@@ -10,11 +10,23 @@ import { useEventState } from '@/lib/useEventState';
 import { useTranslation } from 'react-i18next';
 
 /* ─── Score Details Modal ──────────────────────────────────────────────────── */
-function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
+function ScoreDetailsModal({
+  participant,
+  scores,
+  eventId,
+  onClose,
+  onScoreUpdate,
+  maxScore = 10,
+  decimalPlaces = 0,
+}) {
   const { t } = useTranslation('common');
   const [judges, setJudges] = useState([]);
   const [guestJudges, setGuestJudges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchJudges = async () => {
@@ -36,22 +48,99 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
     (s) => s.participant_id === participant.id,
   );
 
+  const handleEditClick = (item) => {
+    setEditingId(item.key);
+    setEditValue(String(item.score === '-' ? '' : item.score));
+    setError('');
+  };
+
+  const handleSaveScore = async (item) => {
+    const score = editValue === '' ? null : parseFloat(editValue);
+
+    if (score !== null) {
+      if (isNaN(score)) {
+        setError(t('pleaseEnterValidNumber'));
+        return;
+      }
+      if (score < 0 || score > maxScore) {
+        setError(t('scoreRangeError', { max: maxScore }));
+        return;
+      }
+
+      // Validate decimal places by checking the string representation
+      const decimalPattern =
+        decimalPlaces === 0
+          ? /^\d+$/
+          : new RegExp(`^\\d+(\\.\\d{1,${decimalPlaces}})?$`);
+      const trimmedValue = editValue.trim();
+      if (!decimalPattern.test(trimmedValue)) {
+        setError(t('scoreDecimalError', { places: decimalPlaces }));
+        return;
+      }
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      const judgeId = item.kind === 'judge' ? item.judge_id : null;
+      const guestJudgeId = item.kind === 'guest' ? item.guest_judge_id : null;
+
+      if (score === null) {
+        // Delete score
+        const res = await authFetch(`/api/events/${eventId}/scores/manual`, {
+          method: 'DELETE',
+          body: JSON.stringify({ scoreId: item.score_id }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || t('failedToSaveScore'));
+          return;
+        }
+      } else {
+        // Save score
+        const res = await authFetch(`/api/events/${eventId}/scores/manual`, {
+          method: 'POST',
+          body: JSON.stringify({
+            participant_id: participant.id,
+            judge_id: judgeId,
+            guest_judge_id: guestJudgeId,
+            score,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || t('failedToSaveScore'));
+          return;
+        }
+      }
+
+      onScoreUpdate();
+      setEditingId(null);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const regularRows = judges.map((judge) => {
     const score = participantScores.find((s) => s.judge_id === judge.id);
     return {
       key: `user-${judge.id}`,
+      judge_id: judge.id,
       judge_name: judge.name || 'Unknown Judge',
       kind: 'judge',
       score: score ? score.score : '-',
+      score_id: score?.id,
     };
   });
   const guestRows = guestJudges.map((g) => {
     const score = participantScores.find((s) => s.guest_judge_id === g.id);
     return {
       key: `guest-${g.id}`,
+      guest_judge_id: g.id,
       judge_name: g.name || 'Guest',
       kind: 'guest',
       score: score ? score.score : '-',
+      score_id: score?.id,
     };
   });
   const judgeScores = [...regularRows, ...guestRows].sort((a, b) => {
@@ -65,7 +154,9 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
       <div className="bg-white dark:bg-slate-700 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-black dark:text-white">
-            {t('scoresFor', { name: `${participant.sequence ? participant.sequence + '. ' : ''}${participant.name}` })}
+            {t('scoresFor', {
+              name: `${participant.sequence ? participant.sequence + '. ' : ''}${participant.name}`,
+            })}
           </h2>
           <button
             onClick={onClose}
@@ -84,32 +175,80 @@ function ScoreDetailsModal({ participant, scores, eventId, onClose }) {
             {t('noJudgesAssigned')}
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-96 overflow-y-auto">
             {judgeScores.map((item) => (
-              <div
-                key={item.key}
-                className="flex items-center justify-between bg-slate-100 dark:bg-slate-600 px-3 py-2 rounded-lg"
-              >
-                <span className="text-sm font-medium text-black dark:text-white flex items-center gap-2">
-                  {item.judge_name}
-                  {item.kind === 'guest' && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                      {t('guest')}
+              <div key={item.key}>
+                {editingId === item.key ? (
+                  <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/30 px-3 py-2 rounded-lg gap-2">
+                    <span className="text-sm font-medium text-black dark:text-white flex-1">
+                      {item.judge_name}
+                      {item.kind === 'guest' && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 ml-2">
+                          {t('guest')}
+                        </span>
+                      )}
                     </span>
-                  )}
-                </span>
-                <span
-                  className={`text-sm font-bold ${
-                    item.score === '-'
-                      ? 'text-zinc-500 dark:text-zinc-400'
-                      : 'text-emerald-600 dark:text-emerald-400'
-                  }`}
-                >
-                  {item.score}
-                </span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      placeholder={`0-${maxScore}`}
+                      className="w-20 rounded px-2 py-1 text-sm text-center border border-blue-300 dark:border-blue-600 bg-white dark:bg-slate-800 text-black dark:text-white"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleSaveScore(item)}
+                      disabled={saving}
+                      className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded font-semibold disabled:opacity-50"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="px-2 py-1 bg-gray-400 hover:bg-gray-500 text-white text-xs rounded font-semibold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-600 px-3 py-2 rounded-lg hover:bg-slate-150 dark:hover:bg-slate-550 transition group">
+                    <span className="text-sm font-medium text-black dark:text-white flex items-center gap-2">
+                      {item.judge_name}
+                      {item.kind === 'guest' && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                          {t('guest')}
+                        </span>
+                      )}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-sm font-bold ${
+                          item.score === '-'
+                            ? 'text-zinc-500 dark:text-zinc-400'
+                            : 'text-emerald-600 dark:text-emerald-400'
+                        }`}
+                      >
+                        {item.score}
+                      </span>
+                      <button
+                        onClick={() => handleEditClick(item)}
+                        className="text-xs px-1.5 py-0.5 rounded bg-blue-500 hover:bg-blue-600 text-white opacity-0 group-hover:opacity-100 transition"
+                      >
+                        {t('edit')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
+        )}
+
+        {error && (
+          <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 mt-3">
+            {error}
+          </p>
         )}
 
         <button
@@ -257,15 +396,35 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
 
       {!canAddParticipants ? (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-900 flex items-center gap-2">
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg
+            className="w-4 h-4 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
           {t('cannotAddParticipantsAfterStart')}
         </div>
       ) : participants.length >= 10 ? (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-900 flex items-center gap-2">
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg
+            className="w-4 h-4 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
           {t('maxParticipantsReached', { limit: 10 })}
         </div>
@@ -376,18 +535,25 @@ function JudgesTab({ eventId, maxJudges = 5 }) {
           <h3 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider">
             {t('judgeSlotsLabel')}
           </h3>
-          <span className={`text-xs font-bold px-2 py-1 rounded-full ${guestJudges.length >= maxJudges ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'}`}>
+          <span
+            className={`text-xs font-bold px-2 py-1 rounded-full ${guestJudges.length >= maxJudges ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'}`}
+          >
             {guestJudges.length} / {maxJudges}
           </span>
         </div>
         <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2 overflow-hidden">
-          <div 
+          <div
             className={`h-full transition-all duration-500 ${guestJudges.length >= maxJudges ? 'bg-red-500' : 'bg-emerald-500'}`}
-            style={{ width: `${Math.min(100, (guestJudges.length / maxJudges) * 100)}%` }}
+            style={{
+              width: `${Math.min(100, (guestJudges.length / maxJudges) * 100)}%`,
+            }}
           />
         </div>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-          {t('judgeSlotsHelp', { current: guestJudges.length, limit: maxJudges })}
+          {t('judgeSlotsHelp', {
+            current: guestJudges.length,
+            limit: maxJudges,
+          })}
         </p>
       </div>
 
@@ -407,7 +573,9 @@ function JudgesTab({ eventId, maxJudges = 5 }) {
                     {gj.name}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {t('joinedAt', { date: new Date(gj.created_at).toLocaleString() })}
+                    {t('joinedAt', {
+                      date: new Date(gj.created_at).toLocaleString(),
+                    })}
                   </p>
                 </div>
               </li>
@@ -420,7 +588,12 @@ function JudgesTab({ eventId, maxJudges = 5 }) {
 }
 
 /* ─── Scoreboard Tab ───────────────────────────────────────────────────────── */
-function ScoreboardTab({ eventId, eventName, scoreDecimalPlaces = 0 }) {
+function ScoreboardTab({
+  eventId,
+  eventName,
+  scoreDecimalPlaces = 0,
+  maxScore = 10,
+}) {
   const { t } = useTranslation('common');
   const [participants, setParticipants] = useState([]);
   const [scores, setScores] = useState([]);
@@ -473,7 +646,6 @@ function ScoreboardTab({ eventId, eventName, scoreDecimalPlaces = 0 }) {
     rows.every((r) => r.judgesScored === assignedJudgesCount);
 
   const hasAnyScore = scores.length > 0;
-
 
   function handleDownloadCsv() {
     const escape = (val) => {
@@ -550,11 +722,11 @@ function ScoreboardTab({ eventId, eventName, scoreDecimalPlaces = 0 }) {
 
   return (
     <div className="space-y-3">
-
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs text-slate-800">
           {t('autoRefreshEvery15s')}
-          {lastRefreshed && ` · ${t('lastRefreshedAt', { time: lastRefreshed.toLocaleTimeString() })}`}
+          {lastRefreshed &&
+            ` · ${t('lastRefreshedAt', { time: lastRefreshed.toLocaleTimeString() })}`}
         </p>
         <div className="flex items-center gap-3">
           <button
@@ -661,6 +833,9 @@ function ScoreboardTab({ eventId, eventName, scoreDecimalPlaces = 0 }) {
           scores={scores}
           eventId={eventId}
           onClose={() => setSelectedParticipant(null)}
+          onScoreUpdate={fetchScoreboard}
+          maxScore={maxScore}
+          decimalPlaces={scoreDecimalPlaces}
         />
       )}
     </div>
@@ -682,6 +857,7 @@ export default function AdminEventPage() {
   const [copied, setCopied] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
+  const [copiedBoth, setCopiedBoth] = useState(false);
   const { state: liveState, refetch: refetchLive } = useEventState(id);
 
   async function handleStart() {
@@ -692,7 +868,9 @@ export default function AdminEventPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        const errMsg = data.message ? t(data.message) : (data.error || res.status);
+        const errMsg = data.message
+          ? t(data.message)
+          : data.error || res.status;
         alert(t('failedToStart', { error: errMsg }));
       }
       refetchLive();
@@ -732,6 +910,17 @@ export default function AdminEventPage() {
     } catch {}
   }
 
+  async function handleCopyBoth() {
+    try {
+      const text = t('copyBothFormat', {
+        eventCode: event?.event_code || '',
+        judgePassword: event?.judge_password || '',
+      });
+      await navigator.clipboard.writeText(text);
+      setCopiedBoth(true);
+      setTimeout(() => setCopiedBoth(false), 2000);
+    } catch {}
+  }
 
   const fetchEvent = useCallback(async () => {
     const res = await authFetch(`/api/events/${id}`);
@@ -846,16 +1035,26 @@ export default function AdminEventPage() {
                   <button
                     onClick={handleCopyCode}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition border-l border-zinc-300 dark:border-zinc-700 ${
-                      copiedCode 
-                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' 
+                      copiedCode
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20'
                         : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
                     }`}
                     title={t('copyEventCode')}
                   >
                     {copiedCode ? (
                       <>
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2.5"
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                         <span>{t('copied')}</span>
                       </>
@@ -891,16 +1090,26 @@ export default function AdminEventPage() {
                   <button
                     onClick={handleCopyPassword}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition border-l border-zinc-300 dark:border-zinc-700 ${
-                      copiedPassword 
-                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' 
+                      copiedPassword
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20'
                         : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
                     }`}
                     title={t('copyJudgePassword')}
                   >
                     {copiedPassword ? (
                       <>
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                         <span>{t('copied')}</span>
                       </>
@@ -924,6 +1133,56 @@ export default function AdminEventPage() {
               </div>
             )}
           </div>
+
+          {event?.event_code && event?.judge_password && (
+            <div className="mt-4 flex justify-start">
+              <button
+                onClick={handleCopyBoth}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                  copiedBoth
+                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/50'
+                }`}
+                title={t('copyBoth')}
+              >
+                {copiedBoth ? (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span>{t('copied')}</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      />
+                    </svg>
+                    <span>{t('copyBoth')}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Presentation & Status Banner */}
@@ -933,15 +1192,23 @@ export default function AdminEventPage() {
               {/* Status Section */}
               <div className="flex-1 p-5 border-b md:border-b-0 md:border-r border-zinc-100 dark:border-zinc-800 bg-emerald-50/30 dark:bg-emerald-950/10">
                 <div className="flex items-center gap-3 mb-2">
-                   <div className="flex h-2.5 w-2.5 relative">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${liveState?.status === 'not_started' ? 'bg-amber-400' : liveState?.status === 'ended' ? 'bg-zinc-400' : 'bg-emerald-400'}`}></span>
-                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${liveState?.status === 'not_started' ? 'bg-amber-500' : liveState?.status === 'ended' ? 'bg-zinc-500' : 'bg-emerald-500'}`}></span>
+                  <div className="flex h-2.5 w-2.5 relative">
+                    <span
+                      className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${liveState?.status === 'not_started' ? 'bg-amber-400' : liveState?.status === 'ended' ? 'bg-zinc-400' : 'bg-emerald-400'}`}
+                    ></span>
+                    <span
+                      className={`relative inline-flex rounded-full h-2.5 w-2.5 ${liveState?.status === 'not_started' ? 'bg-amber-500' : liveState?.status === 'ended' ? 'bg-zinc-500' : 'bg-emerald-500'}`}
+                    ></span>
                   </div>
                   <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
-                    {liveState?.status === 'not_started' ? t('eventNotStarted') : liveState?.status === 'ended' ? t('eventEnded') : t('eventInProgress')}
+                    {liveState?.status === 'not_started'
+                      ? t('eventNotStarted')
+                      : liveState?.status === 'ended'
+                        ? t('eventEnded')
+                        : t('eventInProgress')}
                   </p>
                 </div>
-                
+
                 {liveState?.status === 'not_started' ? (
                   <div className="flex items-center gap-4">
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -957,7 +1224,9 @@ export default function AdminEventPage() {
                   </div>
                 ) : (
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                    {liveState?.status === 'ended' ? t('allParticipantsScored') : t('presentationLiveHelp')}
+                    {liveState?.status === 'ended'
+                      ? t('allParticipantsScored')
+                      : t('presentationLiveHelp')}
                   </p>
                 )}
               </div>
@@ -987,8 +1256,18 @@ export default function AdminEventPage() {
                       className="text-xs px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition hover:opacity-80 flex items-center gap-2"
                     >
                       {t('goToPresent')}
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
                       </svg>
                     </a>
                   </div>
@@ -1027,12 +1306,15 @@ export default function AdminEventPage() {
               }
             />
           )}
-          {activeTab === 'tabJudges' && <JudgesTab eventId={id} maxJudges={event?.number_of_judges} />}
+          {activeTab === 'tabJudges' && (
+            <JudgesTab eventId={id} maxJudges={event?.number_of_judges} />
+          )}
           {activeTab === 'tabScoreboard' && (
             <ScoreboardTab
               eventId={id}
               eventName={event?.name}
               scoreDecimalPlaces={event?.score_decimal_places ?? 0}
+              maxScore={event?.max_score ?? 10}
             />
           )}
         </div>
