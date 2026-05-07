@@ -1004,6 +1004,7 @@ function FinalLeaderboardView({ data }) {
 
   useEffect(() => {
     playVictoryFanfare();
+    setShowConfetti(true);
     const timer = setTimeout(() => setShowConfetti(false), 5000);
     return () => clearTimeout(timer);
   }, []);
@@ -1028,7 +1029,59 @@ function FinalLeaderboardView({ data }) {
   );
 }
 
-/* ─── Host Controller Overlay ────────────────────────────────────────────── */
+/* ─── Replay Controller Overlay ────────────────────────────────────────────── */
+function ReplayController({ onNext, replayIndex, totalParticipants }) {
+  const { t } = useTranslation('common');
+  const [busy, setBusy] = useState(false);
+
+  const handleNext = async () => {
+    setBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    onNext();
+    setBusy(false);
+  };
+
+  const isLastParticipant = replayIndex >= totalParticipants - 1;
+
+  return (
+    <div className="fixed bottom-8 right-8 z-50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-zinc-900/90 backdrop-blur-xl border border-zinc-700 shadow-2xl rounded-2xl p-4 flex items-center gap-4">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-0.5">
+            {t('replayMode')}
+          </span>
+          <span className="text-xs font-bold text-zinc-300">
+            {replayIndex + 1} / {totalParticipants}
+          </span>
+        </div>
+        <button
+          onClick={handleNext}
+          disabled={busy}
+          className="bg-cyan-600 hover:bg-cyan-500 disabled:bg-zinc-800 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-cyan-900/20 flex items-center gap-2"
+        >
+          {busy ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+          ) : (
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 5l7 7-7 7M5 5l7 7-7 7"
+              />
+            </svg>
+          )}
+          {isLastParticipant ? t('finished') : t('nextStep')}
+        </button>
+      </div>
+    </div>
+  );
+}
 function HostController({ eventId, status, onRefresh }) {
   const { t } = useTranslation('common');
   const [busy, setBusy] = useState(false);
@@ -1074,14 +1127,7 @@ function HostController({ eventId, status, onRefresh }) {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 5l7 7-7 7M5 5l7 7-7 7"
-              />
-            </svg>
+            ></svg>
           )}
           {t('nextStep')}
         </button>
@@ -1098,6 +1144,8 @@ export default function PresentationPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [replayMode, setReplayMode] = useState(false);
+  const [replayParticipantIndex, setReplayParticipantIndex] = useState(0);
 
   const isHost = supabaseUser?.id === data?.event?.admin_id;
 
@@ -1136,15 +1184,47 @@ export default function PresentationPage() {
 
   // Identify the just-scored participant during interlude.
   const interludeParticipant = useMemo(() => {
+    if (replayMode) {
+      // In replay mode, show the participant at current replay index
+      let participantsOrder = data?.event?.participants_order ?? [];
+      // If no explicit order, use ranked order
+      if (participantsOrder.length === 0) {
+        participantsOrder = (data?.ranked ?? []).map((p) => p.id);
+      }
+      const id = participantsOrder[replayParticipantIndex];
+      const participant =
+        data?.ranked?.find((p) => p.id === id) ??
+        data?.event?.participants?.find((p) => p.id === id) ??
+        null;
+      return participant;
+    }
     if (status !== 'interlude') return null;
     const id = data?.event?.current_participant_id;
     return data?.ranked?.find((p) => p.id === id) ?? null;
-  }, [status, data]);
+  }, [status, data, replayMode, replayParticipantIndex]);
 
   // For interlude leaderboard, show all participants who have at least one score.
   const interludeRanked = useMemo(() => {
     return (data?.ranked ?? []).filter((p) => p.judgesScored > 0);
   }, [data]);
+
+  const handleReplayNext = () => {
+    let participantsOrder = data?.event?.participants_order ?? [];
+    if (participantsOrder.length === 0) {
+      participantsOrder = (data?.ranked ?? []).map((p) => p.id);
+    }
+    const totalParticipants = participantsOrder.length;
+    if (replayParticipantIndex < totalParticipants - 1) {
+      setTimeout(() => {
+        setReplayParticipantIndex((prev) => prev + 1);
+      }, 2000);
+    } else {
+      // All participants shown, now show final leaderboard
+      setTimeout(() => {
+        setReplayMode(false);
+      }, 2000);
+    }
+  };
 
   if (loading) {
     return (
@@ -1281,26 +1361,81 @@ export default function PresentationPage() {
             </motion.div>
           )}
 
-          {status === 'ended' && (
+          {status === 'ended' && !replayMode && (
             <motion.div
               key="ended"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full flex justify-center"
+              className="w-full flex flex-col justify-center items-center gap-6"
             >
               <FinalLeaderboardView data={data} />
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                onClick={() => {
+                  setReplayMode(true);
+                  setReplayParticipantIndex(0);
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600/20 border border-cyan-500/40 hover:border-cyan-500/60 text-cyan-400 hover:text-cyan-300 text-sm font-semibold transition-all hover:bg-cyan-600/30"
+              >
+                {/* <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM15.93 10.93a3 3 0 10-4.24 4.24" />
+                </svg> */}
+                {t('replayAnimation')}
+              </motion.button>
+            </motion.div>
+          )}
+
+          {replayMode && status === 'ended' && (
+            <motion.div
+              key={`replay-${interludeParticipant?.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
+            >
+              {interludeParticipant && (
+                <InterludeReveal
+                  participant={{
+                    ...interludeParticipant,
+                    sequence:
+                      (data?.event?.participants_order ?? []).indexOf(
+                        interludeParticipant.id,
+                      ) + 1,
+                  }}
+                  ranked={interludeRanked}
+                  participantsOrder={data?.event?.participants_order ?? []}
+                  decimals={data?.event?.score_decimal_places ?? 0}
+                  onLeaderboardShown={handleReplayNext}
+                />
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {isHost && (status === 'active' || status === 'interlude') && (
-        <HostController
-          key="host-controller"
-          eventId={id}
-          status={status}
-          onRefresh={fetchData}
+      {isHost &&
+        (status === 'active' || status === 'interlude') &&
+        !replayMode && (
+          <HostController
+            key="host-controller"
+            eventId={id}
+            status={status}
+            onRefresh={fetchData}
+          />
+        )}
+
+      {replayMode && status === 'ended' && (
+        <ReplayController
+          key="replay-controller"
+          onNext={handleReplayNext}
+          replayIndex={replayParticipantIndex}
+          totalParticipants={
+            (data?.event?.participants_order?.length ?? 0) ||
+            (data?.ranked?.length ?? 0)
+          }
         />
       )}
     </div>
