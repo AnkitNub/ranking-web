@@ -3,10 +3,14 @@ import { supabaseAdmin as supabase } from '@/lib/apiAuth';
 
 export async function POST(req) {
   try {
-    const { event_code: raw_event_code, judge_password: raw_judge_password, name } = await req.json();
+    const {
+      event_code: raw_event_code,
+      judge_password: raw_judge_password,
+      name,
+    } = await req.json();
 
-    const event_code = raw_event_code?.trim()?.toUpperCase();
-    const judge_password = raw_judge_password?.trim()?.toUpperCase();
+    const event_code = raw_event_code?.trim();
+    const judge_password = raw_judge_password?.trim();
 
     if (!event_code || !judge_password || !name) {
       return new Response(
@@ -62,11 +66,14 @@ export async function POST(req) {
     const totalJudges = (assignedCount || 0) + (guestCount || 0);
     if (totalJudges >= (event.number_of_judges || 5)) {
       return new Response(
-        JSON.stringify({ error: 'judgeLimitReached', limit: event.number_of_judges || 5 }),
+        JSON.stringify({
+          error: 'judgeLimitReached',
+          limit: event.number_of_judges || 5,
+        }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
-        }
+        },
       );
     }
 
@@ -101,14 +108,17 @@ export async function POST(req) {
       // Removed maxAge to make it a session cookie (expires when tab/browser closes)
     });
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      event_id: event.id,
-      guest_session: sessionData // Return for sessionStorage storage
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        event_id: event.id,
+        guest_session: sessionData, // Return for sessionStorage storage
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   } catch (error) {
     console.error('Guest login error:', error);
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
