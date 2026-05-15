@@ -104,6 +104,7 @@ export async function GET(_request, { params }) {
       current_judge_index: event.current_judge_index,
       judges_total: event.judges_order?.length ?? 0,
       score_decimal_places: event.score_decimal_places ?? 0,
+      participants_order: event.participants_order ?? [],
     },
     ranked,
     assignedJudgesCount,

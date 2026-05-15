@@ -317,7 +317,6 @@ function Top3Card({
               rank === 1 ? 'text-3xl lg:text-4xl' : 'text-2xl lg:text-3xl'
             }`}
           >
-            {entry.sequence ? `${entry.sequence}. ` : ''}
             {entry.name}
           </p>
         </div>
@@ -529,7 +528,6 @@ function RestListCard({
               isNew ? 'text-emerald-100' : 'text-zinc-200'
             } text-sm`}
           >
-            {entry.sequence ? `${entry.sequence}. ` : ''}
             {entry.name}
           </p>
         </div>
@@ -781,7 +779,6 @@ function InterludeReveal({
           {t('interlude')}
         </p>
         <h2 className="text-4xl md:text-5xl font-black mb-8 md:mb-12 text-emerald-400 text-center drop-shadow-md">
-          {participant.sequence ? `${participant.sequence}. ` : ''}
           {participant.name}
         </h2>
 
@@ -958,7 +955,6 @@ function LiveScoringView({ data }) {
           className="font-black tracking-tighter text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] mb-6 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] leading-tight"
           style={{ color: '#00e676' }}
         >
-          {currentIndex ? `${currentIndex}. ` : ''}
           {currentParticipant?.name ?? '—'}
         </h2>
 
