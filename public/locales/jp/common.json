@@ -152,7 +152,7 @@
     "loadingJudges": "審査員を読み込み中...",
     "noJudgesAssigned": "まだ審査員が割り当てられていません。",
     "deleteParticipant": "参加者を削除",
-    "deleteParticipantConfirm": "本当に <strong>{{name}}</strong> とそのすべてのスコアを削除しますか？この操作は元に戻せません。",
+    "deleteParticipantConfirm": "本当に {{name}} とそのすべてのスコアを削除しますか？この操作は元に戻せません。",
     "deletingDot": "削除中…",
     "addingDot": "追加中…",
     "addParticipant": "追加",
