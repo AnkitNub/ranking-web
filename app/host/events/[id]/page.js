@@ -339,6 +339,7 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
   const [participantToDelete, setParticipantToDelete] = useState(null);
+  const intervalRef = useRef(null);
 
   const fetchParticipants = useCallback(async () => {
     const res = await authFetch(`/api/events/${eventId}/participants`);
@@ -349,6 +350,8 @@ function ParticipantsTab({ eventId, canAddParticipants }) {
 
   useEffect(() => {
     fetchParticipants();
+    intervalRef.current = setInterval(fetchParticipants, 5000);
+    return () => clearInterval(intervalRef.current);
   }, [fetchParticipants]);
 
   async function handleAdd(e) {
@@ -505,6 +508,7 @@ function JudgesTab({ eventId, maxJudges = 5 }) {
   const [guestJudges, setGuestJudges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const intervalRef = useRef(null);
 
   const fetchData = useCallback(async () => {
     const res = await authFetch(`/api/events/${eventId}/judges`);
@@ -515,6 +519,8 @@ function JudgesTab({ eventId, maxJudges = 5 }) {
 
   useEffect(() => {
     fetchData();
+    intervalRef.current = setInterval(fetchData, 3000);
+    return () => clearInterval(intervalRef.current);
   }, [fetchData]);
 
   if (loading)

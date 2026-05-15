@@ -301,6 +301,7 @@ export default function JudgeScoringPage() {
   const [myScores, setMyScores] = useState({});
   const [pageLoading, setPageLoading] = useState(true);
   const { state: liveState } = useEventState(id);
+  const participantsIntervalRef = useRef(null);
 
   const fetchScores = useCallback(async () => {
     const res = await authFetch(`/api/events/${id}/scores`);
@@ -352,7 +353,9 @@ export default function JudgeScoringPage() {
     // are valid too. The server returns 403 if the requester isn't an
     // assigned judge for this event, in which case fetchData redirects.
     fetchData();
-  }, [loading, supabaseUser, fetchData, router]);
+    participantsIntervalRef.current = setInterval(fetchParticipants, 3000);
+    return () => clearInterval(participantsIntervalRef.current);
+  }, [loading, supabaseUser, fetchData, router, fetchParticipants]);
 
   // Refetch scores and participants whenever the live turn moves on, so a judge sees their own
   // recorded score reflected and any newly added participants are visible.
