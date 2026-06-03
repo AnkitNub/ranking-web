@@ -51,22 +51,24 @@ export async function POST(request) {
   if (!user)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  // Per-user daily rate limit.
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { count: recentCount } = await supabaseAdmin
-    .from('events')
-    .select('id', { count: 'exact', head: true })
-    .eq('admin_id', user.id)
-    .gte('created_at', since);
-  if ((recentCount ?? 0) >= DAILY_EVENT_CREATE_LIMIT) {
-    return NextResponse.json(
-      {
-        error: 'rate_limit',
-        message: 'eventCreateRateLimit',
-        limit: DAILY_EVENT_CREATE_LIMIT,
-      },
-      { status: 429 },
-    );
+  // Per-user daily rate limit (admins are exempt).
+  if (user.role !== 'admin') {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: recentCount } = await supabaseAdmin
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('admin_id', user.id)
+      .gte('created_at', since);
+    if ((recentCount ?? 0) >= DAILY_EVENT_CREATE_LIMIT) {
+      return NextResponse.json(
+        {
+          error: 'rate_limit',
+          message: 'eventCreateRateLimit',
+          limit: DAILY_EVENT_CREATE_LIMIT,
+        },
+        { status: 429 },
+      );
+    }
   }
 
   const { name, description, max_score, event_date, start_time, score_decimal_places, number_of_judges } =
