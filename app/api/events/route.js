@@ -31,9 +31,15 @@ export async function GET(request) {
   ]);
 
   if (hostedRes.error)
-    return NextResponse.json({ error: hostedRes.error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: hostedRes.error.message },
+      { status: 500 },
+    );
   if (judgingRes.error)
-    return NextResponse.json({ error: judgingRes.error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: judgingRes.error.message },
+      { status: 500 },
+    );
 
   const hosted = hostedRes.data ?? [];
   const judging = (judgingRes.data ?? []).map((d) => d.events).filter(Boolean);
@@ -71,8 +77,15 @@ export async function POST(request) {
     }
   }
 
-  const { name, description, max_score, event_date, start_time, score_decimal_places, number_of_judges } =
-    await request.json();
+  const {
+    name,
+    description,
+    max_score,
+    event_date,
+    start_time,
+    score_decimal_places,
+    number_of_judges,
+  } = await request.json();
   if (!name?.trim())
     return NextResponse.json({ error: 'Name is required' }, { status: 400 });
 
@@ -88,7 +101,8 @@ export async function POST(request) {
     );
 
   // Validate score_decimal_places: must be 0, 1, or 2
-  const decimalPlaces = score_decimal_places != null ? Number(score_decimal_places) : 0;
+  const decimalPlaces =
+    score_decimal_places != null ? Number(score_decimal_places) : 0;
   if (![0, 1, 2].includes(decimalPlaces))
     return NextResponse.json(
       { error: 'score_decimal_places must be 0, 1, or 2' },
