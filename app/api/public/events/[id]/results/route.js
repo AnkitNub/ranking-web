@@ -41,11 +41,11 @@ export async function GET(_request, { params }) {
         .eq('event_id', id),
       supabaseAdmin
         .from('event_judges')
-        .select('judge_id', { count: 'exact' })
+        .select('judge_id, users(created_at)', { count: 'exact' })
         .eq('event_id', id),
       supabaseAdmin
         .from('guest_judges')
-        .select('id, name')
+        .select('id, name, created_at')
         .eq('event_id', id),
     ]);
 
@@ -60,6 +60,26 @@ export async function GET(_request, { params }) {
   const regularJudgesCount = judgesRes.count ?? 0;
   const assignedJudgesCount = regularJudgesCount + guestJudges.length;
 
+  // Build maps of judge creation times to order the scores reveal
+  const regularJudges = judgesRes.data ?? [];
+  const regularJudgeCreatedAt = new Map();
+  regularJudges.forEach((rj) => {
+    if (rj.users?.created_at) {
+      regularJudgeCreatedAt.set(rj.judge_id, new Date(rj.users.created_at).getTime());
+    } else {
+      regularJudgeCreatedAt.set(rj.judge_id, 0);
+    }
+  });
+
+  const guestJudgeCreatedAt = new Map();
+  guestJudges.forEach((gj) => {
+    if (gj.created_at) {
+      guestJudgeCreatedAt.set(gj.id, new Date(gj.created_at).getTime());
+    } else {
+      guestJudgeCreatedAt.set(gj.id, 0);
+    }
+  });
+
   const precision = event.score_decimal_places ?? 0;
   const multiplier = Math.pow(10, precision);
 
@@ -70,14 +90,27 @@ export async function GET(_request, { params }) {
       const totalScore = Math.round(rawTotal * multiplier) / multiplier;
       const judgesScored = participantScores.length;
 
-      const detailedScores = participantScores.map((s) => ({
-        score: s.score,
-        judgeName:
-          s.judge?.name ||
-          (s.guest_judge_id != null
-            ? guestNameById.get(s.guest_judge_id) || 'Guest'
-            : 'Judge'),
-      }));
+      const detailedScores = participantScores.map((s) => {
+        let judgeCreatedAt = 0;
+        if (s.judge_id != null) {
+          judgeCreatedAt = regularJudgeCreatedAt.get(s.judge_id) ?? 0;
+        } else if (s.guest_judge_id != null) {
+          judgeCreatedAt = guestJudgeCreatedAt.get(s.guest_judge_id) ?? 0;
+        }
+
+        return {
+          score: s.score,
+          judgeName:
+            s.judge?.name ||
+            (s.guest_judge_id != null
+              ? guestNameById.get(s.guest_judge_id) || 'Guest'
+              : 'Judge'),
+          judgeCreatedAt,
+        };
+      });
+
+      // Sort scores by the judge's creation timestamp ascending
+      detailedScores.sort((a, b) => a.judgeCreatedAt - b.judgeCreatedAt);
 
       return {
         id: p.id,
