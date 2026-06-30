@@ -48,9 +48,9 @@ export async function POST(request, { params }) {
     .select('id', { count: 'exact', head: true })
     .eq('event_id', id);
 
-  if ((currentCount ?? 0) >= 10) {
+  if ((currentCount ?? 0) >= 15) {
     return NextResponse.json(
-      { error: 'participantLimitReached', message: 'Maximum 10 participants allowed' },
+      { error: 'participantLimitReached', message: 'Maximum 15 participants allowed' },
       { status: 400 },
     );
   }
