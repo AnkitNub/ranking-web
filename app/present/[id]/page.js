@@ -567,59 +567,29 @@ function LeaderboardSplit({
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
   return (
-    <div className="w-full max-w-7xl flex flex-col md:flex-row gap-8 lg:gap-12">
-      <div className="flex-1 flex flex-col gap-4 relative">
-        <div className="mb-2 shrink-0">
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-            {t('currentTop3')}
-          </h3>
-        </div>
-        <div className="flex flex-col w-full relative h-[450px]">
-          <AnimatePresence mode="popLayout">
-            {top3.map((entry, idx) => (
-              <Top3Card
-                key={entry.id}
-                entry={{
-                  ...entry,
-                  sequence: participantsOrder.indexOf(entry.id) + 1,
-                }}
-                rank={idx + 1}
-                movement={movementById[entry.id]}
-                isPlacementFocus={placementFocus?.id === entry.id}
-                isMuted={
-                  Boolean(placementFocus?.id) && placementFocus.id !== entry.id
-                }
-                placementSignal={placementFocus?.signal ?? 0}
-                isNew={highlightId === entry.id}
-                decimals={decimals}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      {rest.length > 0 ? (
-        <div className="flex-1 flex flex-col overflow-hidden max-h-full">
-          <div className="mb-4 mt-2 flex items-center justify-between shrink-0">
+    <div className="w-full max-w-7xl" style={{ height: 'calc(100vh - 180px)' }}>
+      <div className="flex flex-col md:flex-row gap-8 lg:gap-12 h-full">
+        {/* Left: Top 3 */}
+        <div className="md:w-[48%] flex flex-col h-full">
+          <div className="mb-2 shrink-0">
             <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
-              {t('otherRanks')}
+              {t('currentTop3')}
             </h3>
           </div>
-          <div className="flex-1 overflow-y-auto pr-2 flex flex-col relative w-full pt-1">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col">
             <AnimatePresence mode="popLayout">
-              {rest.map((entry, idx) => (
-                <RestListCard
+              {top3.map((entry, idx) => (
+                <Top3Card
                   key={entry.id}
                   entry={{
                     ...entry,
                     sequence: participantsOrder.indexOf(entry.id) + 1,
                   }}
-                  rank={idx + 4}
+                  rank={idx + 1}
                   movement={movementById[entry.id]}
                   isPlacementFocus={placementFocus?.id === entry.id}
                   isMuted={
-                    Boolean(placementFocus?.id) &&
-                    placementFocus.id !== entry.id
+                    Boolean(placementFocus?.id) && placementFocus.id !== entry.id
                   }
                   placementSignal={placementFocus?.signal ?? 0}
                   isNew={highlightId === entry.id}
@@ -629,11 +599,45 @@ function LeaderboardSplit({
             </AnimatePresence>
           </div>
         </div>
-      ) : (
-        <div className="flex-1 flex flex-col justify-center items-center opacity-50">
-          <p className="text-zinc-600 text-sm italic">{t('noMoreRanks')}</p>
-        </div>
-      )}
+
+        {/* Right: Ranks 4+ — independently scrollable */}
+        {rest.length > 0 ? (
+          <div className="md:flex-1 flex flex-col h-full">
+            <div className="mb-4 mt-2 flex items-center justify-between shrink-0">
+              <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                {t('otherRanks')}
+              </h3>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col pt-1">
+              <AnimatePresence mode="popLayout">
+                {rest.map((entry, idx) => (
+                  <RestListCard
+                    key={entry.id}
+                    entry={{
+                      ...entry,
+                      sequence: participantsOrder.indexOf(entry.id) + 1,
+                    }}
+                    rank={idx + 4}
+                    movement={movementById[entry.id]}
+                    isPlacementFocus={placementFocus?.id === entry.id}
+                    isMuted={
+                      Boolean(placementFocus?.id) &&
+                      placementFocus.id !== entry.id
+                    }
+                    placementSignal={placementFocus?.signal ?? 0}
+                    isNew={highlightId === entry.id}
+                    decimals={decimals}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col justify-center items-center opacity-50">
+            <p className="text-zinc-600 text-sm italic">{t('noMoreRanks')}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1022,8 +1026,8 @@ function FinalLeaderboardView({ data }) {
   return (
     <>
       {showConfetti && <Confetti />}
-      <div className="w-full max-w-7xl flex flex-col items-center gap-6">
-        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-[0.2em]">
+      <div className="w-full max-w-7xl flex flex-col items-center gap-4">
+        <div className="shrink-0 flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-[0.2em]">
           🏆 {t('allCompleted')}
         </div>
         <LeaderboardSplit
@@ -1299,8 +1303,8 @@ export default function PresentationPage() {
         </div>
       </div>
 
-      {/* Stage */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 py-6 relative z-0">
+      {/* Stage — overflow-hidden so only individual columns scroll */}
+      <div className="flex-1 overflow-hidden flex flex-col items-center px-4 pt-3 relative z-0">
         <AnimatePresence mode="wait">
           {status === 'not_started' && (
             <motion.div
@@ -1308,8 +1312,9 @@ export default function PresentationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="text-center"
+              className="w-full h-full flex items-center justify-center text-center"
             >
+            <div className="py-8">
               <div className="w-16 h-16 rounded-2xl bg-emerald-900/30 border border-emerald-700/40 flex items-center justify-center mx-auto mb-5 relative">
                 <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
                 <svg
@@ -1333,6 +1338,7 @@ export default function PresentationPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 {t('autoUpdating')}
               </p>
+            </div>
             </motion.div>
           )}
 
@@ -1342,7 +1348,7 @@ export default function PresentationPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full flex justify-center"
+              className="w-full h-full overflow-y-auto flex items-center justify-center py-6"
             >
               <LiveScoringView data={data} />
             </motion.div>
@@ -1354,7 +1360,7 @@ export default function PresentationPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full flex justify-center"
+              className="w-full h-full overflow-y-auto flex flex-col items-center py-6"
             >
               <InterludeReveal
                 participant={{
@@ -1377,7 +1383,7 @@ export default function PresentationPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full flex flex-col justify-center items-center gap-6"
+              className="w-full flex flex-col items-center gap-4"
             >
               <FinalLeaderboardView data={data} />
               <motion.button
@@ -1388,11 +1394,8 @@ export default function PresentationPage() {
                   setReplayMode(true);
                   setReplayParticipantIndex(0);
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600/20 border border-cyan-500/40 hover:border-cyan-500/60 text-cyan-400 hover:text-cyan-300 text-sm font-semibold transition-all hover:bg-cyan-600/30"
+                className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600/20 border border-cyan-500/40 hover:border-cyan-500/60 text-cyan-400 hover:text-cyan-300 text-sm font-semibold transition-all hover:bg-cyan-600/30"
               >
-                {/* <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM15.93 10.93a3 3 0 10-4.24 4.24" />
-                </svg> */}
                 {t('replayAnimation')}
               </motion.button>
             </motion.div>
@@ -1404,7 +1407,7 @@ export default function PresentationPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full flex justify-center"
+              className="w-full h-full overflow-y-auto flex flex-col items-center py-6"
             >
               {interludeParticipant && (
                 <InterludeReveal
