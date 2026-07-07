@@ -171,7 +171,22 @@ function ScoreCard({
                 max={max}
                 step={step}
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => {
+                  setValue(e.target.value);
+                  e.target.setCustomValidity('');
+                }}
+                onInvalid={(e) => {
+                  const input = e.target;
+                  if (input.validity.rangeOverflow) {
+                    input.setCustomValidity(t('valueMustBeLessThanOrEqual', { max }));
+                  } else if (input.validity.rangeUnderflow) {
+                    input.setCustomValidity(t('valueMustBeGreaterThanOrEqual', { min: 0 }));
+                  } else if (input.validity.stepMismatch) {
+                    input.setCustomValidity(t('scoreDecimalError', { places: dp }));
+                  } else {
+                    input.setCustomValidity('');
+                  }
+                }}
                 placeholder={`0 – ${max}`}
                 disabled={effectiveDisabled}
                 className="w-full rounded-xl border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 px-3 py-2 text-sm text-center font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition disabled:opacity-50 disabled:cursor-not-allowed"

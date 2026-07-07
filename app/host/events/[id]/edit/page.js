@@ -65,6 +65,7 @@ export default function EditEventPage() {
   function handleChange(e) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    e.target.setCustomValidity('');
   }
 
   async function handleSubmit(e) {
@@ -223,6 +224,16 @@ export default function EditEventPage() {
               value={formData.max_score}
               onChange={handleChange}
               min="1"
+              onInvalid={(e) => {
+                const input = e.target;
+                if (input.validity.rangeUnderflow) {
+                  input.setCustomValidity(t('valueMustBeGreaterThanOrEqual', { min: 1 }));
+                } else if (input.validity.stepMismatch) {
+                  input.setCustomValidity(t('valueMustBeInteger'));
+                } else {
+                  input.setCustomValidity('');
+                }
+              }}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               placeholder="10"
             />
@@ -238,6 +249,16 @@ export default function EditEventPage() {
               value={formData.turn_duration_seconds}
               onChange={handleChange}
               min="1"
+              onInvalid={(e) => {
+                const input = e.target;
+                if (input.validity.rangeUnderflow) {
+                  input.setCustomValidity(t('valueMustBeGreaterThanOrEqual', { min: 1 }));
+                } else if (input.validity.stepMismatch) {
+                  input.setCustomValidity(t('valueMustBeInteger'));
+                } else {
+                  input.setCustomValidity('');
+                }
+              }}
               className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               placeholder="60"
             />

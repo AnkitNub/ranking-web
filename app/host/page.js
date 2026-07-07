@@ -196,7 +196,22 @@ function CreateEventModal({ onClose, onCreate }) {
                 min={1}
                 step={1}
                 value={maxScore}
-                onChange={(e) => setMaxScore(e.target.value)}
+                onChange={(e) => {
+                  setMaxScore(e.target.value);
+                  e.target.setCustomValidity('');
+                }}
+                onInvalid={(e) => {
+                  const input = e.target;
+                  if (input.validity.rangeUnderflow) {
+                    input.setCustomValidity(t('valueMustBeGreaterThanOrEqual', { min: 1 }));
+                  } else if (input.validity.stepMismatch) {
+                    input.setCustomValidity(t('valueMustBeInteger'));
+                  } else if (input.validity.valueMissing) {
+                    input.setCustomValidity(t('fieldRequired'));
+                  } else {
+                    input.setCustomValidity('');
+                  }
+                }}
                 placeholder="10"
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />
@@ -231,7 +246,22 @@ function CreateEventModal({ onClose, onCreate }) {
                 min={1}
                 max={10}
                 value={numberOfJudges}
-                onChange={(e) => setNumberOfJudges(e.target.value)}
+                onChange={(e) => {
+                  setNumberOfJudges(e.target.value);
+                  e.target.setCustomValidity('');
+                }}
+                onInvalid={(e) => {
+                  const input = e.target;
+                  if (input.validity.rangeUnderflow) {
+                    input.setCustomValidity(t('valueMustBeGreaterThanOrEqual', { min: 1 }));
+                  } else if (input.validity.rangeOverflow) {
+                    input.setCustomValidity(t('valueMustBeLessThanOrEqual', { max: 10 }));
+                  } else if (input.validity.valueMissing) {
+                    input.setCustomValidity(t('fieldRequired'));
+                  } else {
+                    input.setCustomValidity('');
+                  }
+                }}
                 placeholder="5"
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 focus:border-teal-300 transition"
               />

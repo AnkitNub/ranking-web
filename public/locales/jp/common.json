@@ -306,6 +306,10 @@
     "judgeSlotsLabel": "審査員枠",
     "judgeSlotsHelp": "{{limit}}人中{{current}}人の審査員が参加済み",
     "copyBoth": "両方コピー",
-    "copyBothFormat": "イベントコード: {{eventCode}}  | ジャッジ用パスワード: {{judgePassword}}"
+    "copyBothFormat": "イベントコード: {{eventCode}}  | ジャッジ用パスワード: {{judgePassword}}",
+    "valueMustBeLessThanOrEqual": "値は{{max}}以下にしてください。",
+    "valueMustBeGreaterThanOrEqual": "値は{{min}}以上にしてください。",
+    "valueMustBeInteger": "値は整数にしてください。",
+    "fieldRequired": "このフィールドは必須です。"
   }
 }
